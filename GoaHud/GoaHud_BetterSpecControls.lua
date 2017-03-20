@@ -1,0 +1,159 @@
+-- GoaHud_BetterSpecControls made by GoaLitiuM
+-- 
+-- Control spectator camera with attack, jump and crouch keys (no rebinding required)
+--
+
+require "base/internal/ui/reflexcore"
+
+GoaHud_BetterSpecControls =
+{
+	canHide = false,
+	canPosition = false,
+	enabled = true,
+	
+	options = 
+	{
+		binds =
+		{
+			["attack"] = "cl_camera_next_player",
+			["jump"] = "cl_camera_prev_player",
+			["crouch"] = "cl_camera_freecam",
+			["forward"] = "",
+			["back"] = "",
+			["left"] = "",
+			["right"] = "",
+		},
+	},
+	
+	lastPlayer = -1,
+	lastFollowedPlayer = -1,
+	lastButtons,
+};
+GoaHud:registerWidget("GoaHud_BetterSpecControls", GOAHUD_MODULE)
+
+local BIND_NAMES = { "Attack", "Jump", "Crouch", "Forward", "Back", "Strafe Left", "Strafe Right" }
+local BIND_VALUES = { "attack", "jump", "crouch", "forward", "back", "left", "right" }
+
+function GoaHud_BetterSpecControls:init()
+	self.lastButtons = {}
+end
+
+local comboBoxData1 = {}
+local comboBoxData2 = {}
+local comboBoxData3 = {}
+function GoaHud_BetterSpecControls:drawOptionsVariable(varname, x, y, optargs)
+	if (varname == "binds") then
+		local offset_y = 150
+
+		local camera_next = ""
+		local camera_prev = ""
+		local camera_free = ""
+		
+		for i, bind in pairs(self.options.binds) do
+			if (bind == "cl_camera_next_player") then camera_next = i
+			elseif (bind == "cl_camera_prev_player") then camera_prev = i
+			elseif (bind == "cl_camera_freecam") then camera_free = i end
+		end
+		
+		-- bindable values to human readable names
+		for i, value in pairs(BIND_VALUES) do
+			if (camera_next == value) then camera_next = BIND_NAMES[i] end
+			if (camera_prev == value) then camera_prev = BIND_NAMES[i] end
+			if (camera_free == value) then camera_free = BIND_NAMES[i] end
+		end
+		
+		ui2Label("Hooks actions to camera controls", x, y, optargs)
+
+		ui2Label("Free Camera: ", x, y + offset_y, optargs)
+		camera_free = ui2ComboBox(BIND_NAMES, camera_free, x + 175, y + offset_y, 150, comboBoxData1, optargs)
+		offset_y = offset_y - 50
+		optargs.optionalId = optargs.optionalId + 1
+		
+		ui2Label("Camera Previous: ", x, y + offset_y, optargs)
+		camera_prev = ui2ComboBox(BIND_NAMES, camera_prev, x + 175, y + offset_y, 150, comboBoxData2, optargs)
+		offset_y = offset_y - 50
+		optargs.optionalId = optargs.optionalId + 1
+		
+		ui2Label("Camera Next: ", x, y + offset_y, optargs)
+		camera_next = ui2ComboBox(BIND_NAMES, camera_next, x + 175, y + offset_y, 150, comboBoxData3, optargs)
+		optargs.optionalId = optargs.optionalId + 1
+		
+		local old_free = camera_free
+		for i, name in pairs(BIND_NAMES) do
+			if (camera_next == name) then camera_next = BIND_VALUES[i] end
+			if (camera_prev == name) then camera_prev = BIND_VALUES[i] end
+			if (camera_free == name) then camera_free = BIND_VALUES[i] end
+		end
+
+		for k, v in pairs(self.options.binds) do
+			local value = ""
+			if (k == camera_next) then value = "cl_camera_next_player" end
+			if (k == camera_prev) then value = "cl_camera_prev_player" end
+			if (k == camera_free) then value = "cl_camera_freecam" end
+
+			self.options.binds[k] = value
+		end
+
+		return 150
+	end
+	return nil
+end
+
+function GoaHud_BetterSpecControls:getHookedBind(command)
+	for i, k in pairs(self.options.binds) do
+		if (k == command) then
+			return "+" .. i
+		end
+	end
+	return ""
+end
+
+function GoaHud_BetterSpecControls:command(command)
+	if (command == "") then return end
+	local freecam = playerIndexCameraAttachedTo == playerIndexLocalPlayer
+
+	if (command == "cl_camera_freecam" and freecam and self.lastPlayer == playerIndexLocalPlayer) then
+		if (self.lastFollowedPlayer == -1) then
+			consolePerformCommand("cl_camera_next_player")
+		else
+			consolePerformCommand("cl_camera_player " .. self.lastFollowedPlayer - 1)
+		end
+	elseif (not freecam) then
+		self.lastFollowedPlayer = playerIndexCameraAttachedTo
+		consolePerformCommand(command)
+	end
+end
+
+function GoaHud_BetterSpecControls:draw()
+	if (not self.enabled or not GoaHud.enabled) then return end
+		
+	local local_player = getLocalPlayer()
+	if (local_player == nil) then return end
+
+	local buttons = local_player.buttons
+
+	if (buttons.attack and self.lastButtons.attack ~= buttons.attack) then
+		self:command(self.options.binds["attack"])
+	end
+	if (buttons.jump and self.lastButtons.jump ~= buttons.jump) then
+		self:command(self.options.binds["jump"])
+	end
+	if (buttons.crouch and self.lastButtons.crouch ~= buttons.crouch) then
+		self:command(self.options.binds["crouch"])
+	end
+	if (buttons.forward and self.lastButtons.forward ~= buttons.forward) then
+		self:command(self.options.binds["forward"])
+	end
+	if (buttons.back and self.lastButtons.back ~= buttons.back) then
+		self:command(self.options.binds["back"])
+	end
+	if (buttons.left and self.lastButtons.left ~= buttons.left) then
+		self:command(self.options.binds["left"])
+	end
+	if (buttons.right and self.lastButtons.right ~= buttons.right) then
+		self:command(self.options.binds["right"])
+	end
+	
+	self.lastButtons = buttons
+	self.lastPlayer = playerIndexCameraAttachedTo
+end
