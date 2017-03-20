@@ -138,7 +138,8 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "useDefault", x + offset_x + 215, y + offset_y,
 		merge(optargs, { enabled = weapon ~= self.options.crosshairDefault }))
 	
-	if (weapon.useDefault) then
+	optargs.enabled = true
+	if (weapon.useDefault and weapon ~= self.options.crosshairDefault) then
 		optargs.enabled = false
 	end
 
