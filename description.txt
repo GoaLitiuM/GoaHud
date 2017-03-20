@@ -1,0 +1,20 @@
+Note: GoaHud must be enabled by checking "Enable GoaHud" checkbox from Widgets - GoaHud
+
+- Smoothly animated health, armor, ammo numbers and weapon crosshairs
+- Customizable per-weapon crosshairs
+- Zoom (bind key ui_goahud_zoom 1)
+- Q3 style fragged messages
+- Improved spectator controls (attack and jump switches player, crouch toggles freecam)
+- Custom WeaponRack, Timer and RaceTimer
+
+Experimental addons not enabled by default:
+- Grenade timer
+- Lag timer/visualizer
+
+Animated health and armor numbers:
+[img]http://i.imgur.com/Uy06uxr.gif[/img]
+
+Ammo popup and crosshair transitions:
+[img]http://i.imgur.com/6QVmZKZ.gif[/img]
+
+GitHub: https://github.com/GoaLitiuM/GoaHud

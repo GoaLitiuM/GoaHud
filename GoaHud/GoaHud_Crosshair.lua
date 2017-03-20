@@ -228,7 +228,8 @@ function GoaHud_Crosshair:drawCrosshair(weapon, x, y, intensity)
 	
 	if (crosshair_settings.useDefault) then crosshair_settings = self.options.crosshairDefault end
 	
-	local crosshair_template = self.crosshairs[crosshair_settings.crosshair]
+	local crosshair_index = math.min(self.crosshairCount, crosshair_settings.crosshair)
+	local crosshair_template = self.crosshairs[crosshair_index]
 	local crosshair_scale = 1.0 - intensity
 	local final_color = clone(crosshair_settings.crosshairColor)
 	final_color.a = final_color.a * (1.0 - intensity)

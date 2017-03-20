@@ -422,6 +422,9 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 			new_value = round(new_value * 100) / 100.0
 		end
 		
+		new_value = math.min(max_value, new_value)
+		new_value = math.max(min_value, new_value)
+		
 		if (not show_editbox) then
 			GoaLabel(new_value, x + offset_x + 90 + 220, y + offset_y, optargs)
 		end
