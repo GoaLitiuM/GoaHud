@@ -77,7 +77,7 @@ function GoaHud_Zoom:tick()
 	end
 
 	if (isInMenu() and self.held) then
-		self.lastZoomState = 0
+		self.lastZoomState = -1
 		GoaHud:setConsoleVariable("zoom", 0)
 		consolePerformCommand("-showscores")
 	end
