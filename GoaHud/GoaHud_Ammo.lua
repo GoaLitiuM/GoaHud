@@ -80,8 +80,16 @@ end
 
 function GoaHud_Ammo:tick()
 	local player = getPlayer()
-	local weapon = player.weaponIndexweaponChangingTo
-	local ammo = player.weapons[weapon].ammo
+	local weapon
+	local ammo
+	
+	if (player ~= nil) then
+		weapon = player.weaponIndexweaponChangingTo
+		ammo = player.weapons[weapon].ammo
+	else
+		weapon = 2
+		ammo = 25
+	end
 
 	if (ammo ~= self.lastAmmo or weapon ~= self.lastWeapon) then
 		if (self.state == AMMO_STATE_SHOWING) then
