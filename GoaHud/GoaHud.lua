@@ -493,6 +493,11 @@ function GoaEditBox4Decimals(value, x, y, w, optargs)
 	return ui2EditBox4Decimals(value, x, y, w, optargs)
 end
 
+function GoaComboBox(options, selection, x, y, w, comboBoxData, optargs)
+	if (popupActive) then return value end
+	return ui2ComboBox(options, selection, x, y, w, comboBoxData, optargs)
+end
+
 local colorPickerStates = {}
 local colorPickerPopups = {}
 function GoaColorPicker(x, y, color, optargs)

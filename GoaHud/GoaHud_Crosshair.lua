@@ -101,7 +101,7 @@ function GoaHud_Crosshair:drawOptionsVariable(varname, x, y, optargs)
 			offset_y = offset_y + self:drawOptionsCrosshair(self.options.weaponCrosshairs[selectedCrosshairIndex - 1], x, y + offset_y, optargs)
 		end
 		
-		local selection_name = ui2ComboBox(weapons, weapons[selectedCrosshairIndex], x, y + 40, 215, comboBoxData, optargs)
+		local selection_name = GoaComboBox(weapons, weapons[selectedCrosshairIndex], x, y + 40, 215, comboBoxData, optargs)
 		for i, weapon in ipairs(weapons) do
 			if (weapon == selection_name) then
 				selectedCrosshairIndex = i
