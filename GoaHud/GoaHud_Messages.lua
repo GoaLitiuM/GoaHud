@@ -54,6 +54,7 @@ GoaHud_Messages =
 	
 	bindTimer = 1.0,
 	followText = "",
+	followTextFreecam = "",
 	lastSec = -1,
 	timer = 0.0,
 };
@@ -168,7 +169,9 @@ function GoaHud_Messages:draw()
 		local camera_prev_key = bindReverseLookup(camera_prev_command, "game")
 		local camera_free_key = bindReverseLookup(camera_free_command, "game")
 		
-		self.follow_text = string.format("[%s] Next, [%s] Previous, [%s] Freecam", string.upper(camera_next_key), string.upper(camera_prev_key), string.upper(camera_free_key))
+		self.followText = string.format("[%s] Next, [%s] Previous, [%s] Freecam", string.upper(camera_next_key), string.upper(camera_prev_key), string.upper(camera_free_key))
+		self.followTextFreecam = string.format("[%s] or [%s] Follow Players", string.upper(camera_next_key), string.upper(camera_free_key))
+		
 		self.bindTimer = 0.0
 	end
 	
@@ -230,20 +233,35 @@ function GoaHud_Messages:draw()
 	end
 	
 	-- spectator text
-	if (playerIndexCameraAttachedTo ~= playerIndexLocalPlayer) then
-		local bottom_y = viewport.height/2 * 0.7 - 100		
-		GoaHud:drawTextHA(0, bottom_y, 40, Color(255,255,255,255), self.options.shadow, getPlayer().name)
+	local local_player = getLocalPlayer()
+	local player = getPlayer()
+	if (local_player.state == PLAYER_STATE_SPECTATOR or 
+		local_player.state == PLAYER_STATE_QUEUED or 
+		playerIndexCameraAttachedTo ~= playerIndexLocalPlayer) then
+		
+		local bottom_y = viewport.height/2 * 0.7 - 100
+		local freecam = local_player.index == player.index
+		
+		if (not freecam) then
+			GoaHud:drawTextHA(0, bottom_y, 40, Color(255,255,255,255), self.options.shadow, player.name)
+		end
 		
 		if (self.options.showSpectatorControls) then
 			local spec_y = round(bottom_y)+25
+			local follow_text
+			if (not freecam) then
+				follow_text = self.followText
+			else
+				follow_text = self.followTextFreecam
+			end
 			
 			nvgFontSize(24)
 			nvgFontFace(GOAHUD_FONT4)
 			
-			GoaHud:drawTextShadow(0, spec_y, self.options.shadow, self.follow_text)
+			GoaHud:drawTextShadow(0, spec_y, self.options.shadow, follow_text)
 
 			nvgFillColor(Color(255,255,255,196))
-			nvgText(0, spec_y, self.follow_text)
+			nvgText(0, spec_y, follow_text)
 		end
 	end
 	
