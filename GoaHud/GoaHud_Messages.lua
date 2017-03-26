@@ -170,7 +170,14 @@ function GoaHud_Messages:draw()
 		local camera_free_key = bindReverseLookup(camera_free_command, "game")
 		
 		self.followText = string.format("[%s] Next, [%s] Previous, [%s] Freecam", string.upper(camera_next_key), string.upper(camera_prev_key), string.upper(camera_free_key))
-		self.followTextFreecam = string.format("[%s] or [%s] Follow Players", string.upper(camera_next_key), string.upper(camera_free_key))
+		
+		if (camera_next_command == "+attack") then
+			self.followTextFreecam = string.format("[%s] or [%s] Follow Players", string.upper(camera_next_key), string.upper(camera_free_key))
+		elseif (camera_prev_command == "+attack") then
+			self.followTextFreecam = string.format("[%s] or [%s] Follow Players", string.upper(camera_prev_key), string.upper(camera_free_key))
+		else
+			self.followTextFreecam = string.format("[%s] Follow Players", string.upper(camera_free_key))
+		end
 		
 		self.bindTimer = 0.0
 	end

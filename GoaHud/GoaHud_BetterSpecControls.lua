@@ -108,15 +108,19 @@ function GoaHud_BetterSpecControls:getHookedBind(command)
 	return ""
 end
 
-function GoaHud_BetterSpecControls:command(command)
+function GoaHud_BetterSpecControls:command(action, command)
 	if (command == "") then return end
 	local freecam = playerIndexCameraAttachedTo == playerIndexLocalPlayer
 
-	if (command == "cl_camera_freecam" and freecam and self.lastPlayer == playerIndexLocalPlayer) then
-		if (self.lastFollowedPlayer == -1) then
-			consolePerformCommand("cl_camera_next_player")
-		else
-			consolePerformCommand("cl_camera_player " .. self.lastFollowedPlayer - 1)
+	if (freecam) then
+		if (command == "cl_camera_freecam" and self.lastPlayer == playerIndexLocalPlayer) then
+			if (self.lastFollowedPlayer == -1) then
+				consolePerformCommand("cl_camera_next_player")
+			else
+				consolePerformCommand("cl_camera_player " .. self.lastFollowedPlayer - 1)
+			end
+		elseif (action == "attack") then
+			consolePerformCommand(command)
 		end
 	elseif (not freecam) then
 		self.lastFollowedPlayer = playerIndexCameraAttachedTo
@@ -133,25 +137,25 @@ function GoaHud_BetterSpecControls:draw()
 	local buttons = local_player.buttons
 
 	if (buttons.attack and self.lastButtons.attack ~= buttons.attack) then
-		self:command(self.options.binds["attack"])
+		self:command("attack", self.options.binds["attack"])
 	end
 	if (buttons.jump and self.lastButtons.jump ~= buttons.jump) then
-		self:command(self.options.binds["jump"])
+		self:command("jump", self.options.binds["jump"])
 	end
 	if (buttons.crouch and self.lastButtons.crouch ~= buttons.crouch) then
-		self:command(self.options.binds["crouch"])
+		self:command("crouch", self.options.binds["crouch"])
 	end
 	if (buttons.forward and self.lastButtons.forward ~= buttons.forward) then
-		self:command(self.options.binds["forward"])
+		self:command("forward", self.options.binds["forward"])
 	end
 	if (buttons.back and self.lastButtons.back ~= buttons.back) then
-		self:command(self.options.binds["back"])
+		self:command("back", self.options.binds["back"])
 	end
 	if (buttons.left and self.lastButtons.left ~= buttons.left) then
-		self:command(self.options.binds["left"])
+		self:command("left", self.options.binds["left"])
 	end
 	if (buttons.right and self.lastButtons.right ~= buttons.right) then
-		self:command(self.options.binds["right"])
+		self:command("right", self.options.binds["right"])
 	end
 	
 	self.lastButtons = buttons
