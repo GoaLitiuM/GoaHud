@@ -50,10 +50,13 @@ GoaHud =
 	},
 		
 	goaWidgets = {},
+	
 	showOptions = true, -- debug
-	previewMode = false, -- Brandon's Hud Editor
 	dirtyConvars = false,
 	convarQueue = {},
+	
+	colorCodesSupported = false, -- Kimi's EmojiChat
+	previewMode = false, -- Brandon's Hud Editor
 };
 registerWidget("GoaHud")
 
@@ -586,6 +589,8 @@ end
 function GoaHud:drawFirst()
 	self:processConVars()
 	
+	if (nvgColorText ~= nil) then self.colorCodesSupported = true end
+	
 	self.draw = self.drawReal
 end
 
@@ -614,36 +619,61 @@ end
 -- draw text style for health/armor
 --
 
-function GoaHud:drawTextStyleHA(size)
+function GoaHud:drawTextStyle1(size)
 	nvgFontSize(size)
 	nvgFontFace(GOAHUD_FONT1)
 end
 
-function GoaHud:drawTextHA(x, y, size, color, shadow, value)
+function GoaHud:drawText1(x, y, size, color, shadow, value, color_codes)
 	if (color.a == 0) then return end
+	local color_codes = color_codes or false
 
 	nvgSave()
-	GoaHud:drawTextStyleHA(size)
+	self:drawTextStyle1(size)
 
 	nvgTranslate(round(x), round(y))
 	
 	if (shadow.shadowEnabled) then
-		GoaHud:drawTextShadow(0, 0, shadow, value, color.a)
+		self:drawTextShadow(0, 0, shadow, value, color.a, color_codes)
 	end
 
 	nvgFillColor(color)
-	nvgText(0, 0, value)
+	
+	if (color_codes) then
+		if (self.colorCodesSupported) then
+			nvgColorText(0, 0, value)
+		else
+			nvgText(0, 0, string.gsub(value, "%^[0-9]", ""))
+		end
+	else
+		nvgText(0, 0, value)
+	end
+	
 	nvgRestore()
 end
 
-function GoaHud:drawTextShadow(x, y, shadow, value, alpha)
+function GoaHud:drawTextStyleHA(size)
+	self:drawTextStyle1(size)
+end
+
+function GoaHud:drawTextHA(x, y, size, color, shadow, value)
+	self:drawText1(x, y, size, color, shadow, value, color_codes)
+end
+
+function GoaHud:drawTextShadow(x, y, shadow, value, alpha, color_codes)
 	if (shadow == nil or shadow == {}) then return end
 	local alpha = alpha or 255
+	local color_codes = color_codes or false
 	
 	-- HACK: with transparent text, shadows will shine through the text...
 	-- halven the transparency to make it look better visually 
 	if (alpha < 255) then
 		alpha = alpha * 0.5
+	end
+	
+	-- strip color codes from the text, we don't want to color our shadows
+	if (color_codes) then
+		value = string.gsub(value, "%^[0-9]", "")
 	end
 	
 	nvgSave()
@@ -660,6 +690,7 @@ function GoaHud:drawTextShadow(x, y, shadow, value, alpha)
 		
 		nvgFillColor(Color(shadow.shadowColor.r, shadow.shadowColor.g, shadow.shadowColor.b, shadow.shadowColor.a * shadow_alpha))
 		nvgText(x + shadow_x, y + shadow_y, value)
+
 		shadow_left = shadow_left - shadow_alpha
 	end
 

@@ -250,7 +250,7 @@ function GoaHud_Messages:draw()
 		local freecam = local_player.index == player.index
 		
 		if (not freecam) then
-			GoaHud:drawTextHA(0, bottom_y, 40, Color(255,255,255,255), self.options.shadow, player.name)
+			GoaHud:drawText1(0, bottom_y, 40, Color(255,255,255,255), self.options.shadow, player.name, true)
 		end
 		
 		if (self.options.showSpectatorControls) then
@@ -335,7 +335,7 @@ function GoaHud_Messages:drawFragged(x, y, intensity)
 		local killer = "You"
 		local frag_message = string.format("%s fragged %s", killer, self.fragInfo.killed)
 
-		GoaHud:drawTextHA(x, y, 40, Color(255,255,255,alpha * 255), self.options.shadow, frag_message)
+		GoaHud:drawText1(x, y, 40, Color(255,255,255,alpha * 255), self.options.shadow, frag_message, true)
 		
 		if (self.options.fragStyle == FRAG_STYLE_Q3) then
 			local placement = tostring(self.fragInfo.placement)
@@ -349,14 +349,14 @@ function GoaHud_Messages:drawFragged(x, y, intensity)
 			local frag_extra_message = string.format(" place with %d", self.fragInfo.score)
 			local frag_extra_full = placement .. frag_extra_message
 			local size = 27
-			GoaHud:drawTextStyleHA(size)
+			GoaHud:drawTextStyle1(size)
 
 			local offset_x = 0			
 			local bounds_extra = nvgTextBounds(frag_extra_message)
 			local bounds_placement = nvgTextBounds(placement)
 
-			GoaHud:drawTextHA(x + offset_x + bounds_placement.maxx , y + size, size, Color(255,255,255,alpha * 255), self.options.shadow, frag_extra_message)
-			GoaHud:drawTextHA(x + offset_x - bounds_extra.maxx, y + size, size, placement_color, self.options.shadow, placement)
+			GoaHud:drawText1(x + offset_x + bounds_placement.maxx , y + size, size, Color(255,255,255,alpha * 255), self.options.shadow, frag_extra_message)
+			GoaHud:drawText1(x + offset_x - bounds_extra.maxx, y + size, size, placement_color, self.options.shadow, placement)
 		end
 	end
 end
