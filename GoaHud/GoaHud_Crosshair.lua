@@ -177,6 +177,7 @@ function GoaHud_Crosshair:draw()
 	
 	local weapon = player.weaponIndexweaponChangingTo
 	if (player.infoHidden) then weapon = self.lastWeapon end
+	if (player.isDead) then return end
 	
 	local weapon_show = weapon
 
