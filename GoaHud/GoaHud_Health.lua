@@ -11,8 +11,11 @@ GoaHud_Health =
 	anchor = { x = 0, y = 1 },
 	
 	tickTimer = 0.0,
-	playerHealth = 0,
+	playerHealth = -1,
 	fontSize = 120,
+	
+	deadTimer = 0.0,
+	deadFadeTime = 1.0,
 	
 	options = 
 	{
@@ -88,8 +91,15 @@ function GoaHud_Health:draw()
 	end
 	
 	local player = getPlayer()
-	local health = player.health
+	local health = math.max(0, player.health)
 	local armor = player.armor
+	
+	if (self.playerHealth ~= health and health <= 0) then
+		self.deadTimer = self.deadFadeTime
+	end
+	if (self.deadTimer > 0.0) then
+		self.deadTimer = self.deadTimer - deltaTimeRaw
+	end
 
 	if (self.options.tickInterval > 0) then
 		self.tickTimer = self.tickTimer + deltaTimeRaw
@@ -114,10 +124,14 @@ function GoaHud_Health:draw()
 	local health_str, health_color
 	if (not player.infoHidden) then
 		health_str = tostring(self.playerHealth)
-		health_color = GoaHud_Health:getHealthColor(health, armor, player.armorProtection, player.hasMega)
+		health_color = clone(GoaHud_Health:getHealthColor(health, armor, player.armorProtection, player.hasMega))
 	else
 		health_str = "?"
-		health_color = self.options.healthColorNormal
+		health_color = clone(self.options.healthColorNormal)
+	end
+
+	if (health <= 0 and not player.infoHidden) then
+		health_color.a = self.deadTimer / self.deadFadeTime * health_color.a
 	end
 
 	nvgTextAlign(NVG_ALIGN_RIGHT, NVG_ALIGN_BASELINE)
