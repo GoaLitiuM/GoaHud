@@ -170,12 +170,14 @@ function GoaHud_Crosshair:drawPreview(x, y, intensity)
 end
 
 function GoaHud_Crosshair:draw()
-	if (not shouldShowHUD()) then return end
+	if (not shouldShowHUD(optargs_deadspec)) then return end
 	
 	local player = getPlayer()
 	if (not player) then return end -- quick hack fix
 	
 	local weapon = player.weaponIndexweaponChangingTo
+	if (player.infoHidden) then weapon = self.lastWeapon end
+	
 	local weapon_show = weapon
 
 	if (self.options.smoothTransitions and self.options.fadeTime > 0.0) then

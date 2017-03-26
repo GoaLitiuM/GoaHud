@@ -83,20 +83,22 @@ end
 
 function GoaHud_Health:draw()
 	if (not GoaHud.previewMode) then
-		if (not shouldShowHUD()) then return end
+		if (not shouldShowHUD(optargs_deadspec)) then return end
 		if (self.options.hideInRace and isRaceMode()) then return end
 	end
 	
 	local player = getPlayer()
+	local health = player.health
+	local armor = player.armor
 
 	if (self.options.tickInterval > 0) then
 		self.tickTimer = self.tickTimer + deltaTimeRaw
 		while (self.tickTimer >= self.options.tickInterval) do
 			self.tickTimer = self.tickTimer - self.options.tickInterval
 
-			if (player.health > self.playerHealth) then
+			if (health > self.playerHealth) then
 				self.playerHealth = self.playerHealth + 1
-			elseif (player.health < self.playerHealth) then
+			elseif (health < self.playerHealth) then
 				self.playerHealth = self.playerHealth - 1
 			end
 			
@@ -104,14 +106,20 @@ function GoaHud_Health:draw()
 		end
 		
 		-- catch up faster if difference is too large
-		if (math.abs(player.health - self.playerHealth) >= 10) then self.tickTimer = self.tickTimer + (self.options.tickInterval * 3) end
+		if (math.abs(health - self.playerHealth) >= 10) then self.tickTimer = self.tickTimer + (self.options.tickInterval * 3) end
 	else
-		self.playerHealth = player.health
+		self.playerHealth = health
 	end
 	
-	local health_str = tostring(self.playerHealth)
-	local health_color = GoaHud_Health:getHealthColor(player.health, player.armor, player.armorProtection, player.hasMega)
-	
+	local health_str, health_color
+	if (not player.infoHidden) then
+		health_str = tostring(self.playerHealth)
+		health_color = GoaHud_Health:getHealthColor(health, armor, player.armorProtection, player.hasMega)
+	else
+		health_str = "?"
+		health_color = self.options.healthColorNormal
+	end
+
 	nvgTextAlign(NVG_ALIGN_RIGHT, NVG_ALIGN_BASELINE)
 	GoaHud:drawTextHA(0, 0, self.fontSize, health_color, self.options.shadow, health_str)
 end

@@ -67,20 +67,22 @@ end
 
 function GoaHud_Armor:draw()
 	if (not GoaHud.previewMode) then
-		if (not shouldShowHUD()) then return end
+		if (not shouldShowHUD(optargs_deadspec)) then return end
 		if (self.options.hideInRace and isRaceMode()) then return end
 	end
 	
 	local player = getPlayer()
+	local health = player.health
+	local armor = player.armor
 
 	if (self.options.tickInterval > 0) then
 		self.tickTimer = self.tickTimer + deltaTimeRaw
 		while (self.tickTimer >= self.options.tickInterval) do
 			self.tickTimer = self.tickTimer - self.options.tickInterval
 
-			if (player.armor > self.playerArmor) then
+			if (armor > self.playerArmor) then
 				self.playerArmor = self.playerArmor + 1
-			elseif (player.armor < self.playerArmor) then
+			elseif (armor < self.playerArmor) then
 				self.playerArmor = self.playerArmor - 1
 			end
 			
@@ -88,17 +90,21 @@ function GoaHud_Armor:draw()
 		end
 		
 		-- catch up faster if difference is too large
-		if (math.abs(player.armor - self.playerArmor) >= 10) then self.tickTimer = self.tickTimer + (self.options.tickInterval * 3) end
+		if (math.abs(armor - self.playerArmor) >= 10) then self.tickTimer = self.tickTimer + (self.options.tickInterval * 3) end
 	else
-		self.playerArmor = player.armor
+		self.playerArmor = armor
 	end
 	
-	local armor_str = tostring(self.playerArmor)
-	local armor_color = GoaHud_Armor:getArmorColor(player.health, player.armor, player.armorProtection)
+	local armor_str, armor_color
+	if (not player.infoHidden) then
+		armor_str = tostring(self.playerArmor)
+		armor_color = clone(GoaHud_Armor:getArmorColor(health, armor, player.armorProtection))
+		if (self.options.dimNoArmor and self.playerArmor == 0) then armor_color.a = 64 end
+	else
+		armor_str = "?"
+		armor_color = self.options.armorColorYellow
+	end
 
-	if (self.options.dimNoArmor and self.playerArmor == 0) then armor_color.a = 64
-	else armor_color.a = 255 end
-	
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_BASELINE)
 	GoaHud:drawTextHA(0, 0, self.fontSize, armor_color, self.options.shadow, armor_str)
 end

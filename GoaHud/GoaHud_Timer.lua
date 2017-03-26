@@ -72,7 +72,7 @@ function GoaHud_Timer:drawText(x, y, color, value)
 end
 
 function GoaHud_Timer:draw()
-	if (not shouldShowHUD()) then return end
+	if (not shouldShowHUD(optargs_deadspec)) then return end
 
 	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
 	local player = getPlayer()

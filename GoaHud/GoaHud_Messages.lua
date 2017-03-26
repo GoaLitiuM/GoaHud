@@ -135,7 +135,7 @@ function GoaHud_Messages:draw()
 	end
 	
 	if (GoaHud_Zoom == nil or not GoaHud_Zoom.held) then
-		if (not shouldShowStatus()) then return end
+		if (not shouldShowHUD(optargs_deadspec)) then return end
 	end
 	
 	local local_player = getLocalPlayer()
@@ -230,7 +230,7 @@ function GoaHud_Messages:draw()
 	end
 	
 	-- spectator text
-	if (local_player.state == PLAYER_STATE_SPECTATOR and playerIndexCameraAttachedTo ~= playerIndexLocalPlayer) then
+	if (playerIndexCameraAttachedTo ~= playerIndexLocalPlayer) then
 		local bottom_y = viewport.height/2 * 0.7 - 100		
 		GoaHud:drawTextHA(0, bottom_y, 40, Color(255,255,255,255), self.options.shadow, getPlayer().name)
 		
