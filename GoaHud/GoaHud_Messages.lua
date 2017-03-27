@@ -14,21 +14,35 @@ local FRAG_STYLE_NAMES =
 	"Q3 Style",
 }
 
+local KILLER_STYLE_YOU = 1
+local KILLER_STYLE_NAME_ALWAYS = 2
+local KILLER_STYLE_NAME_SPECTATE = 3
+
+local KILLER_STYLE_NAMES =
+{
+	"\"You\"",
+	"Name",
+	"Name (Spectate Only)",
+}
+
 GoaHud_Messages =
 {
 	canPosition = false,
 	
 	options =
 	{
-		showSpectatorControls = true,
-		showFraggedMessage = true,
-		
-		gameModeShowTime = 10.0,
-		gameModeFadeTime = 1.5,
 		fragStyle = FRAG_STYLE_Q3,
+		killerNameStyle = KILLER_STYLE_NAME_SPECTATE,
 		fragShowTime = 2.0,
 		fragFadeTime = 0.15,
 		
+		showSpectatorControls = true,
+		showFraggedMessage = true,
+		showCountry = false,
+		
+		gameModeShowTime = 10.0,
+		gameModeFadeTime = 1.5,
+
 		shadow =
 		{
 			shadowEnabled = true,
@@ -38,13 +52,14 @@ GoaHud_Messages =
 			shadowStrength = 1,
 		},
 	},
-	optionsDisplayOrder = { "fragStyle", "fragShowTime", "fragFadeTime", "showSpectatorControls", "showFraggedMessage", "gameModeShowTime", "gameModeFadeTime", "shadow" },
+	optionsDisplayOrder = { "fragStyle", "killerNameStyle", "fragShowTime", "fragFadeTime", "", "showSpectatorControls", "showFraggedMessage", "showCountry", "", "gameModeShowTime", "gameModeFadeTime", "", "shadow" },
 	
 	lastReady = {},
 	readyList = { { "nobody", true, 0} },
 	fragInfo =
 	{
-		killed = "nobody",
+		killer = "nobody",
+		killed = { name = "nobody", country = "bot"},
 		time = -99999,
 		placement = 1,
 		score = 13,
@@ -72,9 +87,20 @@ function GoaHud_Messages:drawPreview(x, y, intensity)
 	local cycle_time = self.options.fragShowTime + self.options.fragFadeTime + 0.5
 	preview_timer = preview_timer + deltaTimeRaw
 	if (preview_timer >= cycle_time) then
+		local killer_name = "nobody"
+		local killer_country = "bot"
+		local killer_index = -1
+		local player = getLocalPlayer()
+		if (player ~= nil) then
+			killer_name = player.name
+			killer_country = player.country
+			killer_index = player.index
+		end
+		
 		self.fragInfo =
 		{
-			killed = "Goa",
+			killer = { name = killer_name, country = killer_country, index = killer_index },
+			killed = { name = "Goa", country = "fi", killer_index + 9999},
 			score = math.random(1, 50),
 			placement = math.random(1, 4),
 			time = self.timer,
@@ -82,13 +108,14 @@ function GoaHud_Messages:drawPreview(x, y, intensity)
 		preview_timer = 0.0
 	end
 
-	self:drawFragged(x + 20, y + 120, intensity)
+	self:drawFragged(x + 100, y + 120, intensity)
 	
 	nvgRestore()
 	return 180
 end
 
-local comboBoxData = {}
+local comboBoxData1 = {}
+local comboBoxData2 = {}
 function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "fragStyle") then
 		local offset_y = 0
@@ -97,7 +124,7 @@ function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 		frag_style = FRAG_STYLE_NAMES[frag_style]
 		
 		ui2Label("Frag Style: ", x, y + offset_y, optargs)
-		frag_style = ui2ComboBox(FRAG_STYLE_NAMES, frag_style, x + 175, y + offset_y, 150, comboBoxData, optargs)
+		frag_style = GoaComboBox(FRAG_STYLE_NAMES, frag_style, x + 175, y + offset_y, 250, comboBoxData1, optargs)
 		offset_y = offset_y - 50
 		optargs.optionalId = optargs.optionalId + 1
 
@@ -107,7 +134,25 @@ function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 		
 		self.options.fragStyle = frag_style
 
-		return 80
+		return 50
+	elseif (varname == "killerNameStyle") then
+		local offset_y = 0
+
+		local killer_style = self.options.killerNameStyle
+		killer_style = KILLER_STYLE_NAMES[killer_style]
+		
+		ui2Label("Killer Name: ", x, y + offset_y, optargs)
+		killer_style = GoaComboBox(KILLER_STYLE_NAMES, killer_style, x + 175, y + offset_y, 250, comboBoxData2, optargs)
+		offset_y = offset_y - 50
+		optargs.optionalId = optargs.optionalId + 1
+
+		for i, name in pairs(KILLER_STYLE_NAMES) do
+			if (killer_style == name) then killer_style = i end
+		end
+		
+		self.options.killerNameStyle = killer_style
+
+		return 50
 	elseif (varname == "fragFadeTime") then
 		local optargs = clone(optargs)
 		optargs.milliseconds = true
@@ -123,7 +168,7 @@ local last_id = -1
 function GoaHud_Messages:draw()
 	if (world == nil) then return end
 	self.timer = self.timer + deltaTimeRaw
-	
+
 	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
 	
 	-- countdown ticking sound
@@ -248,9 +293,33 @@ function GoaHud_Messages:draw()
 		
 		local bottom_y = viewport.height/2 * 0.7 - 100
 		local freecam = local_player.index == player.index
+		local name_font_size = 40
 		
 		if (not freecam) then
-			GoaHud:drawText1(0, bottom_y, 40, Color(255,255,255,255), self.options.shadow, player.name, true)
+			local offset_x = 0
+			if (self.options.showCountry) then	
+				nvgSave()
+				
+				GoaHud:drawTextStyle1(name_font_size)
+				local name_width = nvgTextWidth(player.name)
+				
+				local flag_svg = "internal/ui/icons/flags/" .. player.country
+				local flag_size = name_font_size * 0.5
+				local flag_offset = 8
+				offset_x = offset_x + flag_size + flag_offset/2
+				
+				if (self.options.shadow.shadowEnabled) then
+					nvgFillColor(Color(0,0,0,255))
+					nvgSvg(flag_svg, -name_width/2 - flag_offset/2 + self.options.shadow.shadowOffset, bottom_y - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
+				end
+				
+				nvgFillColor(Color(255,255,255,255))
+				nvgSvg(flag_svg, -name_width/2 - flag_offset/2, bottom_y - flag_size/2, flag_size)
+				
+				nvgRestore()
+			end
+			
+			GoaHud:drawText1(offset_x, bottom_y, name_font_size, Color(255,255,255,255), self.options.shadow, player.name, true)
 		end
 		
 		if (self.options.showSpectatorControls) then
@@ -289,22 +358,24 @@ function GoaHud_Messages:draw()
 						local players_sorted = {}
 						for i, p in ipairs(players) do
 							if (p.connected) then
-								table.insert(players_sorted, {name = p.name, score = p.score})
+								table.insert(players_sorted, p)
 							end
 						end
 						table.sort(players_sorted, sortByScore)
 						
 						local placement = -1
+						local killed = nil
 						for i, p in ipairs(players_sorted) do
 							if (p.name == player.name) then
 								placement = i
-								break
 							end
+							if (p.name == entry.deathKilled) then killed = p end
 						end
-
+	
 						self.fragInfo =
 						{
-							killed = entry.deathKilled,
+							killer = player,
+							killed = killed,
 							score = player.score,
 							placement = placement,
 							time = self.timer,
@@ -321,8 +392,6 @@ end
 function GoaHud_Messages:drawFragged(x, y, intensity)
 	local fragEndTime = self.fragInfo.time + self.options.fragShowTime + self.options.fragFadeTime
 	if (self.timer <= fragEndTime) then
-		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
-		
 		local alpha
 		if (self.options.fragFadeTime > 0.0) then
 			alpha = math.min(self.options.fragFadeTime, fragEndTime - self.timer) / self.options.fragFadeTime
@@ -332,11 +401,95 @@ function GoaHud_Messages:drawFragged(x, y, intensity)
 		
 		alpha = alpha * intensity
 		
+		local title_font_size = 40
+		local is_local_killer = true
 		local killer = "You"
-		local frag_message = string.format("%s fragged %s", killer, self.fragInfo.killed)
-
-		GoaHud:drawText1(x, y, 40, Color(255,255,255,alpha * 255), self.options.shadow, frag_message, true)
+		local message = "fragged"
+		local killed = self.fragInfo.killed.name
 		
+		if (self.options.killerNameStyle == KILLER_STYLE_NAME_ALWAYS) then
+			killer = self.fragInfo.killer.name
+			is_local_killer = false
+		elseif (self.options.killerNameStyle == KILLER_STYLE_NAME_SPECTATE) then
+			local local_player = getLocalPlayer()
+			if (local_player.index ~= self.fragInfo.killer.index) then
+				killer = self.fragInfo.killer.name
+				is_local_killer = false
+			end
+		end
+
+		nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_BASELINE)
+		nvgSave()
+		
+		GoaHud:drawTextStyle1(title_font_size)
+		local frag_width = nvgTextWidth(string.format("%s %s %s", killer, message, killed))
+		local killer_width = nvgTextWidth(killer .. " ")
+		local message_width = nvgTextWidth(message .. " ")
+		
+		nvgRestore()
+
+		local flag_size = title_font_size * 0.5
+		local flag_offset = 8
+		
+		local flag1_svg = "internal/ui/icons/flags/" .. self.fragInfo.killer.country
+		local flag2_svg = "internal/ui/icons/flags/" .. self.fragInfo.killed.country
+		
+		local offset_x = -frag_width/2
+		if (self.options.showCountry) then
+			if (not is_local_killer) then
+				offset_x = offset_x - (flag_size + flag_offset/2)*2
+			else
+				offset_x = offset_x - (flag_size + flag_offset/2)
+			end
+		end
+		
+		if (self.options.showCountry and not is_local_killer) then
+			offset_x = offset_x + flag_size
+			
+			nvgSave()
+			nvgGlobalAlpha(alpha)
+			
+			if (self.options.shadow.shadowEnabled) then
+				nvgFillColor(Color(0,0,0,255))
+				nvgSvg(flag1_svg, offset_x + x + self.options.shadow.shadowOffset, y - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
+			end
+			
+			nvgFillColor(Color(255,255,255,255))
+			nvgSvg(flag1_svg, offset_x + x, y - flag_size/2, flag_size)
+			
+			nvgRestore()
+			
+			offset_x = offset_x + flag_size + flag_offset
+		end
+
+		GoaHud:drawText1(offset_x + x, y, title_font_size, Color(255,255,255,alpha * 255), self.options.shadow, killer, true)
+		offset_x = offset_x + killer_width
+		
+		GoaHud:drawText1(offset_x + x, y, title_font_size, Color(255,255,255,alpha * 255), self.options.shadow, message, true)
+		offset_x = offset_x + message_width
+			
+		if (self.options.showCountry) then
+			offset_x = offset_x + flag_size
+			
+			nvgSave()
+			nvgGlobalAlpha(alpha)
+			
+			if (self.options.shadow.shadowEnabled) then
+				nvgFillColor(Color(0,0,0,255))
+				nvgSvg(flag2_svg, offset_x + x + self.options.shadow.shadowOffset, y - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
+			end
+			
+			nvgFillColor(Color(255,255,255,255))
+			nvgSvg(flag2_svg, offset_x + x, y - flag_size/2, flag_size)
+			
+			nvgRestore()
+			
+			offset_x = offset_x + flag_size + flag_offset
+		end
+		
+		GoaHud:drawText1(offset_x + x, y, title_font_size, Color(255,255,255,alpha * 255), self.options.shadow, killed, true)
+
+		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
 		if (self.options.fragStyle == FRAG_STYLE_Q3) then
 			local placement = tostring(self.fragInfo.placement)
 			local placement_color = Color(255,255,255,alpha * 255)
