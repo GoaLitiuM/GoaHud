@@ -513,8 +513,8 @@ function GoaComboBox(options, selection, x, y, w, comboBoxData, optargs)
 	if (popupActive) then return value end
 
 	-- draw combobox later
-	comboBoxes[comboBoxData] = {options, comboBoxValues[comboBoxData] or selection, x, y, w, comboBoxData, clone(optargs)}
-	comboBoxesCount = comboBoxesCount + 1
+	table.insert(comboBoxes, { comboBoxData, {options, comboBoxValues[comboBoxData] or selection, x, y, w, comboBoxData, clone(optargs)} })
+	if (comboBoxValues[comboBoxData] == nil) then comboBoxesCount = comboBoxesCount + 1 end
 	return comboBoxValues[comboBoxData] or value
 end
 
@@ -604,7 +604,10 @@ end
 function GoaHud:drawReal()
 	if (comboBoxesCount > 0) then
 		local active_comboboxes = 0
-		for i, c in pairs(comboBoxes) do
+		table.reverse(comboBoxes)
+		for ii, cc in pairs(comboBoxes) do
+			local i = cc[1]
+			local c = cc[2]
 			comboBoxValues[i] = ui2ComboBox(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
 			active_comboboxes = active_comboboxes + 1
 		end
@@ -1074,4 +1077,10 @@ function clone(t)
     end
     setmetatable(target, meta)
     return target
+end
+
+function table.reverse(tbl)
+  for i=1, math.floor(#tbl / 2) do
+    tbl[i], tbl[#tbl - i + 1] = tbl[#tbl - i + 1], tbl[i]
+  end
 end
