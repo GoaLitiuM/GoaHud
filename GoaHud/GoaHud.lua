@@ -335,12 +335,14 @@ local function toReadable(str)
 end
 
 function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
+	local optargs = optargs or {}
 	local offset_x = 0
 	local offset_y = 0
 	local value = options[name]
 	local vartype = type(value)
 	local name_readable = name_readable or toReadable(name)
 	local draw_label = vartype ~= "boolean"
+	local is_color = optargs.color or (vartype == "table" and string.find(name_readable, "Color"))
 	
 	nvgSave()
 	ui2FontNormal()
@@ -350,10 +352,11 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	
 	local label_offset = 0
 	local label_width = name_length + 35
-	local checkbox_width = math.max(190, name_length + 35)
+	local checkbox_width = math.max(225, name_length + 35)
+	local color_width = math.max(225, label_width)
 
 	if (draw_label) then
-		if (name_length >= 145) then
+		if ((is_color and name_length >= 275) or (not is_color and name_length >= 145)) then
 			offset_y = offset_y + GOAHUD_SPACING*0.85
 			label_offset = -GOAHUD_SPACING*0.85
 			label_width = 90
@@ -362,8 +365,8 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		GoaLabel(name_readable .. ":", x + offset_x, y + offset_y + label_offset, optargs)
 	end
 	
-	if (vartype == "table" and string.find(name_readable, "Color")) then
-		local color = GoaColorPicker(x + offset_x + label_width, y + offset_y, value, optargs)
+	if (is_color) then
+		local color = GoaColorPicker(x + offset_x + color_width, y + offset_y, value, optargs)
 		if (color.r ~= nil and color.g ~= nil and color.b ~= nil and color.a ~= nil) then
 			options[name] = color
 		end
