@@ -506,9 +506,16 @@ function GoaEditBox4Decimals(value, x, y, w, optargs)
 	return ui2EditBox4Decimals(value, x, y, w, optargs)
 end
 
+local comboBoxes = {}
+local comboBoxValues = {}
+local comboBoxesCount = 0
 function GoaComboBox(options, selection, x, y, w, comboBoxData, optargs)
 	if (popupActive) then return value end
-	return ui2ComboBox(options, selection, x, y, w, comboBoxData, optargs)
+
+	-- draw combobox later
+	comboBoxes[comboBoxData] = {options, comboBoxValues[comboBoxData] or selection, x, y, w, comboBoxData, clone(optargs)}
+	comboBoxesCount = comboBoxesCount + 1
+	return comboBoxValues[comboBoxData] or value
 end
 
 local colorPickerStates = {}
@@ -595,6 +602,19 @@ function GoaHud:drawFirst()
 end
 
 function GoaHud:drawReal()
+	if (comboBoxesCount > 0) then
+		local active_comboboxes = 0
+		for i, c in pairs(comboBoxes) do
+			comboBoxValues[i] = ui2ComboBox(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
+			active_comboboxes = active_comboboxes + 1
+		end
+		comboBoxes = {}
+	
+		if (active_comboboxes == 0) then
+			comboBoxValues = {}
+			comboBoxesCount = 0
+		end
+	end
 	--[[
 	if (self.showOptions and shouldShowHUD()) then
 		nvgSave()
@@ -609,7 +629,6 @@ function GoaHud:drawReal()
 	end
 	--]]
 
-	
 	if (br_HudEditorPopup ~= nil) then self.previewMode = not br_HudEditorPopup.show_menu end
 	
 	self:processConVars()
