@@ -397,7 +397,7 @@ function GoaHud_Messages:draw()
 		
 		if (not freecam) then
 			local offset_x = 0
-			if (self.options.showCountry) then	
+			if (self.options.showCountry and player.country ~= "eu") then	
 				nvgSave()
 				
 				GoaHud:drawTextStyle1(name_font_size)
@@ -498,7 +498,7 @@ function GoaHud_Messages:drawFragged(x, y, intensity)
 			end
 		end
 		
-		if (self.options.showCountry and not is_local_killer) then
+		if (self.options.showCountry and not is_local_killer and self.fragInfo.killer.country ~= "eu") then
 			offset_x = offset_x + flag_size
 			
 			nvgSave()
@@ -523,7 +523,7 @@ function GoaHud_Messages:drawFragged(x, y, intensity)
 		GoaHud:drawText1(offset_x + x, y, title_font_size, Color(255,255,255,alpha * 255), self.options.shadow, message, true)
 		offset_x = offset_x + message_width
 			
-		if (self.options.showCountry) then
+		if (self.options.showCountry and self.fragInfo.killed.country ~= "eu") then
 			offset_x = offset_x + flag_size
 			
 			nvgSave()
