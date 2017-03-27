@@ -22,6 +22,7 @@ GoaHud_Timer =
 	options = 
 	{
 		countdown = true,
+		countdownRace = true,
 		softBackground = true,
 		showScoreDiff = true,
 		shadow =
@@ -37,6 +38,13 @@ GoaHud_Timer =
 GoaHud:registerWidget("GoaHud_Timer");
 
 function GoaHud_Timer:init()
+end
+
+function GoaHud_Timer:drawOptionsVariable(varname, x, y, optargs)
+	if (varname == "showScoreDiff") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Show Score Lead")
+	end
+	return nil
 end
 
 function isRaceOrTrainingMode()
@@ -74,15 +82,23 @@ end
 function GoaHud_Timer:draw()
 	if (not shouldShowHUD(optargs_deadspec)) then return end
 
-	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
 	local player = getPlayer()
 	local time_raw = 0
+	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
+	local race = gamemodes[world.gameModeIndex].shortName == "race"
+	local countdown
+
+	if (race) then
+		countdown = self.options.countdownRace
+	else
+		countdown = self.options.countdown
+	end
 	
 	if (match_countdown) then
 		time_raw = world.gameTimeLimit - (math.floor(world.gameTime / 1000) * 1000)
 	elseif (not world.timerActive) then
 		time_raw = 0
-	elseif (self.options.countdown) then
+	elseif (countdown) then
 		time_raw = world.gameTimeLimit - world.gameTime
 	else 
 		time_raw = math.floor(world.gameTime / 1000) * 1000
