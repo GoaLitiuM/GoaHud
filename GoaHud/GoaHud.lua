@@ -249,7 +249,9 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 
 	for i in pairs_func(options_keys) do
 		local name = name_func(i)
-		if (name ~= "enabled" and name ~= "shadow") then
+		if (name == "") then
+			offset_y = offset_y + GOAHUD_SPACING
+		elseif (name ~= "enabled" and name ~= "shadow") then
 			local custom_draw = false
 			local variable_offset = 0
 			
@@ -795,19 +797,13 @@ function GoaHud:registerWidget(widget_name, category)
 		end
 		
 		if (widget_table.optionsDisplayOrder ~= nil) then
-			local count_display = 0
-			local count_options = 0
-			for i in pairs(widget_table.optionsDisplayOrder) do
-				local key = widget_table.optionsDisplayOrder[i]
-				count_display = count_display + 1
-				if (widget_table.options[key] == nil) then
-					consolePrint(widget_name .. ": invalid optionsDisplayOrder key '" .. key .. "'")
+			for i, k in pairs(widget_table.optionsDisplayOrder) do
+				if (k ~= "" and widget_table.options[k] == nil) then
+					consolePrint(widget_name .. ": invalid optionsDisplayOrder key '" .. k .. "'")
 				end
 			end
 			
 			for key in pairs(widget_table.options) do
-				count_options = count_options + 1
-				
 				local key_found = false
 				for i in pairs(widget_table.optionsDisplayOrder) do
 					local key_display = widget_table.optionsDisplayOrder[i]
