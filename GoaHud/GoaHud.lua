@@ -273,55 +273,16 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 	
 	-- draw shadow options last
 	if (self.defaults.shadow ~= nil) then
-		local value = self.options.shadow
-		value.shadowEnabled = GoaRowCheckbox(x + offset_x, y + offset_y, 190, "Enable Shadows:", value.shadowEnabled, optargs)
-
-		local optargs_shadows = clone(optargs)
-		optargs_shadows.enabled = value.shadowEnabled
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowEnabled", x + offset_x, y + offset_y, optargs, "Enable Shadows")
 		
 		offset_x = offset_x + GOAHUD_INDENTATION
-		offset_y = offset_y + GOAHUD_SPACING
-
-		local shadow_offset = value.shadowOffset
-		GoaLabel("Offset: ", x + offset_x, y + offset_y, optargs_shadows)
-		shadow_offset = GoaSlider(x + offset_x + 90, y + offset_y, 200, -10, 10, shadow_offset, optargs_shadows)
-		value.shadowOffset = round(shadow_offset * 1) / 1.0
 		
-		shadow_offset = value.shadowOffset
-		shadow_offset = GoaEditBox0Decimals(shadow_offset, x + offset_x + 90 + 220, y + offset_y, 75, optargs_shadows)
-		value.shadowOffset = shadow_offset
-		
-		offset_y = offset_y + GOAHUD_SPACING
-		
-		local shadow_blur = value.shadowBlur
-		GoaLabel("Blur: ", x + offset_x, y + offset_y, optargs_shadows)
-		shadow_blur = GoaSlider(x + offset_x + 90, y + offset_y, 200, 0, 40, shadow_blur, optargs_shadows)
-		value.shadowBlur = round(shadow_blur * 10) / 10.0
-		
-		shadow_blur = value.shadowBlur
-		shadow_blur = GoaEditBox2Decimals(shadow_blur, x + offset_x + 90 + 220, y + offset_y, 75, optargs_shadows)
-		value.shadowBlur = shadow_blur
-		
-		offset_y = offset_y + GOAHUD_SPACING
-		
-		local shadow_strength = value.shadowStrength
-		GoaLabel("Strength: ", x + offset_x, y + offset_y, optargs_shadows)
-		shadow_strength = GoaSlider(x + offset_x + 90, y + offset_y, 200, 0.2, 5, shadow_strength, optargs_shadows)
-		value.shadowStrength = round(shadow_strength * 10) / 10.0
-		
-		shadow_strength = value.shadowStrength
-		shadow_strength = GoaEditBox2Decimals(shadow_strength, x + offset_x + 90 + 220, y + offset_y, 75, optargs_shadows)
-		value.shadowStrength = shadow_strength
-		
-		offset_y = offset_y + GOAHUD_SPACING
-		
-		GoaLabel("Color: ", x + offset_x, y + offset_y, optargs_shadows)
-		local shadow_color = value.shadowColor
-		shadow_color = GoaColorPicker(x + offset_x + 90, y + offset_y, shadow_color, optargs_shadows)
-		value.shadowColor = shadow_color
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowOffset", x + offset_x, y + offset_y, optargs, "Offset")
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowBlur", x + offset_x, y + offset_y, optargs, "Blur")
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowStrength", x + offset_x, y + offset_y, optargs, "Strength")
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowColor", x + offset_x, y + offset_y, optargs, "Color")
 		
 		offset_x = offset_x - GOAHUD_INDENTATION
-		offset_y = offset_y + GOAHUD_SPACING
 	end
 	
 	self.getOptionsHeight = function() return offset_y end
