@@ -20,7 +20,6 @@ GoaHud_RaceTimer =
 	
 	options = 
 	{
-		countdown = false,
 		showBackground = false,
 		softBackground = true,
 		shadow =
