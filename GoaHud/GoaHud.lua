@@ -313,8 +313,6 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	
 	local label_offset = 0
 	local label_width = name_length + 35
-	local checkbox_width = math.max(225, name_length + 35)
-	local color_width = math.max(225, label_width)
 
 	if (draw_label) then
 		if ((is_color and name_length >= 275) or (not is_color and name_length >= 145)) then
@@ -325,6 +323,10 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		
 		GoaLabel(name_readable .. ":", x + offset_x, y + offset_y + label_offset, optargs)
 	end
+	
+	local checkbox_width = math.max(-75-x, label_width)
+	local color_width = math.max(-75-x, label_width)
+	local slider_offset = math.max(-75-x, label_width)
 	
 	if (is_color) then
 		local color = GoaColorPicker(x + offset_x + color_width, y + offset_y, value, optargs)
@@ -340,13 +342,14 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 
 		offset_y = offset_y + GOAHUD_SPACING
 	elseif (vartype == "number") then
-		offset_x = offset_x + GOAHUD_INDENTATION
-		
 		local min_value = 0.0
 		local max_value = 5.0
+		local new_value = value
 		
 		local milliseconds = false
 		local seconds = false
+		local slider_width = 200
+		local editbox_width = 75
 		
 		if (optargs.milliseconds ~= nil or optargs.seconds ~= nil) then
 			if (optargs.milliseconds ~= nil) then milliseconds = optargs.milliseconds end
@@ -356,38 +359,31 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		elseif (string.find(name_readable, "Interval")) then
 			milliseconds = true
 		end
-		
-		if (milliseconds) then
-			GoaLabel("ms", x + offset_x + 90 + 220 + 85, y + offset_y, optargs)
-		elseif (seconds) then
-			GoaLabel("seconds", x + offset_x + 90 + 220 + 85, y + offset_y, optargs)
-		end
-		
-		local new_value = value
-		
+
 		if (optargs.min_value ~= nil or optargs.max_value ~= nil) then
 			if (optargs.min_value ~= nil) then min_value = optargs.min_value end
 			if (optargs.max_value ~= nil) then max_value = optargs.max_value end
 		elseif (milliseconds) then
 			min_value = 0.0
 			max_value = 300
+			new_value = new_value * 1000
 		elseif (string.find(name_readable, "Fov")) then
 			min_value = 10
 			max_value = 178
 		end
+
+		-- slider
+		new_value = GoaSlider(x + offset_x + slider_offset, y + offset_y, slider_width, min_value, max_value, new_value, optargs)
 		
-		if (milliseconds) then new_value = new_value * 1000 end
-		
-		new_value = GoaSlider(x + offset_x + 90, y + offset_y, 200, min_value, max_value, new_value, optargs)
-		
-		local show_editbox = true
-		if (optargs.show_editbox ~= nil) then show_editbox = optargs.show_editbox end
-		
+		local show_editbox = optargs.show_editbox or true
 		if (show_editbox) then
 			optargs.optionalId = optargs.optionalId + 1
-			new_value = GoaEditBox2Decimals(new_value, x + offset_x + 90 + 220, y + offset_y, 75, optargs)
+			new_value = GoaEditBox2Decimals(new_value, x + offset_x + slider_offset + slider_width + 20, y + offset_y, editbox_width, optargs)
+		else
+			GoaLabel(new_value, x + offset_x + slider_offset + slider_width + 20, y + offset_y, optargs)
 		end
 		
+		-- enforce min/max value range, and rounding to nearest tick
 		if (optargs.tick ~= nil) then
 			new_value = round(new_value * optargs.tick) / optargs.tick
 		elseif (milliseconds) then
@@ -404,17 +400,18 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 			new_value = math.max(min_value, new_value)
 		end
 		
-		if (not show_editbox) then
-			GoaLabel(new_value, x + offset_x + 90 + 220, y + offset_y, optargs)
+		-- display units
+		if (milliseconds) then
+			GoaLabel("ms", x + offset_x + slider_offset + slider_width + editbox_width + 30, y + offset_y, optargs)
+		elseif (seconds) then
+			GoaLabel("s", x + offset_x + slider_offset + slider_width + editbox_width + 30, y + offset_y, optargs)
 		end
 		
 		options[name] = new_value
-		
-		offset_x = offset_x - GOAHUD_INDENTATION
+
 		offset_y = offset_y + GOAHUD_SPACING
 	else
 		offset_y = offset_y + GOAHUD_SPACING
-		consolePrint("??? : " .. name)
 	end
 	
 	optargs.optionalId = optargs.optionalId + 1
