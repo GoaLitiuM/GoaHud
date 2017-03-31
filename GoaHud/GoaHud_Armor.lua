@@ -50,7 +50,7 @@ function GoaHud_Armor:drawOptionsVariable(varname, x, y, optargs)
 		optargs.milliseconds = true
 		optargs.min_value = 0
 		optargs.max_value = 75
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Animation Speed")
 	end
 	return nil
 end
