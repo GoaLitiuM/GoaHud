@@ -119,8 +119,8 @@ function GoaHud_Zoom:tick()
 		consolePerformCommand("r_fov " .. tostring(newFov))
 
 		if (self.options.rescaleSensitivity) then
-			local targetSensitivity = self.oldSensitivity * (self.options.zoomFov / self.oldFov)
-			local newSensitivity = lerp(self.oldSensitivity, targetSensitivity, progress)
+			local ratio = math.atan((4.0/3.0) * math.tan(newFov * math.pi/360.0)) / math.atan((4.0/3.0) * math.tan(self.oldFov * math.pi/360.0))
+			local newSensitivity = self.oldSensitivity * ratio
 			consolePerformCommand("m_speed " .. tostring(newSensitivity))
 		end
 		
