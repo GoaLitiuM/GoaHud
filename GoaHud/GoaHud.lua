@@ -376,11 +376,12 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		elseif (milliseconds) then
 			min_value = 0.0
 			max_value = 300
-			new_value = new_value * 1000
 		elseif (string.find(name_readable, "Fov")) then
 			min_value = 10
 			max_value = 178
 		end
+		
+		if (milliseconds) then new_value = new_value * 1000 end
 
 		-- slider
 		new_value = GoaSlider(x + offset_x + slider_offset, y + offset_y, slider_width, min_value, max_value, new_value, optargs)
