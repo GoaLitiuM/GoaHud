@@ -1056,6 +1056,22 @@ end
 -- utility
 --
 
+function GoaHud:formatTime(elapsed)
+	local seconds_total = math.floor(elapsed / 1000)
+	return
+	{
+		secs = seconds_total % 60,
+		mins = math.floor(seconds_total / 60),
+		millis = elapsed % 1000,
+	}
+end
+
+function isRaceOrTrainingMode()
+	if (world == nil) then return false end
+	local gameMode = gamemodes[world.gameModeIndex]
+	if (gameMode == nil) then return false end
+	return gameMode.shortName == "race" or gameMode.shortName == "training"
+end
 
 function isEmpty(myTable)
 	local next = next

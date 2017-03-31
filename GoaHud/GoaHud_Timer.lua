@@ -47,23 +47,6 @@ function GoaHud_Timer:drawOptionsVariable(varname, x, y, optargs)
 	return nil
 end
 
-function isRaceOrTrainingMode()
-	if (world == nil) then return false end
-	local gameMode = gamemodes[world.gameModeIndex]
-	if (gameMode == nil) then return false end
-	return gameMode.shortName == "race" or gameMode.shortName == "training"
-end
-
-function GoaHud_Timer:formatTime(elapsed)
-	local seconds_total = math.floor(elapsed / 1000)
-	return
-	{
-		secs = seconds_total % 60,
-		mins = math.floor(seconds_total / 60),
-		millis = elapsed % 1000,
-	}
-end
-
 function GoaHud_Timer:setupText()
 	nvgTextLetterSpacing(-1)
 
@@ -104,7 +87,7 @@ function GoaHud_Timer:draw()
 		time_raw = math.floor(world.gameTime / 1000) * 1000
 	end
 
-	local t = self:formatTime(time_raw)
+	local t = GoaHud:formatTime(time_raw)
 	local display_str = string.format("%02d:%02d", t.mins, t.secs)
 	
 	if (t.mins ~= self.lastMins) then
@@ -130,8 +113,7 @@ function GoaHud_Timer:draw()
 		
 		self.scoreOffsetX = -bounds.maxx
 		self.scoreWidth = bounds.maxx - bounds.minx
-		
-		
+			
 		nvgRestore()
 
 		self.recalculateBounds = false
