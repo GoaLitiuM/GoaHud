@@ -40,18 +40,18 @@ function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "zoomFov") then
 		local offset = GOAHUD_SPACING + 20
 		local optargs = clone(optargs)
-		optargs.min_value = 10
-		optargs.max_value = 178
-		
+		optargs.fov = true
 		GoaLabel("Usage:         bind <key> ui_goahud_zoom 1", x, y, optargs)
 		return offset + GoaHud_DrawOptionsVariable(self.options, varname, x, y + offset, optargs, "Zoom FOV")
 	elseif (varname == "zoomTime") then
 		local optargs = clone(optargs)
-		optargs.milliseconds = true
 		optargs.enabled = self.options.smoothZoom
+		optargs.milliseconds = true
 		optargs.min_value = 1
 		optargs.max_value = 300
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+	elseif (varname == "smoothZoom") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Enable Animations")
 	end
 	return nil
 end

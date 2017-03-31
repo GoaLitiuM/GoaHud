@@ -358,6 +358,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		
 		local milliseconds = false
 		local seconds = false
+		local fov = optargs.fov or false
 		local slider_width = 200
 		local editbox_width = 75
 		
@@ -376,7 +377,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		elseif (milliseconds) then
 			min_value = 0.0
 			max_value = 300
-		elseif (string.find(name_readable, "Fov")) then
+		elseif (fov) then
 			min_value = 10
 			max_value = 178
 		end
