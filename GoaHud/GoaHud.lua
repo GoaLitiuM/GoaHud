@@ -771,7 +771,7 @@ function GoaHud:registerWidget(widget_name, category)
 		
 		if (widget_table.optionsDisplayOrder ~= nil) then
 			for i, k in pairs(widget_table.optionsDisplayOrder) do
-				if (k ~= "" and widget_table.options[k] == nil) then
+				if (k ~= "" and k ~= "preview" and widget_table.options[k] == nil) then
 					consolePrint(widget_name .. ": invalid optionsDisplayOrder key '" .. k .. "'")
 				end
 			end
