@@ -57,7 +57,7 @@ GoaHud_Crosshair =
 		crosshairDefault = initCrosshairs(1),
 		weaponCrosshairs = initCrosshairs(10),
 	},
-	optionsDisplayOrder = { "smoothTransitions", "showTime", "fadeTime", "crosshairDefault", "weaponCrosshairs", },
+	optionsDisplayOrder = { "smoothTransitions", "showTime", "fadeTime", "preview", "crosshairDefault", "weaponCrosshairs", },
 };
 GoaHud:registerWidget("GoaHud_Crosshair");
 
@@ -92,7 +92,7 @@ local comboBoxData = {}
 local selectedCrosshairIndex = 1
 function GoaHud_Crosshair:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "weaponCrosshairs") then
-		local offset_y = 40
+		local offset_y = 0
 		local weapons = { "Default", "Melee", "Burstgun", "Shotgun", "Grenade Launcher", "Plasma Rifle", "Rocket Launcher", "Ion Cannon", "Bolt Rifle", "Stake Launcher" }
 
 		if (selectedCrosshairIndex == 1) then
@@ -101,7 +101,7 @@ function GoaHud_Crosshair:drawOptionsVariable(varname, x, y, optargs)
 			offset_y = offset_y + self:drawOptionsCrosshair(self.options.weaponCrosshairs[selectedCrosshairIndex - 1], x, y + offset_y, optargs)
 		end
 		
-		local selection_name = GoaComboBox(weapons, weapons[selectedCrosshairIndex], x, y + 40, 215, comboBoxData, optargs)
+		local selection_name = GoaComboBox(weapons, weapons[selectedCrosshairIndex], x, y, 215, comboBoxData, optargs)
 		for i, weapon in ipairs(weapons) do
 			if (weapon == selection_name) then
 				selectedCrosshairIndex = i
@@ -112,19 +112,20 @@ function GoaHud_Crosshair:drawOptionsVariable(varname, x, y, optargs)
 		return offset_y
 	elseif (varname == "crosshairDefault") then
 		return 0
-	elseif (varname == "fadeTime") then
+	elseif (varname == "showTime" or varname == "fadeTime") then
 		local optargs = clone(optargs)
 		optargs.milliseconds = true
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
-	else
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+		optargs.enabled = self.options.smoothTransitions
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs)
+	elseif (varname == "smoothTransitions") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Enable Animations")
 	end
 	return nil
 end
 
 function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 	local offset_y = 0
-	local offset_x = 40
+	local offset_x = GOAHUD_INDENTATION
 	local optargs = clone(optargs)
 		
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "useDefault", x + offset_x + 215, y + offset_y,
@@ -155,10 +156,20 @@ end
 
 function GoaHud_Crosshair:drawPreview(x, y, intensity)
 	nvgSave()
-	self:drawCrosshair(selectedCrosshairIndex - 1, x + 300, y + 40, 1.0 - intensity)
+	
+	nvgSave()
+	local width = 125
+	local height = 75
+	nvgBeginPath()
+	nvgFillLinearGradient(x, y, x + width, y + height, Color(0,0,0,0), Color(255,255,255,255))
+	nvgRect(x, y, width, height)
+	nvgFill()
 	nvgRestore()
 	
-	return 80
+	self:drawCrosshair(selectedCrosshairIndex - 1, x + width/2, y + height/2, 1.0 - intensity)
+	nvgRestore()
+	
+	return height + 10
 end
 
 function GoaHud_Crosshair:draw()

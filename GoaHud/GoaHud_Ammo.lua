@@ -53,6 +53,7 @@ end
 
 local preview_timer = 0.0
 function GoaHud_Ammo:drawPreview(x, y, intensity)
+	y = y - GOAHUD_SPACING*1.5
 	nvgSave()
 	local width = 150
 	local height = 60
@@ -75,7 +76,7 @@ function GoaHud_Ammo:drawPreview(x, y, intensity)
 	self:drawAmmo(0, 0, 25, Color(255,255,255,255), self.progress)
 	
 	nvgRestore()
-	return height + 20
+	return height + 20 - GOAHUD_SPACING*1.5
 end
 
 function GoaHud_Ammo:tick()
