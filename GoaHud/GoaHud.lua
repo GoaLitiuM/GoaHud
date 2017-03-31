@@ -1095,7 +1095,15 @@ function clone(t)
 end
 
 function table.reverse(tbl)
-  for i=1, math.floor(#tbl / 2) do
-    tbl[i], tbl[#tbl - i + 1] = tbl[#tbl - i + 1], tbl[i]
-  end
+	for i=1, math.floor(#tbl / 2) do
+		tbl[i], tbl[#tbl - i + 1] = tbl[#tbl - i + 1], tbl[i]
+	end
+end
+
+function table.merge(t, y)
+	local n = clone(t)	
+	for i, k in pairs(y) do
+		n[i] = k
+	end
+	return n
 end

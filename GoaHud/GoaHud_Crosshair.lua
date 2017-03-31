@@ -126,17 +126,9 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 	local offset_y = 0
 	local offset_x = 40
 	local optargs = clone(optargs)
-	
-	local function merge(t, y)
-		local n = clone(t)	
-		for i, k in pairs(y) do
-			n[i] = k
-		end
-		return n
-	end
-	
+		
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "useDefault", x + offset_x + 215, y + offset_y,
-		merge(optargs, { enabled = weapon ~= self.options.crosshairDefault }))
+		table.merge(optargs, { enabled = weapon ~= self.options.crosshairDefault }))
 	
 	optargs.enabled = true
 	if (weapon.useDefault and weapon ~= self.options.crosshairDefault) then
@@ -144,19 +136,19 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 	end
 
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "crosshair", x + offset_x, y + offset_y,
-		merge(optargs, { min_value = 1, max_value = self.crosshairCount, tick = 1, show_editbox = false }))
+		table.merge(optargs, { min_value = 1, max_value = self.crosshairCount, tick = 1, show_editbox = false }))
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "crosshairColor", x + offset_x, y + offset_y, optargs)
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "size", x + offset_x, y + offset_y,
-		merge(optargs, { min_value = 1, max_value = 100 }))
+		table.merge(optargs, { min_value = 1, max_value = 100 }))
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "useShadow", x + offset_x, y + offset_y, optargs)
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "shadowAlpha", x + offset_x + 40, y + offset_y,
-		merge(optargs, { min_value = 0, max_value = 255, tick = 1, enabled = optargs.enabled and weapon.useShadow }))
+		table.merge(optargs, { min_value = 0, max_value = 255, tick = 1, enabled = optargs.enabled and weapon.useShadow }), "Alpha")
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "shadowSize", x + offset_x + 40, y + offset_y,
-		merge(optargs, { min_value = 0, max_value = 50, enabled = optargs.enabled and weapon.useShadow }))
+		table.merge(optargs, { min_value = 0, max_value = 50, enabled = optargs.enabled and weapon.useShadow }), "Size")
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "strokeWidth", x + offset_x, y + offset_y,
-		merge(optargs, { min_value = 0.1, max_value = 50, enabled = optargs.enabled and (weapon.crosshair >= 2 and weapon.crosshair <= 3) }))
+		table.merge(optargs, { min_value = 0.1, max_value = 50, enabled = optargs.enabled and (weapon.crosshair >= 2 and weapon.crosshair <= 3) }))
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "holeSize", x + offset_x, y + offset_y,
-		merge(optargs, { min_value = 0, max_value = 20, enabled = optargs.enabled and weapon.crosshair == 3 }))
+		table.merge(optargs, { min_value = 0, max_value = 20, enabled = optargs.enabled and weapon.crosshair == 3 }))
 	
 	return offset_y
 end
