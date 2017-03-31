@@ -83,8 +83,6 @@ GoaHud_Messages =
 GoaHud:registerWidget("GoaHud_Messages");
 
 function GoaHud_Messages:init()
-	assert(self.options.fragShowTime ~= nil, "fragShowTime not found")
-	assert(self.options.fragFadeTime ~= 1.5, "fragShowTime wrong value")
 end
 
 local preview_timer = 99.0
