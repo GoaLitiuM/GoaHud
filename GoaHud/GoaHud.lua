@@ -219,19 +219,13 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 	local optargs = { intensity = intensity, optionalId = 1 }
 	local offset_x = 0
 	local offset_y = 0
+	local draw_preview_first = true
 
 	local reset_pressed, hover = GoaButton("Reset Settings", x + offset_x, y + offset_y, 150, 35, optargs)
 	if (reset_pressed) then
 		self.options = clone(self.defaults)
 	end
-	
-	if (not popupActive) then
-		if (self.drawPreview ~= nil) then
-			offset_y = offset_y + self:drawPreview(x + 150 + 20, y, intensity)
-		else
-			offset_y = offset_y + GOAHUD_SPACING*1.5
-		end
-	end
+	offset_y = offset_y + GOAHUD_SPACING*1.5
 
 	optargs.optionalId = optargs.optionalId + 1
 	
@@ -245,12 +239,28 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 		options_keys = self.optionsDisplayOrder
 		pairs_func = ipairs
 		name_func = function(key) return options_keys[key] end
+		
+		for i in pairs_func(options_keys) do
+			local name = name_func(i)
+			if (name == "preview") then draw_preview_first = false; break; end
+		end
+	end
+	
+	-- draw preview first 
+	if (draw_preview_first and not popupActive) then
+		if (self.drawPreview ~= nil) then
+			offset_y = offset_y + self:drawPreview(x, y + offset_y, intensity)
+		end
 	end
 
 	for i in pairs_func(options_keys) do
 		local name = name_func(i)
 		if (name == "") then
 			offset_y = offset_y + GOAHUD_SPACING
+		elseif (name == "preview") then
+			if (not popupActive and self.drawPreview ~= nil) then
+				offset_y = offset_y + self:drawPreview(x, y + offset_y, intensity)
+			end
 		elseif (name ~= "enabled" and name ~= "shadow") then
 			local custom_draw = false
 			local variable_offset = 0
