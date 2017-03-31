@@ -31,13 +31,13 @@ GoaHud_Messages =
 	
 	options =
 	{
+		showFraggedMessage = true,
 		fragStyle = FRAG_STYLE_Q3,
 		killerNameStyle = KILLER_STYLE_NAME_SPECTATE,
 		fragShowTime = 2.0,
 		fragFadeTime = 0.15,
 		
-		showSpectatorControls = true,
-		showFraggedMessage = true,
+		showSpectatorControls = true,	
 		showCountry = false,
 		
 		gameModeShowTime = 10.0,
@@ -52,7 +52,7 @@ GoaHud_Messages =
 			shadowStrength = 1,
 		},
 	},
-	optionsDisplayOrder = { "fragStyle", "killerNameStyle", "fragShowTime", "fragFadeTime", "", "showSpectatorControls", "showFraggedMessage", "showCountry", "", "gameModeShowTime", "gameModeFadeTime", "", "shadow" },
+	optionsDisplayOrder = { "showFraggedMessage", "fragStyle", "killerNameStyle", "fragShowTime", "fragFadeTime", "preview", "", "showSpectatorControls", "showCountry", "", "gameModeShowTime", "gameModeFadeTime", "", "shadow" },
 	
 	lastReady = {},
 	readyList = { { "nobody", true, 0} },
@@ -113,10 +113,10 @@ function GoaHud_Messages:drawPreview(x, y, intensity)
 		preview_timer = 0.0
 	end
 
-	self:drawFragged(x + 100, y + 120, intensity)
+	self:drawFragged(x + 280, y + 40, intensity)
 	
 	nvgRestore()
-	return 180
+	return 60
 end
 
 local comboBoxData1 = {}
@@ -128,9 +128,11 @@ function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 		local frag_style = self.options.fragStyle
 		frag_style = FRAG_STYLE_NAMES[frag_style]
 		
-		ui2Label("Frag Style: ", x, y + offset_y, optargs)
-		frag_style = GoaComboBox(FRAG_STYLE_NAMES, frag_style, x + 175, y + offset_y, 250, comboBoxData1, optargs)
-		offset_y = offset_y - 50
+		GoaLabel("Style: ", x + GOAHUD_INDENTATION, y + offset_y, optargs)
+		
+		frag_style = GoaComboBox(FRAG_STYLE_NAMES, frag_style, x + 225, y + offset_y, 250, comboBoxData1,
+			table.merge(optargs, { enabled = self.options.showFraggedMessage }))
+		offset_y = offset_y - GOAHUD_SPACING
 		optargs.optionalId = optargs.optionalId + 1
 
 		for i, name in pairs(FRAG_STYLE_NAMES) do
@@ -139,16 +141,17 @@ function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 		
 		self.options.fragStyle = frag_style
 
-		return 50
+		return GOAHUD_SPACING
 	elseif (varname == "killerNameStyle") then
 		local offset_y = 0
 
 		local killer_style = self.options.killerNameStyle
 		killer_style = KILLER_STYLE_NAMES[killer_style]
 		
-		ui2Label("Killer Name: ", x, y + offset_y, optargs)
-		killer_style = GoaComboBox(KILLER_STYLE_NAMES, killer_style, x + 175, y + offset_y, 250, comboBoxData2, optargs)
-		offset_y = offset_y - 50
+		ui2Label("Killer Name: ", x + GOAHUD_INDENTATION, y + offset_y, optargs)
+		killer_style = GoaComboBox(KILLER_STYLE_NAMES, killer_style, x + 225, y + offset_y, 250, comboBoxData2,
+			table.merge(optargs, { enabled = self.options.showFraggedMessage }))
+		offset_y = offset_y - GOAHUD_SPACING
 		optargs.optionalId = optargs.optionalId + 1
 
 		for i, name in pairs(KILLER_STYLE_NAMES) do
@@ -157,11 +160,29 @@ function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 		
 		self.options.killerNameStyle = killer_style
 
-		return 50
+		return GOAHUD_SPACING
+	elseif (varname == "fragShowTime") then
+		local optargs = clone(optargs)
+		optargs.enabled = self.options.showFraggedMessage
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Show Time")
 	elseif (varname == "fragFadeTime") then
 		local optargs = clone(optargs)
 		optargs.milliseconds = true
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+		optargs.enabled = self.options.showFraggedMessage
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fade Time")
+	elseif (varname == "showCountry") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Show Player Country Flag")
+	elseif (varname == "gameModeShowTime") then
+		local offset_y = 0
+		
+		GoaLabel("Game Mode:", x, y, optargs)
+		
+		offset_y = offset_y + GOAHUD_SPACING
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y + offset_y, optargs, "Show Time")
+		
+		return offset_y
+	elseif (varname == "gameModeFadeTime") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fade Time")
 	end
 	return nil
 end
