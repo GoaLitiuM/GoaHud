@@ -1,5 +1,8 @@
 Note: GoaHud must be enabled by checking "Enable GoaHud" checkbox from Widgets - GoaHud
 
+Forums Thread: http://forums.reflexarena.com/index.php?/topic/4360-goahud-minimal-animated-hud/
+
+Some highlighted features:
 - Smoothly animated health, armor, ammo numbers and weapon crosshairs
 - Customizable per-weapon crosshairs
 - Zoom (bind key ui_goahud_zoom 1)
