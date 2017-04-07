@@ -137,11 +137,12 @@ function GoaHud_WeaponRack:draw()
 				nvgFill()
 			end
 			
-			local weapon_icon
+			local weapon_icon = "internal/ui/icons/weapon" .. i
 			if (i == 1 and player.inventoryMelee ~= nil) then
-				weapon_icon = inventoryDefinitions[player.inventoryMelee].asset or weapon_icon
-			else
-				weapon_icon = "internal/ui/icons/weapon" .. i
+				local def = inventoryDefinitions[player.inventoryMelee]
+				if (def ~= nil) then
+					weapon_icon = def.asset or weapon_icon
+				end
 			end
 	
 			nvgFillColor(color)
