@@ -152,8 +152,9 @@ function GoaHud_WeaponRack:draw()
 				nvgFillColor(self.options.textColor)
 			end
 
-			local ammo_str = tostring(ammo)
-			nvgText(offset_x + offset_width/2, 0, ammo_str)
+			if (i ~= 1) then
+				nvgText(offset_x + offset_width/2, 0, tostring(ammo))
+			end
 
 			offset_x = offset_x + offset_width
 		end
