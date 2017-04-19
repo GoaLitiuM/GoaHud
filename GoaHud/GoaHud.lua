@@ -32,6 +32,9 @@ function GoaHud_Addon:onEnabled(enabled)
 -- called when new log entry is added
 function GoaHud_Addon:onLog(entry)
 
+-- called when addon throws an error
+function GoaHud_Addon:onError(widget, err)
+
 -- provides custom rendering for each options variable
 -- by default following function is called for each variable, and is returned:
 --   GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
@@ -61,6 +64,11 @@ GoaHud =
 	logObservers = {},
 	logObserversCount = 0,
 	logLastId = -1,
+	
+	errors = {},
+	errorCount = 0,
+	errorObservers = {},
+	errorObserversCount = 0,
 	
 	colorCodesSupported = false, -- Kimi's EmojiChat
 	previewMode = false, -- Brandon's Hud Editor
@@ -606,6 +614,21 @@ function GoaHud:drawReal()
 		end
 	end
 	
+	-- handle errors, notify error observers
+	if (self.errorCount > 0) then
+		if (self.errorObserversCount > 0) then
+			for i, e in pairs(self.errors) do
+				-- calls widget.onError
+				for i, o in pairs(self.errorObservers) do
+					o.func(o.t, e.widget, e.err)
+				end
+			end
+		end
+		
+		self.errors = {}
+		self.errorCount = 0
+	end
+	
 	-- notify log observers of new log entries
 	if (self.logObserversCount > 0) then
 		if (log[1] ~= nil and log[1].id ~= self.logLastId) then
@@ -614,6 +637,7 @@ function GoaHud:drawReal()
 				if (entry.id > self.logLastId) then
 					self.logLastId = entry.id
 					
+					-- calls widget.onLog
 					for i, o in pairs(self.logObservers) do
 						o.func(o.t, entry)
 					end
@@ -841,6 +865,12 @@ function GoaHud:postInitWidgets()
 			table.insert(self.logObservers, { t = widget_table, func = widget_table.onLog })
 			self.logObserversCount = self.logObserversCount + 1
 		end
+		
+		-- register callback functions for addon errors
+		if (widget_table.onError ~= nil) then
+			table.insert(self.errorObservers, { t = widget_table, func = widget_table.onError })
+			self.errorObserversCount = self.errorObserversCount + 1
+		end
 	end
 end
 
@@ -1060,6 +1090,65 @@ function getChangedValues(new, old)
 	end
 
 	return changed
+end
+
+--
+-- error helpers
+--
+
+-- HACK: AccelMeter does not have initialize function so we can define one for it.
+-- This makes AccelMeter:initialize the first function which is called before any other initialize functions,
+-- and we can wrap the error hooks there for other widgets before their initialize functions are called.
+
+function AccelMeter:initialize()
+	GoaHud_HookErrorFunctions()
+end
+
+function GoaHud_HookErrorFunctions()
+	for i, k in pairs(widgets) do
+		if (k.name ~= nil and k.name ~= "GoaHud") then
+			local widget_table = _G[k.name]
+
+			local function onError(widget, err)
+				table.insert(GoaHud.errors, { widget = widget, err = err })
+				GoaHud.errorCount = GoaHud.errorCount + 1
+			end
+			
+			-- wrap initialize function with pcall
+			if (widget_table.initialize ~= nil) then
+				local init_error_wrapper = function()
+					local status, err = pcall(widget_table.__initialize, widget_table)
+					if (status == false) then
+						onError(k, err)
+						consolePrint(k.name .. ": " .. tostring(err))
+						
+						-- disable draw calls
+						widget_table.draw = function() end
+						widget_table.__draw = widget_table.draw
+					end
+				end
+				
+				widget_table.__initialize = widget_table.initialize
+				widget_table.initialize = init_error_wrapper
+			end
+			
+			-- wrap draw function with pcall
+			if (widget_table.draw ~= nil) then
+				local draw_error_wrapper = function()
+					local status, err = pcall(widget_table.__draw, widget_table)
+					if (status == false) then
+						onError(k, err)
+						consolePrint(k.name .. ": " .. tostring(err))
+						
+						-- disable future draw calls
+						widget_table.draw = function() end
+					end
+				end
+				widget_table.__draw = widget_table.draw
+				widget_table.draw = draw_error_wrapper
+			end
+		end
+	end
 end
 
 --
