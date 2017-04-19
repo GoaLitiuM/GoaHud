@@ -583,6 +583,7 @@ function GoaHud:drawFirst()
 	self:postInitWidgets()
 	
 	self.draw = self.drawReal
+	self:drawReal()
 end
 
 function GoaHud:drawReal()
