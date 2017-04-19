@@ -586,6 +586,8 @@ function GoaHud:drawFirst()
 end
 
 function GoaHud:drawReal()
+	self:updateEpochTimeMs()
+	
 	if (comboBoxesCount > 0) then
 		local active_comboboxes = 0
 		table.reverse(comboBoxes)
@@ -1113,4 +1115,17 @@ function table.merge(t, y)
 		n[i] = k
 	end
 	return n
+end
+
+epochTimeMs = 0
+local lastEpochTime = 0
+function GoaHud:updateEpochTimeMs()
+	epochTimeMs = epochTimeMs + deltaTimeRaw
+
+	-- reset milliseconds when full second changes
+	if (epochTime ~= lastEpochTime) then
+		epochTimeMs = epochTime
+	end
+
+	lastEpochTime = epochTime
 end
