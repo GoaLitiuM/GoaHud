@@ -190,7 +190,7 @@ function GoaHud:drawWidgetList(x, y, category, optargs)
 				if (k.name == w.name) then widget = k; break end
 			end
 			
-			local widget_table = loadstring(string.format("return %s", name))()
+			local widget_table = _G[name]
 			
 			local enabled, old_enabled
 			optargs.optionalId = optargs.optionalId + 1
@@ -753,7 +753,7 @@ end
 function GoaHud:registerWidget(widget_name, category)
 	local category = category or GOAHUD_UI
 
-	local widget_table = loadstring(string.format("return %s", widget_name))()
+	local widget_table = _G[widget_name]
 	local widget_info =
 	{
 		name = widget_name,
@@ -858,7 +858,7 @@ end
 
 function GoaHud:postInitWidgets()
 	for i, w in pairs(self.goaWidgets) do
-		widget_table = loadstring(string.format("return %s", w.name))()
+		widget_table = _G[w.name]
 		
 		-- register callback functions for new log messages
 		if (widget_table.onLog ~= nil) then
