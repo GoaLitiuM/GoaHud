@@ -29,6 +29,9 @@ function GoaHud_Addon:tick() end -- for modules
 -- called when module enabled state is changed
 function GoaHud_Addon:onEnabled(enabled)
 
+-- called when new log entry is added
+function GoaHud_Addon:onLog(entry)
+
 -- provides custom rendering for each options variable
 -- by default following function is called for each variable, and is returned:
 --   GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
@@ -54,6 +57,10 @@ GoaHud =
 	showOptions = true, -- debug
 	dirtyConvars = false,
 	convarQueue = {},
+	
+	logObservers = {},
+	logObserversCount = 0,
+	logLastId = -1,
 	
 	colorCodesSupported = false, -- Kimi's EmojiChat
 	previewMode = false, -- Brandon's Hud Editor
@@ -573,6 +580,8 @@ function GoaHud:drawFirst()
 	
 	if (nvgColorText ~= nil) then self.colorCodesSupported = true end
 	
+	self:postInitWidgets()
+	
 	self.draw = self.drawReal
 end
 
@@ -591,6 +600,22 @@ function GoaHud:drawReal()
 		if (active_comboboxes == 0) then
 			comboBoxValues = {}
 			comboBoxesCount = 0
+		end
+	end
+	
+	-- notify log observers of new log entries
+	if (self.logObserversCount > 0) then
+		if (log[1] ~= nil and log[1].id ~= self.logLastId) then
+			for i=#log, 1, -1 do
+				local entry = log[i]
+				if (entry.id > self.logLastId) then
+					self.logLastId = entry.id
+					
+					for i, o in pairs(self.logObservers) do
+						o.func(o.t, entry)
+					end
+				end
+			end
 		end
 	end
 	--[[
@@ -802,6 +827,18 @@ function GoaHud:registerWidget(widget_name, category)
 	
 	registerWidget(widget_name)
 	table.insert(self.goaWidgets, widget_info)
+end
+
+function GoaHud:postInitWidgets()
+	for i, w in pairs(self.goaWidgets) do
+		widget_table = loadstring(string.format("return %s", w.name))()
+		
+		-- register callback functions for new log messages
+		if (widget_table.onLog ~= nil) then
+			table.insert(self.logObservers, { t = widget_table, func = widget_table.onLog })
+			self.logObserversCount = self.logObserversCount + 1
+		end
+	end
 end
 
 function setWidgetVisibility(widget, visible)
