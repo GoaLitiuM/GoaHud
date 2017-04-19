@@ -154,7 +154,7 @@ function GoaHud_RaceTimer:draw()
 		color = Color(255,0,0,255)
 	end
 	
-	GoaHud:drawTextShadow(x, y, self.options.shadow, display_str, color.a)
+	GoaHud:drawTextShadow(x, y, display_str, self.options.shadow, { alpha = color.a })
 	nvgFillColor(color)
 	nvgText(x, y, display_str)
 

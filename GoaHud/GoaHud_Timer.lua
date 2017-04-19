@@ -57,7 +57,7 @@ end
 function GoaHud_Timer:drawText(x, y, color, value)
 	x = round(x)
 	y = round(y)
-	GoaHud:drawTextShadow(x, y, self.options.shadow, value, color.a)
+	GoaHud:drawTextShadow(x, y, value, self.options.shadow, { alpha = color.a })
 	nvgFillColor(color)
 	nvgText(x, y, value)
 end

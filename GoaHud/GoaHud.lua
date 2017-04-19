@@ -658,7 +658,7 @@ function GoaHud:drawText1(x, y, size, color, shadow, value, color_codes)
 	nvgTranslate(round(x), round(y))
 	
 	if (shadow.shadowEnabled) then
-		self:drawTextShadow(0, 0, shadow, value, color.a, color_codes)
+		self:drawTextShadow(0, 0, value, shadow, { alpha = color.a, color_codes = color_codes })
 	end
 
 	nvgFillColor(color)
@@ -684,10 +684,10 @@ function GoaHud:drawTextHA(x, y, size, color, shadow, value)
 	self:drawText1(x, y, size, color, shadow, value, color_codes)
 end
 
-function GoaHud:drawTextShadow(x, y, shadow, value, alpha, color_codes)
+function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
 	if (shadow == nil or shadow == {}) then return end
-	local alpha = alpha or 255
-	local color_codes = color_codes or false
+	local optargs = optargs or { }
+	local alpha = optargs.alpha or 255
 	
 	-- HACK: with transparent text, shadows will shine through the text...
 	-- halven the transparency to make it look better visually 

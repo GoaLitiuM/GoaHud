@@ -445,7 +445,7 @@ function GoaHud_Messages:draw()
 			nvgFontSize(24)
 			nvgFontFace(GOAHUD_FONT4)
 			
-			GoaHud:drawTextShadow(0, spec_y, self.options.shadow, follow_text)
+			GoaHud:drawTextShadow(0, spec_y, follow_text, self.options.shadow)
 
 			nvgFillColor(Color(255,255,255,196))
 			nvgText(0, spec_y, follow_text)

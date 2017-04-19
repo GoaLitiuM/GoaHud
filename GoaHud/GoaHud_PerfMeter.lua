@@ -69,7 +69,7 @@ function GoaHud_PerfMeter:draw()
 	nvgFontSize(22)
 	
 	-- shadow
-	GoaHud:drawTextShadow(0, 0, self.options.shadow, self.displayStr)
+	GoaHud:drawTextShadow(0, 0, self.displayStr, self.options.shadow)
 		
 	-- actual text
 	nvgFontBlur(0.0)
