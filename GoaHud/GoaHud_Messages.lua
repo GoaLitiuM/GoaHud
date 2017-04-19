@@ -190,7 +190,75 @@ end
 function GoaHud_Messages:onPlayerReady(player, ready)
 end
 
-local last_id = -1
+function GoaHud_Messages:onLog(entry)
+	local player = getPlayer()
+
+	-- fragged message
+	if (self.options.showFraggedMessage and entry.type == LOG_TYPE_DEATHMESSAGE and entry.deathKiller == player.name and not entry.deathSuicide) then			
+		local function sortByScore(a, b)
+			return a.score > b.score
+		end
+
+		local players_sorted = {}
+		for i, p in ipairs(players) do
+			if (p.connected) then
+				table.insert(players_sorted, p)
+			end
+		end
+		table.sort(players_sorted, sortByScore)
+		
+		local placement = -1
+		local killed = nil
+		for i, p in ipairs(players_sorted) do
+			if (p.name == player.name) then
+				placement = i
+			end
+			if (p.name == entry.deathKilled) then killed = p end
+		end
+
+		self.fragInfo =
+		{
+			killer = player,
+			killed = killed,
+			score = player.score,
+			placement = placement,
+			time = self.timer,
+		}
+		
+	end
+	
+	-- CTF events
+	if (entry.type == LOG_TYPE_CTFEVENT) then
+		local team_color = teamColors[entry.ctfTeamIndex]
+		
+		local text = "???"
+		if (entry.ctfPlayerName ~= "") then
+			if (entry.ctfEvent == CTF_EVENT_CAPTURE) then
+				text = entry.ctfPlayerName .. " captured the flag"
+			elseif (entry.ctfEvent == CTF_EVENT_RETURN) then
+				text = entry.ctfPlayerName .. " returned the flag"
+			elseif (entry.ctfEvent == CTF_EVENT_PICKUP) then
+				text = entry.ctfPlayerName .. " picked up the flag"
+			elseif (entry.ctfEvent == CTF_EVENT_DROPPED) then
+				text = entry.ctfPlayerName .. " dropped the flag"
+			end
+		else
+			local team_name = world.teams[entry.ctfTeamIndex].name
+			if (entry.ctfEvent == CTF_EVENT_RETURN) then
+				text = team_name .. " flag was returned"
+			end
+		end
+	
+		self.titleInfo =
+		{
+			text = text,
+			time = self.timer,
+			color = team_color,
+			length = 4.0,
+		}
+	end
+end
+
 function GoaHud_Messages:draw()
 	if (world == nil) then return end
 	self.timer = self.timer + deltaTimeRaw
@@ -212,82 +280,6 @@ function GoaHud_Messages:draw()
 	
 	local local_player = getLocalPlayer()
 	if (local_player == nil) then return end
-	
-	-- parse log
-	if (log[1] ~= nil and log[1].id ~= last_id) then
-		local player = getPlayer()
-		for i=#log, 1, -1 do
-			local entry = log[i]
-			if (entry.id > last_id) then
-				last_id = entry.id
-				
-				-- fragged message
-				if (self.options.showFraggedMessage and entry.type == LOG_TYPE_DEATHMESSAGE and entry.deathKiller == player.name and not entry.deathSuicide) then			
-					local function sortByScore(a, b)
-						return a.score > b.score
-					end
-
-					local players_sorted = {}
-					for i, p in ipairs(players) do
-						if (p.connected) then
-							table.insert(players_sorted, p)
-						end
-					end
-					table.sort(players_sorted, sortByScore)
-					
-					local placement = -1
-					local killed = nil
-					for i, p in ipairs(players_sorted) do
-						if (p.name == player.name) then
-							placement = i
-						end
-						if (p.name == entry.deathKilled) then killed = p end
-					end
-
-					self.fragInfo =
-					{
-						killer = player,
-						killed = killed,
-						score = player.score,
-						placement = placement,
-						time = self.timer,
-					}
-					
-				end
-				
-				-- CTF events
-				if (entry.type == LOG_TYPE_CTFEVENT) then
-					local team_color = teamColors[entry.ctfTeamIndex]
-					
-					local text = "???"
-					if (entry.ctfPlayerName ~= "") then
-						if (entry.ctfEvent == CTF_EVENT_CAPTURE) then
-							text = entry.ctfPlayerName .. " captured the flag"
-						elseif (entry.ctfEvent == CTF_EVENT_RETURN) then
-							text = entry.ctfPlayerName .. " returned the flag"
-						elseif (entry.ctfEvent == CTF_EVENT_PICKUP) then
-							text = entry.ctfPlayerName .. " picked up the flag"
-						elseif (entry.ctfEvent == CTF_EVENT_DROPPED) then
-							text = entry.ctfPlayerName .. " dropped the flag"
-						end
-					else
-						local team_name = world.teams[entry.ctfTeamIndex].name
-						if (entry.ctfEvent == CTF_EVENT_RETURN) then
-							text = team_name .. " flag was returned"
-						end
-					end
-				
-					self.titleInfo =
-					{
-						text = text,
-						time = self.timer,
-						color = team_color,
-						length = 4.0,
-					}
-				end
-			end
-		end
-	end
 	
 	local title_end_time = self.titleInfo.time + self.titleInfo.length + self.options.fragFadeTime
 	if (self.timer < title_end_time) then
