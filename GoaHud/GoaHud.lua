@@ -765,33 +765,30 @@ function GoaHud:drawTextWithEmojis(x, y, text, emoji_size)
 		nvgColorText(x, y, text)
 		return
 	end
-	
-	local path = emoji_path
-	local color = nil
-	local svg = SHORTCODE_REPLACE[string.sub(text, match_start+1, match_end-1)]
-	if (svg == nil) then
-		path = 'internal/ui/icons/'
-		svg = ICONS[string.sub(text, match_start+1, match_end-1)]
-	end
+
+	local svg = getEmoji(string.sub(text, match_start+1, match_end-1))
 
 	local print_text
 	if (svg == nil) then
 		print_text = string.sub(text, 0, match_end)
-		nvgColorText(x, y, print_text)
-		x = x + nvgTextWidth(print_text)
 	else
 		print_text = string.sub(text, 0, match_start-1)
-		nvgColorText(x, y, print_text)	
-		print_text = print_text .. '  '
-		x = x + nvgTextWidth(print_text)
-		
-		local size = emoji_size/2
-		local bounds = nvgTextBounds(print_text)
-		local offset_y = (size + bounds.maxy)/2
-		
-		nvgSvg(path .. svg, x + size/2, y - offset_y, size)
-		x = x + size*1.5
 	end
+	
+	-- draw the text before next emoji if any was found
+	nvgColorText(x, y, print_text)
+	x = x + nvgTextWidth(print_text)
+	
+	-- draw emoji
+	if (svg ~= nil) then
+		local radius = emoji_size/2
+		local bounds = nvgTextBounds(print_text)
+		local offset_y = (radius + bounds.maxy)/2
+		
+		nvgSvg(svg, x + radius, y - offset_y, radius)
+		x = x + emoji_size
+	end
+	
 	self:drawTextWithEmojis(x, y, string.sub(text, match_end+1, -1), emoji_size)
 end
 
@@ -1273,6 +1270,27 @@ function GoaHud:updateEpochTimeMs()
 	lastEpochTime = epochTime
 end
 
+--
+-- emoji helpers
+--
+
+function getEmoji(text)
+	local path = emoji_path
+	local svg = SHORTCODE_REPLACE[text]
+	if (svg == nil) then
+		path = 'internal/ui/icons/'
+		svg = ICONS[text]
+	end
+	
+	if (svg == nil) then return nil end
+	
+	return path .. svg
+end
+
+function isEmoji(text)
+	return getEmoji(text) ~= nil
+end
+
 function nvgTextBoundsEmoji(text, emoji_size)
 	if (not GoaHud.colorCodesSupported) then return nvgTextWidth(text) end
 
@@ -1281,37 +1299,29 @@ function nvgTextBoundsEmoji(text, emoji_size)
 	-- strip color codes
 	text = string.gsub(text, "%^[0-9]", "")
 	
-	-- find emoji shortcodes
-	local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
-	if (match_start == nil) then
-		return nvgTextBounds(text)
+	local width = 0
+	for i=1, 100 do
+		-- find emoji shortcodes
+		local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
+		if (match_start == nil) then
+			local bounds = nvgTextBounds(text)
+			bounds.maxx = bounds.maxx + width
+			return bounds
+		end
+		
+		-- remove shortcode from text string
+		if (getEmoji(string.sub(text, match_start+1, match_end-1)) ~= nil) then
+			text = string.sub(text, 1, match_start-1) .. string.sub(text, match_end+1, #text)
+			width = width + emoji_size
+		else
+			local bounds = nvgTextBounds(text)
+			bounds.maxx = bounds.maxx + width
+			return bounds
+		end
 	end
-
-	local shortcode = SHORTCODE_REPLACE[string.sub(text,match_start+1,match_end-1)]
-	if (shortcode == nil) then
-		shortcode = ICONS[string.sub(text,match_start+1,match_end-1)]
-	end
-
-	-- remove shortcode from text string
-	local offset = 0
-	if (shortcode ~= nil) then
-		text = string.sub(text, 1, match_start-1) .. string.sub(text, match_end+1, #text)
-		offset = offset + emoji_size
-	end
 	
-	-- calculate text bounds up to match ending point
-	local subtext = string.sub(text, 1, match_end)
-	local bounds = nvgTextBounds(subtext)
-	bounds.maxx = bounds.maxx + offset
-	
-	-- recursively accumulate width of following text chunks
-	local next_bounds = nvgTextBoundsEmoji(string.sub(text, match_end+1, #text), emoji_size)
-	bounds.maxx = bounds.maxx + next_bounds.maxx
-	
-	-- take the vertically largest bounds
-	bounds.miny = math.min(bounds.miny, next_bounds.miny)
-	bounds.maxy = math.max(bounds.maxy, next_bounds.maxy)
-	
+	local bounds = nvgTextBounds(text)
+	bounds.maxx = bounds.maxx + width
 	return bounds
 end
 
@@ -1323,29 +1333,22 @@ function nvgTextWidthEmoji(text, emoji_size)
 	-- strip color codes
 	text = string.gsub(text, "%^[0-9]", "")
 	
-	-- find emoji shortcodes
-	local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
-	if (match_start == nil) then
-		return nvgTextWidth(text)
+	local width = 0
+	for i=1, 100 do
+		-- find emoji shortcodes
+		local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
+		if (match_start == nil) then
+			return width + nvgTextWidth(text)
+		end
+
+		-- remove shortcode from text string
+		if (getEmoji(string.sub(text, match_start+1, match_end-1)) ~= nil) then
+			text = string.sub(text, 1, match_start-1) .. string.sub(text, match_end+1, #text)
+			width = width + emoji_size
+		else
+			return width + nvgTextWidth(text)
+		end
 	end
 
-	local shortcode = SHORTCODE_REPLACE[string.sub(text,match_start+1,match_end-1)]
-	if (shortcode == nil) then
-		shortcode = ICONS[string.sub(text,match_start+1,match_end-1)]
-	end
-
-	-- remove shortcode from text string
-	local offset = 0
-	if (shortcode ~= nil) then
-		text = string.sub(text, 1, match_start-1) .. string.sub(text, match_end+1, #text)
-		offset = offset + emoji_size
-	end
-	
-	-- calculate text bounds up to match ending point
-	local subtext = string.sub(text, 1, match_end)
-	local width = nvgTextWidth(subtext)
-	width = width + offset
-
-	-- recursively accumulate width of following text chunks
-	return width + nvgTextWidthEmoji(string.sub(text, match_end+1, #text), emoji_size)
+	return width + nvgTextWidth(text)
 end
