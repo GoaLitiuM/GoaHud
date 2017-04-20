@@ -87,14 +87,15 @@ function GoaHud_Timer:draw()
 		time_raw = math.floor(world.gameTime / 1000) * 1000
 	end
 
-	local t = GoaHud:formatTime(time_raw)
-	local display_str = string.format("%02d:%02d", t.mins, t.secs)
+	local t = GoaHud:formatTime(time_raw / 1000)
+	local display_str = string.format("%02d:%02d", t.mins_total, t.secs)
 	
-	if (t.mins ~= self.lastMins) then
-		if (t.mins % 100 ~= self.lastMins % 100) then
+	if (t.mins_total ~= self.lastMins) then
+		if (t.mins_total % 100 ~= self.lastMins % 100) then
 			self.recalculateBounds = true
 		end
 	end
+	self.lastMins = t.mins_total
 	
 	if (self.recalculateBounds) then
 		nvgSave()
@@ -206,6 +207,4 @@ function GoaHud_Timer:draw()
 		
 		self:drawText(x, y, Color(255,255,255,255), score_diff_str)
 	end
-	
-	self.lastMins = t.mins
 end

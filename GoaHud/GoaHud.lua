@@ -1155,12 +1155,16 @@ end
 -- utility
 --
 
-function GoaHud:formatTime(elapsed)
-	local seconds_total = math.floor(elapsed / 1000)
+function GoaHud:formatTime(elapsed, wat)
+	local seconds_total = math.floor(elapsed)
 	return
 	{
+		hours = seconds_total % (60 * 60),
+		hours_total = math.floor(seconds_total / (60 * 60)),
+		mins = seconds_total % (60 * 60),
+		mins_total = math.floor(seconds_total / 60),
 		secs = seconds_total % 60,
-		mins = math.floor(seconds_total / 60),
+		secs_total = seconds_total,
 		millis = elapsed % 1000,
 	}
 end
