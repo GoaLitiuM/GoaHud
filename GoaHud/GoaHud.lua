@@ -721,7 +721,7 @@ function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
 	end
 	
 	-- strip color codes from the text, we don't want to color our shadows
-	if (color_codes) then
+	if (optargs.color_codes or optargs.emoji_size ~= nil) then
 		value = string.gsub(value, "%^[0-9]", "")
 	end
 	
@@ -738,7 +738,12 @@ function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
 		local shadow_alpha = math.min(1.0, shadow_left)
 		
 		nvgFillColor(Color(shadow.shadowColor.r, shadow.shadowColor.g, shadow.shadowColor.b, shadow.shadowColor.a * shadow_alpha))
-		nvgText(x + shadow_x, y + shadow_y, value)
+		
+		if (optargs.emoji_size ~= nil) then
+			self:drawTextWithEmojis(x + shadow_x, y + shadow_y, value, optargs.emoji_size)
+		else
+			nvgText(x + shadow_x, y + shadow_y, value)
+		end
 
 		shadow_left = shadow_left - shadow_alpha
 	end
