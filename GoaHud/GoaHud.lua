@@ -683,14 +683,14 @@ function GoaHud:drawText1(x, y, size, color, shadow, value, color_codes)
 	nvgTranslate(round(x), round(y))
 	
 	if (shadow.shadowEnabled) then
-		self:drawTextShadow(0, 0, value, shadow, { alpha = color.a, color_codes = color_codes })
+		self:drawTextShadow(0, 0, value, shadow, { alpha = color.a, color_codes = color_codes, emoji_size = size })
 	end
 
 	nvgFillColor(color)
 	
 	if (color_codes) then
 		if (self.colorCodesSupported) then
-			nvgColorText(0, 0, value)
+			self:drawTextWithEmojis(0, 0, value, size)
 		else
 			nvgText(0, 0, string.gsub(value, "%^[0-9]", ""))
 		end
