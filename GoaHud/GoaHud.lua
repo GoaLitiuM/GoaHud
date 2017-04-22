@@ -1283,12 +1283,22 @@ end
 
 function getEmoji(text)
 	if (not GoaHud.colorCodesSupported) then return nil end
-	
-	local path = emoji_path
-	local svg = SHORTCODE_REPLACE[text]
-	if (svg == nil) then
-		path = 'internal/ui/icons/'
-		svg = ICONS[text]
+
+	local path
+	local svg
+	local flag = "flag_"
+	if (string.sub(text, 1, string.len(flag)) == flag) then
+		-- prefer internal flag icons over emoji flags
+		path = "internal/ui/icons/flags/"
+		svg = string.sub(text, string.len(flag)+1)
+		-- TODO: verify flag svg
+	else
+		path = emoji_path
+		svg	= SHORTCODE_REPLACE[text]
+		if (svg == nil) then
+			path = "internal/ui/icons/"
+			svg = ICONS[text]
+		end
 	end
 	
 	if (svg == nil) then return nil end
