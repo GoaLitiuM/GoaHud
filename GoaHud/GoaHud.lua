@@ -1150,7 +1150,14 @@ function AccelMeter:initialize()
 	GoaHud_HookErrorFunctions()
 end
 
+-- Catches all error emitted inside initialize and draw functions,
+-- does not catch any errors thrown during initial load :(.
+
+local errorFunctionsHooked = false
 function GoaHud_HookErrorFunctions()
+	if (errorFunctionsHooked) then return end
+	errorFunctionsHooked = true
+	
 	for i, k in pairs(widgets) do
 		if (k.name ~= nil and k.name ~= "GoaHud") then
 			local widget_table = _G[k.name]
