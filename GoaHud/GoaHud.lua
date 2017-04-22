@@ -783,9 +783,9 @@ function GoaHud:drawTextWithEmojis(x, y, text, emoji_size)
 	if (svg ~= nil) then
 		local radius = emoji_size/2
 		local bounds = nvgTextBounds(print_text)
-		local offset_y = (radius + bounds.maxy)/2
+		local offset_y = (bounds.miny + bounds.maxy) / 2
 		
-		nvgSvg(svg, x + radius, y - offset_y, radius)
+		nvgSvg(svg, x + radius, y + offset_y, radius)
 		x = x + emoji_size
 	end
 	
