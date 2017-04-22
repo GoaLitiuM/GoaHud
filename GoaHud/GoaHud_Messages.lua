@@ -485,14 +485,14 @@ function GoaHud_Messages:drawFragged(x, y, intensity)
 				is_local_killer = false
 			end
 		end
-
+		
 		nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_BASELINE)
 		nvgSave()
 		
 		GoaHud:drawTextStyle1(title_font_size)
-		local frag_width = nvgTextWidth(string.format("%s %s %s", killer, message, killed))
-		local killer_width = nvgTextWidth(killer .. " ")
-		local message_width = nvgTextWidth(message .. " ")
+		local frag_width = nvgTextWidthEmoji(string.format("%s %s %s", killer, message, killed), title_font_size)
+		local killer_width = nvgTextWidthEmoji(killer .. " ", title_font_size)
+		local message_width = nvgTextWidthEmoji(message .. " ", title_font_size)
 		
 		nvgRestore()
 
@@ -573,8 +573,8 @@ function GoaHud_Messages:drawFragged(x, y, intensity)
 			GoaHud:drawTextStyle1(size)
 
 			local offset_x = 0			
-			local bounds_extra = nvgTextBounds(frag_extra_message)
-			local bounds_placement = nvgTextBounds(placement)
+			local bounds_extra = nvgTextBoundsEmoji(frag_extra_message)
+			local bounds_placement = nvgTextBoundsEmoji(placement)
 
 			GoaHud:drawText1(x + offset_x + bounds_placement.maxx , y + size, size, Color(255,255,255,alpha * 255), self.options.shadow, frag_extra_message)
 			GoaHud:drawText1(x + offset_x - bounds_extra.maxx, y + size, size, placement_color, self.options.shadow, placement)
