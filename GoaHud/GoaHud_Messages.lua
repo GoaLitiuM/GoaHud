@@ -25,6 +25,8 @@ local KILLER_STYLE_NAMES =
 	"Name (Spectate Only)",
 }
 
+local player_nobody = { name = "nobody", country = "bot", index = -1}
+
 GoaHud_Messages =
 {
 	canPosition = false,
@@ -58,8 +60,8 @@ GoaHud_Messages =
 	readyList = { { "nobody", true, 0} },
 	fragInfo =
 	{
-		killer = "nobody",
-		killed = { name = "nobody", country = "bot"},
+		killer = player_nobody,
+		killed = player_nobody,
 		time = -99999,
 		placement = 1,
 		score = 13,
@@ -92,9 +94,9 @@ function GoaHud_Messages:drawPreview(x, y, intensity)
 	local cycle_time = self.options.fragShowTime + self.options.fragFadeTime + 0.5
 	preview_timer = preview_timer + deltaTimeRaw
 	if (preview_timer >= cycle_time) then
-		local killer_name = "nobody"
-		local killer_country = "bot"
-		local killer_index = -1
+		local killer_name = player_nobody.name
+		local killer_country = player_nobody.country
+		local killer_index = player_nobody.index
 		local player = getLocalPlayer()
 		if (player ~= nil) then
 			killer_name = player.name
@@ -218,8 +220,8 @@ function GoaHud_Messages:onLog(entry)
 
 		self.fragInfo =
 		{
-			killer = player,
-			killed = killed,
+			killer = clone(player),
+			killed = clone(killed) or player_nobody,
 			score = player.score,
 			placement = placement,
 			time = self.timer,
