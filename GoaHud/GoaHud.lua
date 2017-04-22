@@ -1275,6 +1275,8 @@ end
 --
 
 function getEmoji(text)
+	if (not GoaHud.colorCodesSupported) then return nil end
+	
 	local path = emoji_path
 	local svg = SHORTCODE_REPLACE[text]
 	if (svg == nil) then
@@ -1292,7 +1294,7 @@ function isEmoji(text)
 end
 
 function nvgTextBoundsEmoji(text, emoji_size)
-	if (not GoaHud.colorCodesSupported) then return nvgTextWidth(text) end
+	if (not GoaHud.colorCodesSupported) then return nvgTextBounds(text) end
 
 	local emoji_size = emoji_size or FONT_SIZE_DEFAULT/2
 	
