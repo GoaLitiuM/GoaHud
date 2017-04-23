@@ -22,7 +22,6 @@ GOAHUD_CHAT_FONTS_NAMES =
 	"Volter__28Goldfish_29",
 }
 
-
 CARET_TYPE_VERTICAL = 1
 CARET_TYPE_UNDERSCORE = 2
 
@@ -108,7 +107,33 @@ GoaHud_Chat =
 }
 GoaHud:registerWidget("GoaHud_Chat", GOAHUD_UI_EXPERIMENTAL)
 
+local consolePrint_real
+local last_chat_debug = 0
+local function hookConsolePrint()
+	local consolePrintHook = function(text, hide)
+		consolePrint_real(text)
+		if (hide ~= true) then GoaHud_Chat:onDebug(text) end
+	end
+	
+	consolePrint = consolePrintHook
+	GoaHud_Chat:onDebug("consolePrint hooked")
+end
+
+local function unhookConsolePrint()
+	consolePrint = consolePrint_real
+end
+
 function GoaHud_Chat:init()
+	consolePrint_real = consolePrint
+	GoaHud:createConsoleVariable("chat_debug", "int", 0)
+
+	local chat_debug = GoaHud:getConsoleVariable("chat_debug")
+	if (chat_debug ~= last_chat_debug) then
+		if (chat_debug ~= 0) then hookConsolePrint()
+		else unhookConsolePrint() end
+		last_chat_debug = chat_debug
+	end
+
 	for i=1, 25 do
 		table.insert(self.messagesPreview, { timestamp = 0, source = "Player1", content = "gg" })
 		table.insert(self.messagesPreview, { timestamp = 0, source = "Player2", content = "gg" })
@@ -446,6 +471,13 @@ end
 local last_hover = nil
 local last_cursor = -1
 function GoaHud_Chat:draw()
+	local chat_debug = GoaHud:getConsoleVariable("chat_debug")
+	if (chat_debug ~= last_chat_debug) then
+		if (chat_debug ~= 0) then hookConsolePrint()
+		else unhookConsolePrint() end
+		last_chat_debug = chat_debug
+	end
+
 	if (not GoaHud.previewMode) then
 		if (not shouldShowHUD(optargs_deadspec)) then return end
 	end
