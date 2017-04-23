@@ -686,7 +686,7 @@ function GoaHud:drawReal()
 
 	if (br_HudEditorPopup ~= nil) then self.previewMode = not br_HudEditorPopup.show_menu end
 
-	if (not first_draw and self.showOptions and shouldShowHUD()) then
+	--[[if (not first_draw and self.showOptions and shouldShowHUD()) then
 		nvgSave()
 		nvgBeginPath()
 		nvgFillColor(Color(64,64,64,255))
@@ -697,7 +697,7 @@ function GoaHud:drawReal()
 		--self.previewMode = true
 		callWidgetDrawOptions("GoaHud_Chat", -300, -300, 1.0)
 		consolePerformCommand("m_enabled 1")
-	end
+	end--]]
 	
 	if (comboBoxesCount > 0) then
 		local active_comboboxes = 0
