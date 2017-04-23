@@ -500,12 +500,25 @@ local comboBoxes = {}
 local comboBoxValues = {}
 local comboBoxesCount = 0
 function GoaComboBox(options, selection, x, y, w, comboBoxData, optargs)
-	if (popupActive) then return value end
+	if (popupActive) then return selection end
+	consolePrint("hello")
 
 	-- draw combobox later
 	table.insert(comboBoxes, { comboBoxData, {options, comboBoxValues[comboBoxData] or selection, x, y, w, comboBoxData, clone(optargs)} })
 	if (comboBoxValues[comboBoxData] == nil) then comboBoxesCount = comboBoxesCount + 1 end
-	return comboBoxValues[comboBoxData] or value
+	return comboBoxValues[comboBoxData] or selection
+end
+
+function GoaComboBoxIndex(options, index, x, y, w, comboBoxData, optargs)
+	local selection = options[index]
+	selection = GoaComboBox(options, selection, x, y, w, comboBoxData, optargs)
+
+	local selected_index = -1
+	for i, name in pairs(options) do
+		if (selection == name) then selected_index = i end
+	end
+
+	return selected_index
 end
 
 local colorPickerStates = {}
