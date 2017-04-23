@@ -495,7 +495,7 @@ function GoaHud_Chat:draw()
 	end
 
 	if (not GoaHud.previewMode) then
-		if (not shouldShowHUD({showWhenDead = true, showWhenSpec = true, showInGameOver = true})) then return end
+		if (replayName == "menu" or getLocalPlayer() == nil or isInMenu()) then return end
 	end
 
 	local line_height = self.options.fontSize
