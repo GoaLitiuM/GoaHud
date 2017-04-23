@@ -168,6 +168,9 @@ end
 function GoaHud_Crosshair:draw()
 	if (not shouldShowHUD(optargs_deadspec)) then return end
 
+	local local_player = getLocalPlayer()
+	if (local_player.state == PLAYER_STATE_SPECTATOR and playerIndexLocalPlayer == playerIndexCameraAttachedTo) then return end
+
 	local player = getPlayer()
 	local weapon = player.weaponIndexweaponChangingTo
 	if (player.infoHidden) then weapon = self.lastWeapon end
