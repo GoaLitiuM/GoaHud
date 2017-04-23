@@ -79,6 +79,10 @@ GOAHUD_FONT1 = "vipnagorgialla"
 GOAHUD_FONT2 = "Lato-Heavy-Optimized"
 GOAHUD_FONT3 = "Volter__28Goldfish_29"
 GOAHUD_FONT4 = "OpenSans-CondBold"
+GOAHUD_FONT5 = "forgotten futurist rg"
+GOAHUD_FONT5_BOLD = "forgotten futurist bd"
+GOAHUD_FONT5_ITALIC = "forgotten futurist rg it"
+GOAHUD_FONT5_BOLD_ITALIC = "forgotten futurist bd it"
 
 AMMO_STATE_SWITCHING = 0
 AMMO_STATE_SHOWING = 1
