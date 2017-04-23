@@ -80,6 +80,7 @@ function GoaHud_Zoom:tick()
 		self.lastZoomState = -1
 		GoaHud:setConsoleVariable("zoom", 0)
 		consolePerformCommand("-showscores")
+		self:onZoomReleased()
 	end
 
 	local zoom_state = GoaHud:getConsoleVariable("zoom")
