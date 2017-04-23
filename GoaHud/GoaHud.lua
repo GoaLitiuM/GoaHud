@@ -370,9 +370,11 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		local min_value = 0.0
 		local max_value = 5.0
 		local new_value = value
+		local values = optargs.values or nil
 		
 		local milliseconds = false
 		local seconds = false
+		local units = optargs.units or nil
 		local fov = optargs.fov or false
 		local slider_width = 200
 		local editbox_width = 75
@@ -395,43 +397,70 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		elseif (fov) then
 			min_value = 10
 			max_value = 178
+		elseif (values ~= nil) then
+			min_value = values[1]
+			max_value = values[#values]
 		end
 		
-		if (milliseconds) then new_value = new_value * 1000 end
+		if (milliseconds) then new_value = new_value * 1000 end -- to milliseconds
+
+		local enforceFunc = function(new_value)
+			-- enforce min/max value range, and rounding to nearest tick
+			if (optargs.tick ~= nil) then
+				new_value = round(new_value * optargs.tick) / optargs.tick
+			elseif (milliseconds) then
+				new_value = round(new_value)
+				new_value = math.min(max_value, new_value)
+				new_value = math.max(min_value, new_value)
+			elseif (values ~= nil) then
+				local closest = new_value
+				local closest_diff = 99999999999999
+				for i, val in ipairs(values) do
+					local diff = math.abs(new_value - val)
+					if (diff < closest_diff) then
+						closest = val
+						closest_diff = diff
+					end
+				end
+				new_value = closest
+			else
+				new_value = round(new_value * 100) / 100.0
+			end
+			return new_value
+		end
 
 		-- slider
 		new_value = GoaSlider(x + offset_x + slider_offset, y + offset_y, slider_width, min_value, max_value, new_value, optargs)
-		
+
 		local show_editbox = optargs.show_editbox or true
 		if (show_editbox) then
+			-- enforce before editbox to hide bad values in editbox			
+			new_value = enforceFunc(new_value)
+
 			optargs.optionalId = optargs.optionalId + 1
 			new_value = GoaEditBox2Decimals(new_value, x + offset_x + slider_offset + slider_width + 20, y + offset_y, editbox_width, optargs)
 		else
 			GoaLabel(new_value, x + offset_x + slider_offset + slider_width + 20, y + offset_y, optargs)
 		end
 		
-		-- enforce min/max value range, and rounding to nearest tick
-		if (optargs.tick ~= nil) then
-			new_value = round(new_value * optargs.tick) / optargs.tick
-		elseif (milliseconds) then
-			new_value = round(new_value)
-			new_value = math.min(max_value, new_value)
-			new_value = math.max(min_value, new_value)
-			new_value = new_value / 1000.0
-		else
-			new_value = round(new_value * 100) / 100.0
-		end
+		new_value = enforceFunc(new_value)
 		
-		if (not milliseconds) then
+		if (milliseconds) then
+			new_value = new_value / 1000.0 -- back to seconds
+		else
 			new_value = math.min(max_value, new_value)
 			new_value = math.max(min_value, new_value)
 		end
 		
 		-- display units
 		if (milliseconds) then
-			GoaLabel("ms", x + offset_x + slider_offset + slider_width + editbox_width + 30, y + offset_y, optargs)
+			units = "ms"
 		elseif (seconds) then
-			GoaLabel("s", x + offset_x + slider_offset + slider_width + editbox_width + 30, y + offset_y, optargs)
+			units = "s"
+		end
+
+		if (units ~= nil) then
+			GoaLabel(tostring(units), x + offset_x + slider_offset + slider_width + editbox_width + 30, y + offset_y, optargs)
 		end
 		
 		options[name] = new_value
