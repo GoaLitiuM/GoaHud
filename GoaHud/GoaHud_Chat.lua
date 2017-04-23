@@ -32,13 +32,13 @@ CARET_TYPE_NAMES =
 }
 
 CHAT_BEEP_ALWAYS = 1
-CHAT_BEEP_TEAMONLY = 2
+CHAT_BEEP_DISABLED_MATCH = 2
 CHAT_BEEP_DISABLED = 3
 
 CHAT_BEEP_NAMES =
 {
 	"Always",
-	"Team Only",
+	"Disabled During Match",
 	"Disabled",
 }
 
@@ -64,8 +64,10 @@ GoaHud_Chat =
 		showSeconds = true,
 		utcOffset = 3,
 
-		chatBeep = CHAT_BEEP_TEAMONLY,
-		chatBeepMatch = true,
+		chatBeepSay = CHAT_BEEP_ALWAYS,
+		chatBeepTeam = CHAT_BEEP_ALWAYS,
+		chatBeepSpec = CHAT_BEEP_ALWAYS,
+		chatBeepParty = CHAT_BEEP_ALWAYS,
 
 		caretType = CARET_TYPE_VERTICAL,
 		caretBlinking = true,
@@ -92,7 +94,7 @@ GoaHud_Chat =
 		"",
 		"useTimestamps", "showSeconds", "utcOffset",
 		"",
-		"chatBeep", "chatBeepMatch",
+		"chatBeepSay", "chatBeepTeam", "chatBeepSpec", "chatBeepParty",
 		"",
 		"caretType", "caretBlinking",
 		"",
@@ -146,6 +148,9 @@ end
 local comboBoxData1 = {}
 local comboBoxData2 = {}
 local comboBoxData3 = {}
+local comboBoxData4 = {}
+local comboBoxData5 = {}
+local comboBoxData6 = {}
 function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "font") then
 		GoaLabel("Font: ", x, y, optargs)
@@ -202,16 +207,29 @@ function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 		optargs.enabled = self.options.useTimestamps
 		optargs.values = UTC_OFFSETS
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "UTC Offset")
-	elseif (varname == "chatBeep") then
-		GoaLabel("Chat Beep: ", x, y, optargs)
-		self.options.chatBeep = GoaComboBoxIndex(CHAT_BEEP_NAMES, self.options.chatBeep, x + 225, y, 250, comboBoxData2, optargs)
+	elseif (varname == "chatBeepSay") then
+		GoaLabel("Chat Beep (say): ", x, y, optargs)
+		self.options.chatBeepSay = GoaComboBoxIndex(CHAT_BEEP_NAMES, self.options.chatBeepSay, x + 225, y, 250, comboBoxData2, optargs)
 
 		return GOAHUD_SPACING
-	elseif (varname == "chatBeepMatch") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Beep During Match")
+	elseif (varname == "chatBeepTeam") then
+		GoaLabel("Chat Beep (team): ", x, y, optargs)
+		self.options.chatBeepTeam = GoaComboBoxIndex(CHAT_BEEP_NAMES, self.options.chatBeepTeam, x + 225, y, 250, comboBoxData3, optargs)
+
+		return GOAHUD_SPACING
+	elseif (varname == "chatBeepSpec") then
+		GoaLabel("Chat Beep (spec): ", x, y, optargs)
+		self.options.chatBeepSpec = GoaComboBoxIndex(CHAT_BEEP_NAMES, self.options.chatBeepSpec, x + 225, y, 250, comboBoxData4, optargs)
+
+		return GOAHUD_SPACING
+	elseif (varname == "chatBeepParty") then
+		GoaLabel("Chat Beep (party): ", x, y, optargs)
+		self.options.chatBeepParty = GoaComboBoxIndex(CHAT_BEEP_NAMES, self.options.chatBeepParty, x + 225, y, 250, comboBoxData5, optargs)
+
+		return GOAHUD_SPACING
 	elseif (varname == "caretType") then
 		GoaLabel("Caret Type: ", x, y, optargs)
-		self.options.caretType = GoaComboBoxIndex(CARET_TYPE_NAMES, self.options.caretType, x + 225, y, 250, comboBoxData3, optargs)
+		self.options.caretType = GoaComboBoxIndex(CARET_TYPE_NAMES, self.options.caretType, x + 225, y, 250, comboBoxData6, optargs)
 
 		return GOAHUD_SPACING
 	end
@@ -279,18 +297,19 @@ function GoaHud_Chat:onLog(entry)
 			elseif (entry.chatType == LOG_CHATTYPE_PARTY) then prefix = "(party) " end
 		--end
 
+		local game_active = world.timerActive and world.gameState == GAME_STATE_ACTIVE and getLocalPlayer().state == PLAYER_STATE_INGAME
 		local should_beep = false
-		local team_chatter = false
-		should_beep = should_beep or (self.options.chatBeep == CHAT_BEEP_TEAMONLY and entry.chatType == LOG_CHATTYPE_TEAM)
-		if (self.options.chatBeep == CHAT_BEEP_ALWAYS) then
-			should_beep = true
-		elseif (self.options.chatBeep == CHAT_BEEP_TEAMONLY and entry.chatType == LOG_CHATTYPE_TEAM) then
-			should_beep = true
-			team_chatter = true
+		if (entry.chatType == LOG_CHATTYPE_NORMAL) then
+			should_beep = self.options.chatBeepSay == CHAT_BEEP_ALWAYS or (not game_active and self.options.chatBeepSay == CHAT_BEEP_DISABLED_MATCH)
 		end
-
-		if (not team_chatter and not self.options.chatBeepMatch and world.timerActive and world.gameState == GAME_STATE_ACTIVE and getLocalPlayer().state == PLAYER_STATE_INGAME) then
-			should_beep = false
+		if (entry.chatType == LOG_CHATTYPE_TEAM) then
+			should_beep = self.options.chatBeepTeam == CHAT_BEEP_ALWAYS or (not game_active and self.options.chatBeepTeam == CHAT_BEEP_DISABLED_MATCH)
+		end
+		if (entry.chatType == LOG_CHATTYPE_SPECTATOR) then
+			should_beep = self.options.chatBeepSpec == CHAT_BEEP_ALWAYS or (not game_active and self.options.chatBeepSpec == CHAT_BEEP_DISABLED_MATCH)
+		end
+		if (entry.chatType == LOG_CHATTYPE_PARTY) then
+			should_beep = self.options.chatBeepParty == CHAT_BEEP_ALWAYS or (not game_active and self.options.chatBeepParty == CHAT_BEEP_DISABLED_MATCH)
 		end
 
 		if (should_beep) then
@@ -334,7 +353,7 @@ function GoaHud_Chat:onLog(entry)
 			colorBackground = color_background,
 		}
 	elseif (entry.type == LOG_TYPE_DROP or entry.type == LOG_TYPE_RECEIVED) then
-		if (self.options.chatBeep ~= CHAT_BEEP_DISABLED and getLocalPlayer().name == entry.dropPlayerName) then
+		if (getLocalPlayer().name == entry.dropPlayerName) then
 			playSound("internal/ui/sounds/notifyDrop")
 		end
 
