@@ -530,7 +530,6 @@ local comboBoxValues = {}
 local comboBoxesCount = 0
 function GoaComboBox(options, selection, x, y, w, comboBoxData, optargs)
 	if (popupActive) then return selection end
-	consolePrint("hello")
 
 	-- draw combobox later
 	table.insert(comboBoxes, { comboBoxData, {options, comboBoxValues[comboBoxData] or selection, x, y, w, comboBoxData, clone(optargs)} })
