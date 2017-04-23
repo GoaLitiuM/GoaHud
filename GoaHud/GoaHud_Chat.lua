@@ -476,7 +476,7 @@ function GoaHud_Chat:draw()
 	end
 
 	if (not GoaHud.previewMode) then
-		if (not shouldShowHUD(optargs_deadspec)) then return end
+		if (not shouldShowHUD({showWhenDead = true, showWhenSpec = true, showInGameOver = true})) then return end
 	end
 
 	local line_height = self.options.fontSize
