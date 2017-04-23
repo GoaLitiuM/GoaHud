@@ -147,15 +147,9 @@ function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fade Time")
 	elseif (varname == "showCountry") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Show Player Country Flag")
-	elseif (varname == "gameModeShowTime") then
-		local offset_y = 0
-		
+	elseif (varname == "gameModeShowTime") then	
 		GoaLabel("Game Mode:", x, y, optargs)
-		
-		offset_y = offset_y + GOAHUD_SPACING
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y + offset_y, optargs, "Show Time")
-		
-		return offset_y
+		return GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y + GOAHUD_SPACING, optargs, "Show Time")
 	elseif (varname == "gameModeFadeTime") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fade Time")
 	end
