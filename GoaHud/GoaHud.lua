@@ -1023,7 +1023,6 @@ function GoaHud:processConVars()
 	self.dirtyConvars = false
 	for i, k in ipairs(self.convarQueue) do
 		widgetCreateConsoleVariable(k[1], k[2], k[3])
-		widgetSetConsoleVariable(k[1], k[3])
 	end
 	self.convarQueue = {}
 end
