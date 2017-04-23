@@ -13,7 +13,7 @@ GOAHUD_CHAT_FONTS =
 	{ regular = GOAHUD_FONT1 },
 	{ regular = GOAHUD_FONT3 },
 }
-GOAHUD_CHAT_FONTS_NAMES = 
+GOAHUD_CHAT_FONTS_NAMES =
 {
 	"forgotten futurist",
 	"roboto",
@@ -52,7 +52,7 @@ GoaHud_Chat =
 		width = 675,
 		lineCount = 8,
 		backgroundAlpha = 96,
-		
+
 		messageTime = 15.0,
 		messageFadeTime = 2.5,
 
@@ -63,7 +63,7 @@ GoaHud_Chat =
 
 		chatBeep = CHAT_BEEP_TEAMONLY,
 		chatBeepMatch = true,
-		
+
 		caretType = CARET_TYPE_VERTICAL,
 		caretBlinking = true,
 
@@ -114,7 +114,7 @@ local function hookConsolePrint()
 		consolePrint_real(text)
 		if (hide ~= true) then GoaHud_Chat:onDebug(text) end
 	end
-	
+
 	consolePrint = consolePrintHook
 	GoaHud_Chat:onDebug("consolePrint hooked")
 end
@@ -205,7 +205,7 @@ function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 
 		return GOAHUD_SPACING
 	elseif (varname == "chatBeepMatch") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Beep During Match")	
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Beep During Match")
 	elseif (varname == "caretType") then
 		GoaLabel("Caret Type: ", x, y, optargs)
 		self.options.caretType = GoaComboBoxIndex(CARET_TYPE_NAMES, self.options.caretType, x + 225, y, 250, comboBoxData3, optargs)
@@ -309,7 +309,6 @@ function GoaHud_Chat:onLog(entry)
 		color_background.a = math.min(color_background.a * (self.options.backgroundAlpha/255), 255)
 
 		local color = self.textColor
-		consolePrint("notification: " .. entry.notification)
 
 		local notification_joined = " has joined the game"
 		local notification_spectating = " is now spectating"
@@ -406,7 +405,7 @@ function GoaHud_Chat:getFont(bold, italics)
 		face = font.bold_italic
 	end
 
-	if (face == nil) then face = font.regular end	
+	if (face == nil) then face = font.regular end
 	return face
 end
 
@@ -436,12 +435,8 @@ function SplitTextToMultipleLinesEmojis(text, w, emoji_size)
 	local lineCount = 0;
 	local newLine = "";
 
-	local panic = 100
 	while string.len(text) > 0 do
-		panic = panic - 1
-		if (panic < 0) then break end
 		local newWord;
-
 		newWord, text = pullWordEmojis(text);
 
 		-- spit out new line
@@ -468,7 +463,6 @@ function SplitTextToMultipleLinesEmojis(text, w, emoji_size)
 	return lines, lineCount;
 end
 
-local last_hover = nil
 local last_cursor = -1
 function GoaHud_Chat:draw()
 	local chat_debug = GoaHud:getConsoleVariable("chat_debug")
@@ -562,7 +556,7 @@ function GoaHud_Chat:draw()
 	nvgText(0, 0, say_text)
 
 	-- caret
-	if (say_active) then	
+	if (say_active) then
 		local caret_alpha = 196
 
 		-- reset blinking after cursor moved
@@ -615,8 +609,6 @@ function GoaHud_Chat:draw()
 		if (say.cursor ~= say.cursorStart) then
 			local selection_start_x = nvgTextWidth(string.sub(say.text, 0, say.cursorStart))
 			local letter_width = nvgTextWidth(string.sub(say.text, 0, say.cursor))
-
-			consolePrint(say.cursorStart)
 
 			nvgSave()
 			nvgBeginPath()
