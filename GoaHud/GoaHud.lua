@@ -271,7 +271,7 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 	for i in pairs_func(options_keys) do
 		local name = name_func(i)
 		if (name == "") then
-			offset_y = offset_y + GOAHUD_SPACING
+			offset_y = offset_y + GOAHUD_SPACING/2
 		elseif (name == "preview") then
 			if (not popupActive and self.drawPreview ~= nil) then
 				offset_y = offset_y + self:drawPreview(x, y + offset_y, intensity)
