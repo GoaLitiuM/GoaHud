@@ -1,5 +1,5 @@
 -- GoaHud_Ammo made by GoaLitiuM
--- 
+--
 -- Ammo display widget, shown on-demand
 --
 
@@ -8,13 +8,13 @@ require "base/internal/ui/reflexcore"
 GoaHud_Ammo =
 {
 	offset = { x = 0, y = 190 },
-	
+
 	timer = 0.0,
 	lastAmmo = -1,
 	lastWeapon = -1,
 	state = AMMO_STATE_SWITCHING,
 	fixShotgunAmmoWarning = false,
-	
+
 	progress = 0.0,
 
 	options =
@@ -23,7 +23,7 @@ GoaHud_Ammo =
 		fadeTime = 0.1,
 		ammoColor = Color(255, 255, 255, 255),
 		ammoColorWarning = Color(255, 0, 0, 255),
-		
+
 		shadow =
 		{
 			shadowEnabled = true,
@@ -33,7 +33,7 @@ GoaHud_Ammo =
 			shadowStrength = 1,
 		},
 	},
-	
+
 	optionsDisplayOrder = { "showTime", "fadeTime", "ammoColor", "ammoColorWarning", "shadow", },
 }
 GoaHud:registerWidget("GoaHud_Ammo");
@@ -62,19 +62,19 @@ function GoaHud_Ammo:drawPreview(x, y, intensity)
 	nvgFillLinearGradient(x, y, x + width + 90, y + height, Color(0,0,0,0), Color(255,255,255,255))
 	nvgRect(x, y, width, height)
 	nvgFill()
-	
+
 	local cycle_time = self.options.showTime + self.options.fadeTime + 1.0
 	preview_timer = preview_timer + deltaTimeRaw
 	if (preview_timer >= cycle_time) then
 		self.lastWeapon = -1
 		preview_timer = 0.0
 	end
-	
+
 	self:tick()
-	
+
 	nvgTranslate(x + 75, y + 40)
 	self:drawAmmo(0, 0, 25, Color(255,255,255,255), self.progress)
-	
+
 	nvgRestore()
 	return height + 20 - GOAHUD_SPACING*1.5
 end
@@ -83,7 +83,7 @@ function GoaHud_Ammo:tick()
 	local player = getPlayer()
 	local weapon
 	local ammo
-	
+
 	if (player ~= nil) then
 		weapon = player.weaponIndexweaponChangingTo
 		ammo = player.weapons[weapon].ammo
@@ -98,7 +98,7 @@ function GoaHud_Ammo:tick()
 		else
 			self.state = AMMO_STATE_SWITCHING
 		end
-		
+
 		self.lastAmmo = ammo
 		self.lastWeapon = weapon
 	end
@@ -116,24 +116,24 @@ function GoaHud_Ammo:tick()
 	elseif (self.state == AMMO_STATE_SHOWING) then
 		if (self.options.showTime > 0.0) then
 			self.timer = self.timer + deltaTimeRaw
-		
+
 			if (self.timer >= self.options.showTime) then
 				self.timer = 0.0
 				self.state = AMMO_STATE_HIDING
 			end
 		end
 	end
-	
+
 	self.progress = self.timer / self.options.fadeTime
 	if (self.state == AMMO_STATE_SHOWING) then self.progress = 1.0
 	elseif (self.state == AMMO_STATE_HIDING) then self.progress = 1.0 - self.progress end
-	
+
 	if (GoaHud.previewMode) then self.progress = 1.0 end
 end
 
 function GoaHud_Ammo:draw()
 	if (not shouldShowHUD()) then return end
-	
+
 	local player = getPlayer()
 	local weapon = player.weaponIndexweaponChangingTo
 	local ammo = player.weapons[weapon].ammo
@@ -148,9 +148,9 @@ function GoaHud_Ammo:draw()
 		color = self.options.ammoColorWarning
 		self.progress = 1.0
 	end
-	
+
 	if (ammo ~= 0) then color = Color(color.r, color.g, color.b, color.a * alpha) end
-	
+
 	if (weapon ~= 1 or GoaHud.previewMode) then
 		self:drawAmmo(0, 0, ammo, color, self.progress)
 	end

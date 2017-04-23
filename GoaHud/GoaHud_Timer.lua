@@ -1,5 +1,5 @@
 -- GoaHud_Timer made by GoaLitiuM
--- 
+--
 -- Game timer widget with optional frag lead counter
 --
 
@@ -9,7 +9,7 @@ GoaHud_Timer =
 {
 	offset = { x = 10, y = 0 },
 	anchor = { x = 0, y = -1 },
-	
+
 	recalculateBounds = true,
 	textOffsetX = 0,
 	textOffsetY = 0,
@@ -18,8 +18,8 @@ GoaHud_Timer =
 	scoreOffsetX = 0,
 	scoreWidth = 0,
 	lastMins = -1,
-	
-	options = 
+
+	options =
 	{
 		countdown = true,
 		countdownRace = true,
@@ -76,57 +76,57 @@ function GoaHud_Timer:draw()
 	else
 		countdown = self.options.countdown
 	end
-	
+
 	if (match_countdown) then
 		time_raw = world.gameTimeLimit - (math.floor(world.gameTime / 1000) * 1000)
 	elseif (not world.timerActive) then
 		time_raw = 0
 	elseif (countdown) then
 		time_raw = world.gameTimeLimit - world.gameTime
-	else 
+	else
 		time_raw = math.floor(world.gameTime / 1000) * 1000
 	end
 
 	local t = GoaHud:formatTime(time_raw / 1000)
 	local display_str = string.format("%02d:%02d", t.mins_total, t.secs)
-	
+
 	if (t.mins_total ~= self.lastMins) then
 		if (t.mins_total % 100 ~= self.lastMins % 100) then
 			self.recalculateBounds = true
 		end
 	end
 	self.lastMins = t.mins_total
-	
+
 	if (self.recalculateBounds) then
 		nvgSave()
-		
+
 		self:setupText()
-		
+
 		local bounds = nvgTextBounds(display_str)
-		
+
 		self.textOffsetX = -bounds.maxx
 		self.textOffsetY = -bounds.maxy
 		self.textWidth = bounds.maxx - bounds.minx
 		self.textHeight = bounds.maxy - bounds.miny
-		
+
 		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_TOP)
 		bounds = nvgTextBounds("+99")
-		
+
 		self.scoreOffsetX = -bounds.maxx
 		self.scoreWidth = bounds.maxx - bounds.minx
-			
+
 		nvgRestore()
 
 		self.recalculateBounds = false
 	end
-	
+
 	local margin = 12
 	local margin_shadow_extra = 5
 	local shadow_blur = 8
 	local height_fix = 25
 	local x = -self.textOffsetX - self.textWidth/2
 	local y = self.textOffsetY + margin - 8
-	
+
 	-- background
 	if (self.options.showBackground) then
 		nvgBeginPath()
@@ -135,18 +135,18 @@ function GoaHud_Timer:draw()
 		else
 			nvgFillColor(Color(0, 0, 0, 64))
 		end
-		
+
 		-- timer background
 		nvgRect(x + self.textOffsetX - margin, y - self.textOffsetY - margin , self.textWidth + margin*2, self.textHeight + margin*2 - height_fix)
 		nvgFill()
 	end
-	
+
 	-- round time
 	self:setupText()
 	nvgTextAlign(NVG_ALIGN_RIGHT, NVG_ALIGN_TOP)
-	
+
 	self:drawText(x, y, Color(255,255,255,255), display_str)
-	
+
 	-- score difference
 	if (self.options.showScoreDiff and not isRaceOrTrainingMode()) then
 		local score_bg_color = Color(0,0,0,64)
@@ -155,7 +155,7 @@ function GoaHud_Timer:draw()
 		local other_score = 0
 		local other_team = 0
 		local other_player = -1
-		
+
 		local diff
 		if (game_mode.hasTeams) then
 			current_score = world.teams[player.team].score
@@ -164,7 +164,7 @@ function GoaHud_Timer:draw()
 					other_score = t.score
 					other_team = i
 				end
-			end			
+			end
 		else
 			current_score = player.score
 			for i, p in pairs(players) do
@@ -176,14 +176,14 @@ function GoaHud_Timer:draw()
 				end
 			end
 		end
-		
+
 		diff = current_score - other_score
 		local sign = ""
-		if (diff > 0) then sign = "+" end	
+		if (diff > 0) then sign = "+" end
 		local score_diff_str = string.format("%s%d", sign, diff)
 
 		x = x - self.scoreOffsetX + margin*2 + 1
-		
+
 		-- score diff background
 		if (self.options.showBackground) then
 			nvgBeginPath()
@@ -195,16 +195,16 @@ function GoaHud_Timer:draw()
 			nvgRect(x - margin - self.scoreWidth/2, y - self.textOffsetY - margin , self.scoreWidth + margin*2, self.textHeight + margin*2 - height_fix)
 			nvgFill()
 		end
-		
+
 		-- stretch text to fit inside the rect
 		if (math.abs(diff) >= 100) then
 			nvgScale(0.7, 1.0)
 			x = x / 0.7
 		end
-		
+
 		-- score text
 		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_TOP)
-		
+
 		self:drawText(x, y, Color(255,255,255,255), score_diff_str)
 	end
 end

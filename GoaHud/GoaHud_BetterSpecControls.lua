@@ -1,5 +1,5 @@
 -- GoaHud_BetterSpecControls made by GoaLitiuM
--- 
+--
 -- Control spectator camera with attack, jump and crouch keys (no rebinding required)
 --
 
@@ -10,8 +10,8 @@ GoaHud_BetterSpecControls =
 	canHide = false,
 	canPosition = false,
 	enabled = true,
-	
-	options = 
+
+	options =
 	{
 		binds =
 		{
@@ -24,10 +24,10 @@ GoaHud_BetterSpecControls =
 			["right"] = "",
 		},
 	},
-	
+
 	lastPlayer = -1,
 	lastFollowedPlayer = -1,
-	lastButtons,
+	lastButtons = {},
 };
 GoaHud:registerWidget("GoaHud_BetterSpecControls", GOAHUD_MODULE)
 
@@ -35,7 +35,6 @@ local BIND_NAMES = { "Attack", "Jump", "Crouch", "Forward", "Back", "Strafe Left
 local BIND_VALUES = { "attack", "jump", "crouch", "forward", "back", "left", "right" }
 
 function GoaHud_BetterSpecControls:init()
-	self.lastButtons = {}
 end
 
 local comboBoxData1 = {}
@@ -48,37 +47,36 @@ function GoaHud_BetterSpecControls:drawOptionsVariable(varname, x, y, optargs)
 		local camera_next = ""
 		local camera_prev = ""
 		local camera_free = ""
-		
+
 		for i, bind in pairs(self.options.binds) do
 			if (bind == "cl_camera_next_player") then camera_next = i
 			elseif (bind == "cl_camera_prev_player") then camera_prev = i
 			elseif (bind == "cl_camera_freecam") then camera_free = i end
 		end
-		
+
 		-- bindable values to human readable names
 		for i, value in pairs(BIND_VALUES) do
 			if (camera_next == value) then camera_next = BIND_NAMES[i] end
 			if (camera_prev == value) then camera_prev = BIND_NAMES[i] end
 			if (camera_free == value) then camera_free = BIND_NAMES[i] end
 		end
-		
+
 		ui2Label("Hooks actions to camera controls", x, y, optargs)
 
 		ui2Label("Free Camera: ", x, y + offset_y, optargs)
 		camera_free = ui2ComboBox(BIND_NAMES, camera_free, x + 175, y + offset_y, 150, comboBoxData1, optargs)
 		offset_y = offset_y - 50
 		optargs.optionalId = optargs.optionalId + 1
-		
+
 		ui2Label("Camera Previous: ", x, y + offset_y, optargs)
 		camera_prev = ui2ComboBox(BIND_NAMES, camera_prev, x + 175, y + offset_y, 150, comboBoxData2, optargs)
 		offset_y = offset_y - 50
 		optargs.optionalId = optargs.optionalId + 1
-		
+
 		ui2Label("Camera Next: ", x, y + offset_y, optargs)
 		camera_next = ui2ComboBox(BIND_NAMES, camera_next, x + 175, y + offset_y, 150, comboBoxData3, optargs)
 		optargs.optionalId = optargs.optionalId + 1
-		
-		local old_free = camera_free
+
 		for i, name in pairs(BIND_NAMES) do
 			if (camera_next == name) then camera_next = BIND_VALUES[i] end
 			if (camera_prev == name) then camera_prev = BIND_VALUES[i] end
@@ -130,7 +128,7 @@ end
 
 function GoaHud_BetterSpecControls:draw()
 	if (not self.enabled or not GoaHud.enabled) then return end
-		
+
 	local local_player = getLocalPlayer()
 	if (local_player == nil) then return end
 
@@ -157,7 +155,7 @@ function GoaHud_BetterSpecControls:draw()
 	if (buttons.right and self.lastButtons.right ~= buttons.right) then
 		self:command("right", self.options.binds["right"])
 	end
-	
+
 	self.lastButtons = buttons
 	self.lastPlayer = playerIndexCameraAttachedTo
 end

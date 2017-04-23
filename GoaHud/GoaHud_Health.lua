@@ -1,5 +1,5 @@
 -- GoaHud_Health made by GoaLitiuM
--- 
+--
 -- Displays animated health numbers
 --
 
@@ -9,24 +9,24 @@ GoaHud_Health =
 {
 	offset = { x = -10, y = -50 },
 	anchor = { x = 0, y = 1 },
-	
+
 	tickTimer = 0.0,
 	playerHealth = -1,
 	fontSize = 120,
-	
+
 	deadTimer = 0.0,
 	deadFadeTime = 1.0,
-	
-	options = 
+
+	options =
 	{
 		tickInterval = 0.01,
 		hideInRace = true,
-		
+
 		healthColorNormal = Color(255,255,255,255),
 		healthColorMega = Color(64,64,255,255),
 		healthColorRocket = Color(255,255,0,255),
 		healthColorRail = Color(255,0,0,255),
-		
+
 		shadow =
 		{
 			shadowEnabled = true,
@@ -67,11 +67,11 @@ function GoaHud_Health:getHealthColor(health, armor, protection, mega)
 			lerp(color_target.a, color.a, fade))
 		return color
 	end
-	
+
 	local effective_health = GoaHud:getEffectiveHealth(health, armor, protection)
 	if (effective_health <= 80) then return self.options.healthColorRail
 	elseif (effective_health <= 100) then return self.options.healthColorRocket end
-	
+
 	return self.options.healthColorNormal
 end
 
@@ -80,11 +80,11 @@ function GoaHud_Health:draw()
 		if (not shouldShowHUD(optargs_deadspec)) then return end
 		if (self.options.hideInRace and isRaceMode()) then return end
 	end
-	
+
 	local player = getPlayer()
 	local health = math.max(0, player.health)
 	local armor = player.armor
-	
+
 	if (self.playerHealth ~= health and health <= 0) then
 		self.deadTimer = self.deadFadeTime
 	end
@@ -102,16 +102,16 @@ function GoaHud_Health:draw()
 			elseif (health < self.playerHealth) then
 				self.playerHealth = self.playerHealth - 1
 			end
-			
+
 			if (self.playerHealth < 0) then self.playerHealth = 0 end
 		end
-		
+
 		-- catch up faster if difference is too large
 		if (math.abs(health - self.playerHealth) >= 10) then self.tickTimer = self.tickTimer + (self.options.tickInterval * 3) end
 	else
 		self.playerHealth = health
 	end
-	
+
 	local health_str, health_color
 	if (not player.infoHidden) then
 		health_str = tostring(self.playerHealth)

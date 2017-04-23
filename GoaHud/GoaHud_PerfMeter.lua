@@ -1,5 +1,5 @@
 -- GoaHud_PerfMeter made by GoaLitiuM
--- 
+--
 -- PerfMeter with different font and averaged frametime values.
 --
 
@@ -8,7 +8,7 @@ require "base/internal/ui/reflexcore"
 GoaHud_PerfMeter =
 {
 	anchor = { x = 1, y = 1 },
-	
+
 	deltaTimes = {},
 	deltaCount = 100,
 	deltaIndex = 1,
@@ -17,7 +17,7 @@ GoaHud_PerfMeter =
 	avgFrametime = 0.0,
 	avgFps = 0,
 	displayStr = "",
-	
+
 	-- configurable
 	options =
 	{
@@ -34,19 +34,14 @@ GoaHud_PerfMeter =
 GoaHud:registerWidget("GoaHud_PerfMeter");
 
 function GoaHud_PerfMeter:init()
-	for i=1, self.deltaCount do
-		self.deltaTimes[i] = 0.0
-	end
-	
-	self.userData = loadUserData()
-	CheckSetDefaultValue(self, "userData", "table", {})
+	for i=1, self.deltaCount do table.insert(self.deltaTimes, 0.0) end
 end
 
 function GoaHud_PerfMeter:draw()
 	-- collect the current deltaTime value
 	self.deltaTimes[self.deltaIndex] = deltaTimeRaw * 1000.0
 	self.deltaIndex = self.deltaIndex + 1
-	
+
 	if (self.deltaIndex > self.deltaCount) then
 		self.deltaIndex = 1
 	end
@@ -54,7 +49,7 @@ function GoaHud_PerfMeter:draw()
 	self.displayAccum = self.displayAccum + deltaTimeRaw
 	if (self.displayAccum >= self.displayInterval) then
 		self.displayAccum = self.displayAccum - self.displayInterval
-		
+
 		self.avgFrametime = 0
 		for i=1, self.deltaCount do
 			self.avgFrametime = self.avgFrametime + self.deltaTimes[i]
@@ -67,10 +62,10 @@ function GoaHud_PerfMeter:draw()
 	nvgTextAlign(NVG_ALIGN_RIGHT, NVG_ALIGN_BOTTOM)
 	nvgFontFace(GOAHUD_FONT3)
 	nvgFontSize(22)
-	
+
 	-- shadow
 	GoaHud:drawTextShadow(0, 0, self.displayStr, self.options.shadow)
-		
+
 	-- actual text
 	nvgFontBlur(0.0)
 	nvgFillColor(Color(255,255,255,255))

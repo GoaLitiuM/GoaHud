@@ -1,5 +1,5 @@
 -- GoaHud_Armor made by GoaLitiuM
--- 
+--
 -- Displays animated armor numbers
 --
 
@@ -9,16 +9,16 @@ GoaHud_Armor =
 {
 	offset = { x = 10, y = -50 },
 	anchor = { x = 0, y = 1 },
-	
+
 	tickTimer = 0.0,
 	playerHealth = -1,
 	playerArmor = -1,
 	fontSize = 120,
-	
+
 	deadTimer = 0.0,
 	deadFadeTime = 1.0,
-	
-	options = 
+
+	options =
 	{
 		tickInterval = 0.01,
 		hideInRace = true,
@@ -27,7 +27,7 @@ GoaHud_Armor =
 		armorColorGreen = Color(0,255,0,255),
 		armorColorYellow = Color(255,255,0,255),
 		armorColorRed = Color(255,0,0,255),
-		
+
 		shadow =
 		{
 			shadowEnabled = true,
@@ -55,14 +55,6 @@ function GoaHud_Armor:drawOptionsVariable(varname, x, y, optargs)
 	return nil
 end
 
-function GoaHud_Armor:getEffectiveHealth(health, armor, protection)
-	local multi = 0.5
-	if protection == 1 then multi = 0.666666666666666
-	elseif protection == 2 then multi = 0.75 end
-	
-	return math.min(armor, health * (protection + 1)) + health
-end
-
 function GoaHud_Armor:getArmorColor(health, armor, protection)
 	if (protection == 0) then return self.options.armorColorGreen
 	elseif (protection == 1) then return self.options.armorColorYellow
@@ -74,11 +66,11 @@ function GoaHud_Armor:draw()
 		if (not shouldShowHUD(optargs_deadspec)) then return end
 		if (self.options.hideInRace and isRaceMode()) then return end
 	end
-	
+
 	local player = getPlayer()
 	local health = player.health
 	local armor = player.armor
-	
+
 	if (self.playerHealth ~= health and health <= 0) then
 		self.deadTimer = self.deadFadeTime
 	end
@@ -96,17 +88,17 @@ function GoaHud_Armor:draw()
 			elseif (armor < self.playerArmor) then
 				self.playerArmor = self.playerArmor - 1
 			end
-			
+
 			if (self.playerArmor < 0) then self.playerArmor = 0 end
 		end
-		
+
 		-- catch up faster if difference is too large
 		if (math.abs(armor - self.playerArmor) >= 10) then self.tickTimer = self.tickTimer + (self.options.tickInterval * 3) end
 	else
 		self.playerArmor = armor
 	end
 	self.playerHealth = health
-	
+
 	local armor_str, armor_color
 	if (not player.infoHidden) then
 		armor_str = tostring(self.playerArmor)
@@ -116,7 +108,7 @@ function GoaHud_Armor:draw()
 		armor_str = "?"
 		armor_color = clone(self.options.armorColorYellow)
 	end
-	
+
 	if (health <= 0 and not player.infoHidden) then
 		armor_color.a = self.deadTimer / self.deadFadeTime * armor_color.a
 	end

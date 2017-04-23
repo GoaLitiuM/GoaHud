@@ -1,23 +1,22 @@
 -- GoaHud_GrenadeTimer made by GoaLitiuM
--- 
+--
 -- Comment.
 --
 -- TODO:
 -- - trigger again while holding attack
 -- - prevent triggering during weapon cooldown and while switching weapons
 
-
 require "base/internal/ui/reflexcore"
 
 GoaHud_GrenadeTimer =
 {
-	options = 
+	options =
 	{
 		circleRadius = 55,
 		lineWidth = 3,
 		alpha = 255,
 	},
-	
+
 	timer = 0.0,
 	lastAttack = false,
 	lastGrenadesFired = 0,
@@ -29,7 +28,7 @@ GoaHud_GrenadeTimer =
 	grenadeDetonationTime = 2.0,
 	rotationSpeed = -math.pi / 2.000,
 };
-GoaHud:registerWidget("GoaHud_GrenadeTimer", GOAHUD_UI_EXPERIMENTAL);
+GoaHud:registerWidget("GoaHud_GrenadeTimer", GOAHUD_UI_EXPERIMENTAL)
 
 function GoaHud_GrenadeTimer:init()
 	local player = getPlayer()
@@ -66,9 +65,9 @@ function GoaHud_GrenadeTimer:draw()
 
 	local player = getPlayer()
 	if (player == nil) then return end
-	
+
 	local warmup = world ~= nil and world.gameState == GAME_STATE_WARMUP
-	
+
 	local weapon = player.weaponIndexSelected
 	local fired = false
 
@@ -79,22 +78,22 @@ function GoaHud_GrenadeTimer:draw()
 		end
 	elseif (warmup) then
 		local attack = player.buttons.attack and weapon == 4
-		
+
 		if (self.lastAttack ~= attack and attack) then
 			fired = true
 		end
-		
+
 		self.lastAttack = attack
 	else
 		local grenades_fired = player.weaponStats[4].shotsFired
-		
+
 		if (grenades_fired > self.lastGrenadesFired) then
 			fired = true
 		end
-		
+
 		self.lastGrenadesFired = grenades_fired
 	end
-	
+
 	if (fired) then
 		table.insert(self.grenades, self.timer)
 		self.grenadeCount = self.grenadeCount + 1
@@ -103,12 +102,12 @@ function GoaHud_GrenadeTimer:draw()
 	if (self.grenadeCount > 0) then
 		nvgStrokeLinearGradient(0, -self.options.circleRadius*0.2, 0, 0, Color(0,0,0,0), Color(255,255,255,self.options.alpha))
 		nvgStrokeWidth(self.options.lineWidth)
-		
+
 		nvgBeginPath()
 		nvgCircle(0, 0, self.options.circleRadius)
 		nvgStroke()
-		
-		local expired = {}		
+
+		local expired = {}
 		for i, grenade_time in ipairs(self.grenades) do
 			local duration = self.timer - grenade_time
 			nvgSave()
@@ -119,17 +118,17 @@ function GoaHud_GrenadeTimer:draw()
 			nvgLineTo(0, self.options.circleRadius * 1.25)
 			nvgStroke()
 			nvgRestore()
-			
+
 			if (duration >= self.grenadeDetonationTime) then
 				table.insert(expired, i)
 			end
 		end
-		
+
 		for i in ipairs(expired) do
 			table.remove(self.grenades, i)
 			self.grenadeCount = self.grenadeCount - 1
 		end
 	end
-	
+
 	self.timer = self.timer + deltaTimeRaw
 end

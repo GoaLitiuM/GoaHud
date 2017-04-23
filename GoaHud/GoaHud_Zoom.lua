@@ -1,5 +1,5 @@
 -- GoaHud_Zoom made by GoaLitiuM
--- 
+--
 -- Smooth zoom widget
 --
 
@@ -8,18 +8,18 @@ require "base/internal/ui/reflexcore"
 GoaHud_Zoom =
 {
 	enabled = true,
-	
+
 	held = false,
 	lastZoomState = 0,
 	rebindTimer = 0.0,
 	zoomTimer = 0.0,
-	
+
 	oldFov = -1,
 	oldSensitivity = -1,
 	oldWeaponOffsetZ = -1,
 	oldCursorHook = "(none)",
 
-	options = 
+	options =
 	{
 		zoomFov = 43,
 		smoothZoom = true,
@@ -33,7 +33,7 @@ GoaHud:registerWidget("GoaHud_Zoom", GOAHUD_MODULE);
 
 function GoaHud_Zoom:init()
 	GoaHud:createConsoleVariable("zoom", "int", 0)
-	GoaHud:setConsoleVariable("zoom", 0)	
+	GoaHud:setConsoleVariable("zoom", 0)
 end
 
 function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
@@ -96,7 +96,7 @@ function GoaHud_Zoom:tick()
 	end
 
 	self.held = zoom_state ~= 0
-	
+
 	local zooming = false
 	local progress
 	if (self.options.smoothZoom) then
@@ -114,7 +114,7 @@ function GoaHud_Zoom:tick()
 		zooming = true
 		if (self.held) then	progress = 1.0 else progress = 0.0 end
 	end
-		
+
 	if (zooming) then
 		local newFov = lerp(self.oldFov, self.options.zoomFov, progress)
 		consolePerformCommand("r_fov " .. tostring(newFov))
@@ -124,14 +124,14 @@ function GoaHud_Zoom:tick()
 			local newSensitivity = self.oldSensitivity * ratio
 			consolePerformCommand("m_speed " .. tostring(newSensitivity))
 		end
-		
+
 		if (self.options.adjustViewmodel) then
 			local targetOffset = self.oldWeaponOffsetZ - 27
 			local newOffset = lerp(self.oldWeaponOffsetZ, targetOffset, progress)
-			consolePerformCommand("cl_weapon_offset_z " .. tostring(newOffset))			
+			consolePerformCommand("cl_weapon_offset_z " .. tostring(newOffset))
 		end
 	end
-	
+
 	self.lastZoomState = zoom_state
 end
 
@@ -143,7 +143,7 @@ function GoaHud_Zoom:onZoomPressed()
 		self.oldWeaponOffsetZ = consoleGetVariable("cl_weapon_offset_z")
 		self.oldCursorHook = consoleGetVariable("showscorescursorhook")
 	end
-	
+
 	consolePerformCommand("r_fov " .. self.oldFov)
 	consolePerformCommand("showscorescursorhook (none)")
 end

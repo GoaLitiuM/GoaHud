@@ -1,5 +1,5 @@
 -- GoaHud_Crosshair made by GoaLitiuM
--- 
+--
 -- Crosshair with weapon specific settings and smooth transition animations
 --
 
@@ -8,14 +8,14 @@ require "base/internal/ui/reflexcore"
 local defaultCrosshair =
 {
 	useDefault = true,
-	
+
 	crosshair = 3,
 	crosshairColor = Color(255, 255, 255, 255),
-	
+
 	size = 13,
 	strokeWidth = 4,
 	holeSize = 9,
-	
+
 	useShadow = true,
 	shadowAlpha = 64,
 	shadowSize = 4,
@@ -24,7 +24,7 @@ local defaultCrosshair =
 function initCrosshairs(count)
 	local count = count or 1
 	if (count == 1) then return clone(defaultCrosshair) end
-	
+
 	local t = {}
 	for i=1, count do
 		table.insert(t, clone(defaultCrosshair))
@@ -36,7 +36,7 @@ end
 GoaHud_Crosshair =
 {
 	canPosition = false,
-	
+
 	timer = 0.0,
 	lastAmmo = -1,
 	lastWeapon = -1,
@@ -44,16 +44,16 @@ GoaHud_Crosshair =
 	state = AMMO_STATE_SWITCHING,
 
 	switching = false,
-	
+
 	crosshairs = {},
 	crosshairCount = 0,
-	
+
 	options =
 	{
 		smoothTransitions = true,
 		showTime = 0.0,
 		fadeTime = 0.050,
-		
+
 		crosshairDefault = initCrosshairs(1),
 		weaponCrosshairs = initCrosshairs(10),
 	},
@@ -62,7 +62,7 @@ GoaHud_Crosshair =
 GoaHud:registerWidget("GoaHud_Crosshair");
 
 function GoaHud_Crosshair:init()
-	self.crosshairs = 
+	self.crosshairs =
 	{
 		{ drawDot, 0, 0},
 		{ drawCircle, 0, 0},
@@ -79,8 +79,8 @@ function GoaHud_Crosshair:init()
 		{ "internal/ui/crosshairs/crosshair15", 0, 0},
 		{ "internal/ui/crosshairs/crosshair16", 0, 0},
 	}
-	
-	for i, k in pairs(self.crosshairs) do self.crosshairCount = self.crosshairCount + 1 end
+
+	for i in pairs(self.crosshairs) do self.crosshairCount = self.crosshairCount + 1 end
 
 	if (shouldShowHUD()) then
 		self.lastWeapon = getPlayer().weaponIndexweaponChangingTo
@@ -99,9 +99,9 @@ function GoaHud_Crosshair:drawOptionsVariable(varname, x, y, optargs)
 		else
 			offset_y = offset_y + self:drawOptionsCrosshair(self.options.weaponCrosshairs[selectedCrosshairIndex - 1], x, y + offset_y, optargs)
 		end
-		
+
 		selectedCrosshairIndex = GoaComboBoxIndex(weapons, selectedCrosshairIndex, x, y, 215, comboBoxData, optargs)
-				
+
 		return offset_y
 	elseif (varname == "crosshairDefault") then
 		return 0
@@ -120,10 +120,10 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 	local offset_y = 0
 	local offset_x = GOAHUD_INDENTATION
 	local optargs = clone(optargs)
-		
+
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "useDefault", x + offset_x + 215, y + offset_y,
 		table.merge(optargs, { enabled = weapon ~= self.options.crosshairDefault }))
-	
+
 	optargs.enabled = true
 	if (weapon.useDefault and weapon ~= self.options.crosshairDefault) then
 		optargs.enabled = false
@@ -143,13 +143,13 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 		table.merge(optargs, { min_value = 0.1, max_value = 50, enabled = optargs.enabled and (weapon.crosshair >= 2 and weapon.crosshair <= 3) }))
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "holeSize", x + offset_x, y + offset_y,
 		table.merge(optargs, { min_value = 0, max_value = 20, enabled = optargs.enabled and weapon.crosshair == 3 }))
-	
+
 	return offset_y
 end
 
 function GoaHud_Crosshair:drawPreview(x, y, intensity)
 	nvgSave()
-	
+
 	nvgSave()
 	local width = 125
 	local height = 75
@@ -158,23 +158,21 @@ function GoaHud_Crosshair:drawPreview(x, y, intensity)
 	nvgRect(x, y, width, height)
 	nvgFill()
 	nvgRestore()
-	
+
 	self:drawCrosshair(selectedCrosshairIndex - 1, x + width/2, y + height/2, 1.0 - intensity)
 	nvgRestore()
-	
+
 	return height + 10
 end
 
 function GoaHud_Crosshair:draw()
 	if (not shouldShowHUD(optargs_deadspec)) then return end
-	
+
 	local player = getPlayer()
-	if (not player) then return end -- quick hack fix
-	
 	local weapon = player.weaponIndexweaponChangingTo
 	if (player.infoHidden) then weapon = self.lastWeapon end
 	if (player.isDead) then return end
-	
+
 	local weapon_show = weapon
 
 	if (self.options.smoothTransitions and self.options.fadeTime > 0.0) then
@@ -184,7 +182,7 @@ function GoaHud_Crosshair:draw()
 			else
 				self.state = AMMO_STATE_SWITCHING
 			end
-			
+
 			self.oldWeapon = self.lastWeapon
 			self.lastWeapon = weapon
 		end
@@ -193,7 +191,7 @@ function GoaHud_Crosshair:draw()
 			if (self.state == AMMO_STATE_SWITCHING) then
 				weapon_show = self.oldWeapon
 			end
-			
+
 			self.timer = self.timer + deltaTimeRaw
 			if (self.timer >= self.options.fadeTime) then
 				self.timer = 0.0
@@ -211,13 +209,13 @@ function GoaHud_Crosshair:draw()
 			end
 		end
 	end
-	
+
 	local progress = self.timer / self.options.fadeTime
 	if (self.state == AMMO_STATE_SHOWING) then progress = 1.0
 	elseif (self.state == AMMO_STATE_HIDING) then progress = 1.0 - progress end
 
 	if (weapon_show == -1) then return end
-	
+
 	self:drawCrosshair(weapon_show, 0, 0, progress)
 end
 
@@ -225,9 +223,9 @@ function GoaHud_Crosshair:drawCrosshair(weapon, x, y, intensity)
 	local crosshair_settings
 	if (weapon <= 0) then crosshair_settings = self.options.crosshairDefault
 	else crosshair_settings = self.options.weaponCrosshairs[weapon] end
-	
+
 	if (crosshair_settings.useDefault) then crosshair_settings = self.options.crosshairDefault end
-	
+
 	local crosshair_index = math.min(self.crosshairCount, crosshair_settings.crosshair)
 	local crosshair_template = self.crosshairs[crosshair_index]
 	local crosshair_scale = 1.0 - intensity
@@ -236,8 +234,7 @@ function GoaHud_Crosshair:drawCrosshair(weapon, x, y, intensity)
 
 	nvgScale(crosshair_scale, crosshair_scale)
 	nvgTranslate(x + (crosshair_settings.size * crosshair_template[2]), y + (crosshair_settings.size * crosshair_template[3]))
-	
-	local func = self.drawSvg
+
 	if (type(crosshair_template[1]) == "string") then
 		drawSvg(crosshair_settings, crosshair_template, final_color)
 	else
@@ -277,7 +274,7 @@ function drawCircle(self, crosshair, color)
 		nvgPathWinding(NVG_HOLE)
 		nvgFill()
 	end
-	
+
 	-- circle
 	nvgBeginPath()
 	nvgStrokeColor(color)
@@ -289,7 +286,7 @@ end
 function drawCross(self, crosshair, color)
 	local line_end = self.holeSize * self.strokeWidth/2
 	local line_start = self.size + line_end
-	
+
 	if (self.useShadow) then
 		-- TODO: kill me
 		local shadow_end = line_end - self.shadowSize/2
@@ -301,8 +298,8 @@ function drawCross(self, crosshair, color)
 
 		local a = line_start-line_end
 		local b = line_start-line_end+(self.strokeWidth + self.shadowSize)*2
-		local c = (self.strokeWidth+self.shadowSize) 
-		
+		local c = (self.strokeWidth+self.shadowSize)
+
 		local x = -line_start
 		local y = 0
 
@@ -310,61 +307,61 @@ function drawCross(self, crosshair, color)
 		nvgStrokeBoxGradient(x, y, a-hole_adjust, 0, 0, c, Color(0,0,0,self.shadowAlpha), Color(0,0,0,0))
 		nvgRoundedRect(x-c, y, b, 0, 0)
 		nvgStroke()
-		
+
 		x = line_end
 		nvgBeginPath()
 		nvgStrokeBoxGradient(x+hole_adjust, y, a-hole_adjust, 0, 0, c, Color(0,0,0,self.shadowAlpha), Color(0,0,0,0))
 		nvgRoundedRect(x-c, y, b, 0, 0)
 		nvgStroke()
-		
+
 		y = -line_start
 		x = 0
-		
+
 		nvgBeginPath()
 		nvgStrokeBoxGradient(x, y, 0, a-hole_adjust, 0, c, Color(0,0,0,self.shadowAlpha), Color(0,0,0,0))
 		nvgRoundedRect(x, y-c, 0, b, 0)
 		nvgStroke()
-		
+
 		y = line_end
-		
+
 		nvgBeginPath()
 		nvgStrokeBoxGradient(x, y+hole_adjust, 0, a-hole_adjust, 0, c, Color(0,0,0,self.shadowAlpha), Color(0,0,0,0))
 		nvgRoundedRect(x, y-c, 0, b, 0)
 		nvgStroke()
 	end
-	
+
 	if (self.holeSize == 0) then
 		nvgStrokeColor(color)
 		nvgStrokeWidth(self.strokeWidth)
-	
+
 		nvgBeginPath()
-		
+
 		nvgMoveTo(-self.size, 0)
 		nvgLineTo(self.size, 0)
-		
+
 		nvgMoveTo(0, -self.size)
 		nvgLineTo(0, self.size)
-		
+
 		nvgStroke()
 	else
 		-- lines
 		nvgStrokeColor(color)
 		nvgStrokeWidth(self.strokeWidth)
-		
+
 		nvgBeginPath()
 
 		nvgMoveTo(-line_start, 0)
 		nvgLineTo(-line_end, 0)
-		
+
 		nvgMoveTo(line_start, 0)
 		nvgLineTo(line_end, 0)
-		
+
 		nvgMoveTo(0, -line_start)
 		nvgLineTo(0, -line_end)
-		
+
 		nvgMoveTo(0, line_start)
 		nvgLineTo(0, line_end)
-		
+
 		nvgStroke()
 	end
 end
@@ -372,7 +369,7 @@ end
 function drawSvg(self, crosshair, color)
 	nvgFillColor(Color(0,0,0, self.shadowAlpha))
 	nvgSvg(crosshair[1], 0, 0, self.size, self.shadowSize)
-	
+
 	nvgFillColor(color)
 	nvgSvg(crosshair[1], 0, 0, self.size, 0)
 end

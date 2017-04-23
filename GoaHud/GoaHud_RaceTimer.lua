@@ -1,5 +1,5 @@
 -- GoaHud_RaceTimer made by GoaLitiuM
--- 
+--
 -- Race timer
 --
 
@@ -8,7 +8,7 @@ require "base/internal/ui/reflexcore"
 GoaHud_RaceTimer =
 {
 	offset = { x = 0, y = 330 },
-	
+
 	recalculateBounds = true,
 	textOffsetX = 0,
 	textOffsetY = 0,
@@ -17,8 +17,8 @@ GoaHud_RaceTimer =
 	lastMins = -1,
 	myBest = 0,
 	lastMap = "",
-	
-	options = 
+
+	options =
 	{
 		showBackground = false,
 		softBackground = true,
@@ -49,7 +49,7 @@ function GoaHud_RaceTimer:updateBestScore(map, mode)
 		end
 		return true
 	end
-	
+
 	return false
 end
 
@@ -82,10 +82,10 @@ function GoaHud_RaceTimer:draw()
 		self.lastMap = ""
 		return
 	end
-	
+
 	local gameMode = gamemodes[world.gameModeIndex]
 	if (gameMode == nil) then return end
-	
+
 	if (world.mapName ~= self.lastMap) then
 		if (self:updateBestScore(world.mapName, gameMode.shortName)) then
 			self.lastMap = world.mapName
@@ -95,28 +95,28 @@ function GoaHud_RaceTimer:draw()
 	local player = getPlayer()
 	local best = (self.myBest > player.score) and self.myBest or player.score
 	local time_raw = player.raceActive and player.raceTimeCurrent or player.raceTimePrevious
-	
+
 	local t = self:formatTime(time_raw)
 	local display_str = string.format("%02d:%02d.%03d", t.mins, t.secs, t.millis)
-	
+
 	if (t.mins ~= self.lastMins) then
 		if (t.mins % 100 ~= self.lastMins % 100) then
 			self.recalculateBounds = true
 		end
 	end
-	
+
 	if (self.recalculateBounds) then
 		nvgSave()
-		
+
 		self:setupText()
-		
+
 		local bounds = nvgTextBounds(display_str)
-		
+
 		self.textOffsetX = -bounds.maxx
 		self.textOffsetY = -bounds.maxy
 		self.textWidth = bounds.maxx - bounds.minx
 		self.textHeight = bounds.maxy - bounds.miny
-		
+
 		nvgRestore()
 
 		self.recalculateBounds = false
@@ -137,7 +137,7 @@ function GoaHud_RaceTimer:draw()
 		else
 			nvgFillColor(Color(0, 0, 0, 64))
 		end
-		
+
 		-- timer background
 		nvgRect(x + self.textOffsetX - margin, y - self.textOffsetY - margin , self.textWidth + margin*2, self.textHeight + margin*2 - height_fix)
 		nvgFill()
@@ -146,14 +146,14 @@ function GoaHud_RaceTimer:draw()
 	-- race time
 	self:setupText()
 	nvgTextAlign(NVG_ALIGN_RIGHT, NVG_ALIGN_TOP)
-	
+
 	local color = Color(255,255,255,255)
 	if (time_raw == 0) then
 		color = Color(255,255,255,128)
 	elseif (time_raw > best and best > 0) then
 		color = Color(255,0,0,255)
 	end
-	
+
 	GoaHud:drawTextShadow(x, y, display_str, self.options.shadow, { alpha = color.a })
 	nvgFillColor(color)
 	nvgText(x, y, display_str)
