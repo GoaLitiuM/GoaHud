@@ -46,7 +46,7 @@ GoaHud_Chat =
 {
 	offset = { x = 10, y = -180 },
 	anchor = { x = -1, y = 1 },
-	
+
 	options =
 	{
 		font = 1,
@@ -128,9 +128,9 @@ end
 
 function GoaHud_Chat:init()
 	consolePrint_real = consolePrint
-	GoaHud:createConsoleVariable("chat_debug", "int", 0)
+	widgetCreateConsoleVariable("debug", "int", 0)
 
-	local chat_debug = GoaHud:getConsoleVariable("chat_debug")
+	local chat_debug = widgetGetConsoleVariable("debug")
 	if (chat_debug ~= last_chat_debug) then
 		if (chat_debug ~= 0) then hookConsolePrint()
 		else unhookConsolePrint() end
@@ -468,7 +468,7 @@ end
 
 local last_cursor = -1
 function GoaHud_Chat:draw()
-	local chat_debug = GoaHud:getConsoleVariable("chat_debug")
+	local chat_debug = widgetGetConsoleVariable("debug")
 	if (chat_debug ~= last_chat_debug) then
 		if (chat_debug ~= 0) then hookConsolePrint()
 		else unhookConsolePrint() end
