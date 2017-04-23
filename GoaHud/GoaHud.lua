@@ -1277,6 +1277,10 @@ function GoaHud:formatTime(elapsed, wat)
 	}
 end
 
+function GoaHud:getEffectiveHealth(health, armor, protection)
+	return math.min(armor, health * (protection + 1)) + health
+end
+
 function isRaceOrTrainingMode()
 	if (world == nil) then return false end
 	local gameMode = gamemodes[world.gameModeIndex]

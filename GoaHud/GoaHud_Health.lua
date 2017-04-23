@@ -54,15 +54,6 @@ function GoaHud_Health:drawOptionsVariable(varname, x, y, optargs)
 	return nil
 end
 
-
-function GoaHud:getEffectiveHealth(health, armor, protection)
-	local multi = 0.5
-	if protection == 1 then multi = 0.666666666666666
-	elseif protection == 2 then multi = 0.75 end
-	
-	return math.min(armor, health * (protection + 1)) + health
-end
-
 function GoaHud_Health:getHealthColor(health, armor, protection, mega)
 	if (health > 100) then
 		local fade = math.min(20, health-100) / 20
