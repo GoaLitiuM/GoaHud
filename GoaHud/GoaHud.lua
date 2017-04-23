@@ -596,6 +596,7 @@ end
 -- draw
 --
 
+local first_draw = true
 function GoaHud:drawFirst()
 	self:processConVars()
 	
@@ -605,27 +606,13 @@ function GoaHud:drawFirst()
 	
 	self.draw = self.drawReal
 	self:drawReal()
+	first_draw = false
 end
 
 function GoaHud:drawReal()
 	self:updateEpochTimeMs()
+
 	
-	if (comboBoxesCount > 0) then
-		local active_comboboxes = 0
-		table.reverse(comboBoxes)
-		for ii, cc in pairs(comboBoxes) do
-			local i = cc[1]
-			local c = cc[2]
-			comboBoxValues[i] = ui2ComboBox(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
-			active_comboboxes = active_comboboxes + 1
-		end
-		comboBoxes = {}
-	
-		if (active_comboboxes == 0) then
-			comboBoxValues = {}
-			comboBoxesCount = 0
-		end
-	end
 	
 	-- handle errors, notify error observers
 	if (self.errorCount > 0) then
@@ -658,21 +645,38 @@ function GoaHud:drawReal()
 			end
 		end
 	end
-	--[[
-	if (self.showOptions and shouldShowHUD()) then
+
+	if (br_HudEditorPopup ~= nil) then self.previewMode = not br_HudEditorPopup.show_menu end
+
+	if (not first_draw and self.showOptions and shouldShowHUD()) then
 		nvgSave()
 		nvgBeginPath()
 		nvgFillColor(Color(64,64,64,255))
 		nvgRect(-350, -350, 1000, 750)
 		nvgFill()
 		nvgRestore()
-		
-		callWidgetDrawOptions("GoaHud", -300, -300, 1.0)
+
+		--self.previewMode = true
+		callWidgetDrawOptions("GoaHud_Chat", -300, -300, 1.0)
 		consolePerformCommand("m_enabled 1")
 	end
-	--]]
-
-	if (br_HudEditorPopup ~= nil) then self.previewMode = not br_HudEditorPopup.show_menu end
+	
+	if (comboBoxesCount > 0) then
+		local active_comboboxes = 0
+		table.reverse(comboBoxes)
+		for ii, cc in pairs(comboBoxes) do
+			local i = cc[1]
+			local c = cc[2]
+			comboBoxValues[i] = ui2ComboBox(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
+			active_comboboxes = active_comboboxes + 1
+		end
+		comboBoxes = {}
+	
+		if (active_comboboxes == 0) then
+			comboBoxValues = {}
+			comboBoxesCount = 0
+		end
+	end
 	
 	self:processConVars()
 end
