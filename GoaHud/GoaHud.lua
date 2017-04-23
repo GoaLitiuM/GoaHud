@@ -1223,8 +1223,8 @@ function GoaHud_HookErrorFunctions()
 
 			-- wrap initialize function with pcall
 			if (widget_table.initialize ~= nil) then
-				local init_error_wrapper = function()
-					local status, err = pcall(widget_table.__initialize, widget_table)
+				local init_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+					local status, err = pcall(widget_table.__initialize, widget_table, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
 						onError(k, err)
 						consolePrint(k.name .. ": " .. tostring(err))
@@ -1241,8 +1241,8 @@ function GoaHud_HookErrorFunctions()
 
 			-- wrap draw function with pcall
 			if (widget_table.draw ~= nil) then
-				local draw_error_wrapper = function()
-					local status, err = pcall(widget_table.__draw, widget_table)
+				local draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+					local status, err = pcall(widget_table.__draw, widget_table, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
 						onError(k, err)
 						consolePrint(k.name .. ": " .. tostring(err))
