@@ -44,6 +44,9 @@ CHAT_BEEP_NAMES =
 
 GoaHud_Chat =
 {
+	offset = { x = 10, y = -180 },
+	anchor = { x = -1, y = 1 },
+	
 	options =
 	{
 		font = 1,
