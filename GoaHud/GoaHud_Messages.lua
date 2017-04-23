@@ -125,43 +125,16 @@ local comboBoxData1 = {}
 local comboBoxData2 = {}
 function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "fragStyle") then
-		local offset_y = 0
-
-		local frag_style = self.options.fragStyle
-		frag_style = FRAG_STYLE_NAMES[frag_style]
-		
-		GoaLabel("Style: ", x + GOAHUD_INDENTATION, y + offset_y, optargs)
-		
-		frag_style = GoaComboBox(FRAG_STYLE_NAMES, frag_style, x + 225, y + offset_y, 250, comboBoxData1,
+		GoaLabel("Style: ", x + GOAHUD_INDENTATION, y, optargs)
+		self.options.fragStyle = GoaComboBoxIndex(FRAG_STYLE_NAMES, self.options.fragStyle, x + 225, y, 250, comboBoxData1,
 			table.merge(optargs, { enabled = self.options.showFraggedMessage }))
-		offset_y = offset_y - GOAHUD_SPACING
-		optargs.optionalId = optargs.optionalId + 1
-
-		for i, name in pairs(FRAG_STYLE_NAMES) do
-			if (frag_style == name) then frag_style = i end
-		end
 		
-		self.options.fragStyle = frag_style
-
 		return GOAHUD_SPACING
 	elseif (varname == "killerNameStyle") then
-		local offset_y = 0
-
-		local killer_style = self.options.killerNameStyle
-		killer_style = KILLER_STYLE_NAMES[killer_style]
-		
-		ui2Label("Killer Name: ", x + GOAHUD_INDENTATION, y + offset_y, optargs)
-		killer_style = GoaComboBox(KILLER_STYLE_NAMES, killer_style, x + 225, y + offset_y, 250, comboBoxData2,
+		ui2Label("Killer Name: ", x + GOAHUD_INDENTATION, y, optargs)
+		self.options.killerNameStyle = GoaComboBoxIndex(KILLER_STYLE_NAMES, self.options.killerNameStyle, x + 225, y, 250, comboBoxData2,
 			table.merge(optargs, { enabled = self.options.showFraggedMessage }))
-		offset_y = offset_y - GOAHUD_SPACING
-		optargs.optionalId = optargs.optionalId + 1
-
-		for i, name in pairs(KILLER_STYLE_NAMES) do
-			if (killer_style == name) then killer_style = i end
-		end
 		
-		self.options.killerNameStyle = killer_style
-
 		return GOAHUD_SPACING
 	elseif (varname == "fragShowTime") then
 		local optargs = clone(optargs)

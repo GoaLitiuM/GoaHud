@@ -90,25 +90,18 @@ end
 
 local comboBoxData = {}
 local selectedCrosshairIndex = 1
+local weapons = { "Default", "Melee", "Burstgun", "Shotgun", "Grenade Launcher", "Plasma Rifle", "Rocket Launcher", "Ion Cannon", "Bolt Rifle", "Stake Launcher" }
 function GoaHud_Crosshair:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "weaponCrosshairs") then
 		local offset_y = 0
-		local weapons = { "Default", "Melee", "Burstgun", "Shotgun", "Grenade Launcher", "Plasma Rifle", "Rocket Launcher", "Ion Cannon", "Bolt Rifle", "Stake Launcher" }
-
 		if (selectedCrosshairIndex == 1) then
 			offset_y = offset_y + self:drawOptionsCrosshair(self.options.crosshairDefault, x, y + offset_y, optargs)
 		else
 			offset_y = offset_y + self:drawOptionsCrosshair(self.options.weaponCrosshairs[selectedCrosshairIndex - 1], x, y + offset_y, optargs)
 		end
 		
-		local selection_name = GoaComboBox(weapons, weapons[selectedCrosshairIndex], x, y, 215, comboBoxData, optargs)
-		for i, weapon in ipairs(weapons) do
-			if (weapon == selection_name) then
-				selectedCrosshairIndex = i
-				break
-			end
-		end
-		
+		selectedCrosshairIndex = GoaComboBoxIndex(weapons, selectedCrosshairIndex, x, y, 215, comboBoxData, optargs)
+				
 		return offset_y
 	elseif (varname == "crosshairDefault") then
 		return 0
