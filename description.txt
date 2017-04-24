@@ -1,4 +1,4 @@
-Note: GoaHud must be enabled by checking "Enable GoaHud" checkbox from Widgets - GoaHud
+(Note: Checking "Enable GoaHud" automatically replaces official widgets with GoaHud widgets)
 
 Forums Thread: http://forums.reflexarena.com/index.php?/topic/4360-goahud-minimal-animated-hud/
 
@@ -9,15 +9,19 @@ Some highlighted features:
 - Q3 style fragged messages
 - Improved spectator controls (attack and jump switches player, crouch toggles freecam)
 - Custom WeaponRack, Timer and RaceTimer
+- NEW: Customizable Chat (supports colorcodes and emojis with Kimi's EmojiChat)
 
 Experimental addons not enabled by default:
 - Grenade timer
-- Lag timer/visualizer
+- NEW: Chat
 
 Animated health and armor numbers:
 [img]http://i.imgur.com/Uy06uxr.gif[/img]
 
 Ammo popup and crosshair transitions:
 [img]http://i.imgur.com/6QVmZKZ.gif[/img]
+
+Chat:
+[img]http://i.imgur.com/RBlrjlX.png[/img]
 
 GitHub: https://github.com/GoaLitiuM/GoaHud
