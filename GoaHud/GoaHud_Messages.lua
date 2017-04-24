@@ -444,7 +444,7 @@ function GoaHud_Messages:drawFragged(x, y, intensity)
 			is_local_killer = false
 		elseif (self.options.killerNameStyle == KILLER_STYLE_NAME_SPECTATE) then
 			local local_player = getLocalPlayer()
-			if (local_player.index ~= self.fragInfo.killer.index) then
+			if (local_player == nil or local_player.index ~= self.fragInfo.killer.index) then
 				killer = self.fragInfo.killer.name
 				is_local_killer = false
 			end
