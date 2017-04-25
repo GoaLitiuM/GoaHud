@@ -360,7 +360,7 @@ function GoaHud_Chat:onLog(entry)
 		local def_id = entry.dropItemDefId
 		local quantity = 1
 		if (entry.type == LOG_TYPE_RECEIVED) then
-			def_id = entry.receivedItemDefIdend
+			def_id = entry.receivedItemDefId
 			quantity = entry.receivedItemQuantity
 		end
 
