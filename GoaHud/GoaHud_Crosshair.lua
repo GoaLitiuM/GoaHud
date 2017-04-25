@@ -159,7 +159,7 @@ function GoaHud_Crosshair:drawPreview(x, y, intensity)
 	nvgFill()
 	nvgRestore()
 
-	self:drawCrosshair(selectedCrosshairIndex - 1, x + width/2, y + height/2, 1.0 - intensity)
+	self:drawCrosshair(selectedCrosshairIndex - 1, x + round(width/2), y + round(height/2), 1.0 - intensity)
 	nvgRestore()
 
 	return height + 10
