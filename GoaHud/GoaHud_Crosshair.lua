@@ -370,8 +370,10 @@ function drawCross(self, crosshair, color)
 end
 
 function drawSvg(self, crosshair, color)
-	nvgFillColor(Color(0,0,0, self.shadowAlpha))
-	nvgSvg(crosshair[1], 0, 0, self.size, self.shadowSize)
+	if (self.useShadow) then
+		nvgFillColor(Color(0,0,0, self.shadowAlpha))
+		nvgSvg(crosshair[1], 0, 0, self.size, self.shadowSize)
+	end
 
 	nvgFillColor(color)
 	nvgSvg(crosshair[1], 0, 0, self.size, 0)
