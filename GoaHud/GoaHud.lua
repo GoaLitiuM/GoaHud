@@ -132,6 +132,11 @@ optargs_deadspec =
 
 local popupActive = false
 
+local function onError(widget, err)
+	table.insert(GoaHud.errors, { widget = widget, err = err })
+	GoaHud.errorCount = GoaHud.errorCount + 1
+end
+
 officialWidgets = { "AmmoCount", "ArmorBar", "AwardNotifier", "Buffs", "ChatLog", "Crosshairs", "FragNotifier", "GameMessages", "GoalList", "HealthBar", "KillFeed", "LagNotifier", "LowAmmo", "Matchmaking", "Message", "MovementKeys", "PickupNotifier", "PickupTimers", "PlayerSpeed", "PlayerStatus", "RaceMessages", "RaceRecords", "RaceTimer", "Scoreboard", "ScreenEffects", "TeamHud", "Timer", "TrueHealth", "Vote", "WeaponName", "WeaponRack" }
 replacedOfficialWidgets = { "AmmoCount", "ArmorBar", "Crosshairs", "FragNotifier", "GameMessages", "HealthBar", "LowAmmo", "PlayerStatus", "RaceTimer", "Timer", "WeaponRack", "TrueHealth" }
 
@@ -654,17 +659,30 @@ function GoaHud:drawReal()
 
 	-- handle errors, notify error observers
 	if (self.errorCount > 0) then
+		local new_errors = {}
 		if (self.errorObserversCount > 0) then
 			for i, e in pairs(self.errors) do
 				-- calls widget.onError
-				for i, o in pairs(self.errorObservers) do
-					o.func(o.t, e.widget, e.err)
+				for j, o in pairs(self.errorObservers) do
+					local status, err = pcall(o.func, o.t, e.widget, e.err)
+					if (status == false) then
+						consolePrint("onError: " .. err)
+						table.insert(new_errors, {o.t, "onError:" .. err})
+
+						-- remove observer on error
+						self.errorObservers[j] = nil
+						self.errorObserversCount = self.errorObserversCount - 1
+					end
 				end
 			end
 		end
 
 		self.errors = {}
 		self.errorCount = 0
+
+		for i, e in pairs(new_errors) do
+			onError(e[1], e[2])
+		end
 	end
 
 	-- notify log observers of new log entries
@@ -676,8 +694,16 @@ function GoaHud:drawReal()
 					self.logLastId = entry.id
 
 					-- calls widget.onLog
-					for i, o in pairs(self.logObservers) do
-						o.func(o.t, entry)
+					for j, o in pairs(self.logObservers) do
+						local status, err = pcall(o.func, o.t, entry)
+						if (status == false) then
+							onError(o.t, "onLog: " .. err)
+							consolePrint("onLog: " .. err)
+
+							-- remove observer on error
+							self.logObservers[j] = nil
+							self.logObserversCount = self.logObserversCount - 1
+						end
 					end
 				end
 			end
@@ -1216,18 +1242,13 @@ function GoaHud_HookErrorFunctions()
 		if (k.name ~= nil and k.name ~= "GoaHud") then
 			local widget_table = _G[k.name]
 
-			local function onError(widget, err)
-				table.insert(GoaHud.errors, { widget = widget, err = err })
-				GoaHud.errorCount = GoaHud.errorCount + 1
-			end
-
 			-- wrap initialize function with pcall
 			if (widget_table.initialize ~= nil) then
 				local init_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					local status, err = pcall(widget_table.__initialize, widget_table, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
-						onError(k, err)
-						consolePrint(k.name .. ": " .. tostring(err))
+						onError(widget_table, err)
+						consolePrint("lua: " .. tostring(err))
 
 						-- disable draw calls
 						widget_table.draw = function() end
@@ -1244,8 +1265,8 @@ function GoaHud_HookErrorFunctions()
 				local draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					local status, err = pcall(widget_table.__draw, widget_table, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
-						onError(k, err)
-						consolePrint(k.name .. ": " .. tostring(err))
+						onError(widget_table, err)
+						consolePrint("lua: " .. tostring(err))
 
 						-- disable future draw calls
 						widget_table.draw = function() end
