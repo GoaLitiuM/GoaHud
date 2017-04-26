@@ -19,7 +19,7 @@ local Crosshair =
 
 	useShadow = true,
 	shadowAlpha = 64,
-	shadowSize = 4,
+	shadowSize = 1,
 }
 
 function initCrosshairs(count)
