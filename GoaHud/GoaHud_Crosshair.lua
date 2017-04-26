@@ -5,7 +5,7 @@
 
 require "base/internal/ui/reflexcore"
 
-local defaultCrosshair =
+local Crosshair =
 {
 	useDefault = true,
 
@@ -15,6 +15,7 @@ local defaultCrosshair =
 	size = 13,
 	strokeWidth = 4,
 	holeSize = 9,
+	dot = false,
 
 	useShadow = true,
 	shadowAlpha = 64,
@@ -23,11 +24,11 @@ local defaultCrosshair =
 
 function initCrosshairs(count)
 	local count = count or 1
-	if (count == 1) then return clone(defaultCrosshair) end
+	if (count == 1) then return clone(Crosshair) end
 
 	local t = {}
 	for i=1, count do
-		table.insert(t, clone(defaultCrosshair))
+		table.insert(t, clone(Crosshair))
 	end
 
 	return t
@@ -64,9 +65,10 @@ GoaHud:registerWidget("GoaHud_Crosshair");
 function GoaHud_Crosshair:init()
 	self.crosshairs =
 	{
-		{ drawDot, 0, 0},
-		{ drawCircle, 0, 0},
-		{ drawCross, 0, 0},
+		-- function/svg, offset_x, offset_y
+		{ Crosshair.drawDot, 0, 0},
+		{ Crosshair.drawCircle, 0, 0},
+		{ Crosshair.drawCross, 0, 0},
 		{ "internal/ui/crosshairs/crosshair6", 0, 0},
 		{ "internal/ui/crosshairs/crosshair7", 0, -0.17},
 		{ "internal/ui/crosshairs/crosshair8", 0, 0},
@@ -130,19 +132,21 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 	end
 
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "crosshair", x + offset_x, y + offset_y,
-		table.merge(optargs, { min_value = 1, max_value = self.crosshairCount, tick = 1, show_editbox = false }))
+		table.merge(optargs, { tick = 1, min_value = 1, max_value = self.crosshairCount, show_editbox = false }))
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "crosshairColor", x + offset_x, y + offset_y, optargs)
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "size", x + offset_x, y + offset_y,
-		table.merge(optargs, { min_value = 1, max_value = 100 }))
+		table.merge(optargs, { tick = 1, min_value = 1, max_value = 100 }))
+	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "strokeWidth", x + offset_x, y + offset_y,
+		table.merge(optargs, { tick = 1, min_value = 1, max_value = 50, enabled = optargs.enabled and (weapon.crosshair >= 2 and weapon.crosshair <= 3) }))
+	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "holeSize", x + offset_x, y + offset_y,
+		table.merge(optargs, { tick = 1, min_value = 0, max_value = 20, enabled = optargs.enabled and weapon.crosshair == 3 }))
+	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "dot", x + offset_x, y + offset_y,
+		table.merge(optargs, { enabled = optargs.enabled and weapon.crosshair == 3 }))
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "useShadow", x + offset_x, y + offset_y, optargs)
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "shadowAlpha", x + offset_x + 40, y + offset_y,
-		table.merge(optargs, { min_value = 0, max_value = 255, tick = 1, enabled = optargs.enabled and weapon.useShadow }), "Alpha")
+		table.merge(optargs, { tick = 1, min_value = 1, max_value = 255, enabled = optargs.enabled and weapon.useShadow }), "Transparency")
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "shadowSize", x + offset_x + 40, y + offset_y,
-		table.merge(optargs, { min_value = 0, max_value = 50, enabled = optargs.enabled and weapon.useShadow }), "Size")
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "strokeWidth", x + offset_x, y + offset_y,
-		table.merge(optargs, { min_value = 0.1, max_value = 50, enabled = optargs.enabled and (weapon.crosshair >= 2 and weapon.crosshair <= 3) }))
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "holeSize", x + offset_x, y + offset_y,
-		table.merge(optargs, { min_value = 0, max_value = 20, enabled = optargs.enabled and weapon.crosshair == 3 }))
+		table.merge(optargs, { tick = 1, min_value = 1, max_value = 50, enabled = optargs.enabled and weapon.useShadow }), "Size")
 
 	return offset_y
 end
@@ -239,13 +243,13 @@ function GoaHud_Crosshair:drawCrosshair(weapon, x, y, intensity)
 	nvgTranslate(x + (crosshair_settings.size * crosshair_template[2]), y + (crosshair_settings.size * crosshair_template[3]))
 
 	if (type(crosshair_template[1]) == "string") then
-		drawSvg(crosshair_settings, crosshair_template, final_color)
+		Crosshair.drawSvg(crosshair_settings, crosshair_template[1], final_color)
 	else
-		crosshair_template[1](crosshair_settings, crosshair_template, final_color)
+		crosshair_template[1](crosshair_settings, nil, final_color)
 	end
 end
 
-function drawDot(self, crosshair, color)
+function Crosshair:drawDot(svg, color)
 	-- shadow
 	if (self.useShadow) then
 		nvgBeginPath()
@@ -261,7 +265,7 @@ function drawDot(self, crosshair, color)
 	nvgFill()
 end
 
-function drawCircle(self, crosshair, color)
+function Crosshair:drawCircle(svg, color)
 	if (self.useShadow) then
 		-- inner shadow
 		nvgBeginPath()
@@ -286,95 +290,89 @@ function drawCircle(self, crosshair, color)
 	nvgStroke()
 end
 
-function drawCross(self, crosshair, color)
-	local line_end = self.holeSize * self.strokeWidth/2
-	local line_start = self.size + line_end
+function Crosshair:drawCross(svg, color)
+	local draw_dot = self.dot and self.holeSize > 0
+	local function drawCrossLines(color, length, stroke_width, hole_size)
+		nvgSave()
+		local half_offset = 0
+		if (math.floor(stroke_width) % 2 ~= 0) then half_offset = 0.5 end
+
+		if (hole_size == nil) then
+			nvgStrokeColor(color)
+			nvgStrokeWidth(stroke_width)
+
+			nvgBeginPath()
+
+			nvgMoveTo(-length, half_offset)
+			nvgLineTo(length, half_offset)
+
+			nvgMoveTo(half_offset, -length)
+			nvgLineTo(half_offset, -stroke_width/2 + half_offset)
+
+			nvgMoveTo(half_offset, stroke_width/2 + half_offset)
+			nvgLineTo(half_offset, length)
+
+			nvgStroke()
+		else
+			local line_start = (stroke_width/2) + hole_size - 1
+			local line_end = length + line_start
+
+			-- lines
+			nvgStrokeColor(color)
+			nvgStrokeWidth(stroke_width)
+
+			nvgBeginPath()
+
+			nvgMoveTo(-math.floor(line_start), half_offset)
+			nvgLineTo(-math.floor(line_end) - half_offset*2, half_offset)
+
+			nvgMoveTo(math.ceil(line_start), half_offset)
+			nvgLineTo(math.ceil(line_end), half_offset)
+
+			nvgMoveTo(half_offset, -math.floor(line_start))
+			nvgLineTo(half_offset, -math.floor(line_end) - half_offset*2)
+
+			nvgMoveTo(half_offset, math.ceil(line_start))
+			nvgLineTo(half_offset, math.ceil(line_end))
+
+			nvgStroke()
+		end
+
+		if (draw_dot) then
+			nvgStrokeWidth(stroke_width)
+			nvgBeginPath()
+			nvgMoveTo(-math.floor(stroke_width/2), half_offset)
+			nvgLineTo(math.floor(stroke_width/2)+half_offset*2, half_offset)
+			nvgStroke()
+		end
+
+		nvgRestore()
+	end
 
 	if (self.useShadow) then
-		-- TODO: kill me
-		local shadow_end = line_end - self.shadowSize/2
-		local shadow_start = line_start + self.shadowSize/2
+		local shadow_length = self.size + self.shadowSize
+		local shadow_stroke = self.strokeWidth + self.shadowSize*2
+		local shadow_hole = nil
 
-		nvgStrokeWidth(self.strokeWidth + self.shadowSize)
+		if (self.holeSize ~= 0) then
+			shadow_hole = self.holeSize - self.shadowSize * 2
+			shadow_length = shadow_length + self.shadowSize
+		end
 
-		local hole_adjust = 0
-
-		local a = line_start-line_end
-		local b = line_start-line_end+(self.strokeWidth + self.shadowSize)*2
-		local c = (self.strokeWidth+self.shadowSize)
-
-		local x = -line_start
-		local y = 0
-
-		nvgBeginPath()
-		nvgStrokeBoxGradient(x, y, a-hole_adjust, 0, 0, c, Color(0,0,0,self.shadowAlpha), Color(0,0,0,0))
-		nvgRoundedRect(x-c, y, b, 0, 0)
-		nvgStroke()
-
-		x = line_end
-		nvgBeginPath()
-		nvgStrokeBoxGradient(x+hole_adjust, y, a-hole_adjust, 0, 0, c, Color(0,0,0,self.shadowAlpha), Color(0,0,0,0))
-		nvgRoundedRect(x-c, y, b, 0, 0)
-		nvgStroke()
-
-		y = -line_start
-		x = 0
-
-		nvgBeginPath()
-		nvgStrokeBoxGradient(x, y, 0, a-hole_adjust, 0, c, Color(0,0,0,self.shadowAlpha), Color(0,0,0,0))
-		nvgRoundedRect(x, y-c, 0, b, 0)
-		nvgStroke()
-
-		y = line_end
-
-		nvgBeginPath()
-		nvgStrokeBoxGradient(x, y+hole_adjust, 0, a-hole_adjust, 0, c, Color(0,0,0,self.shadowAlpha), Color(0,0,0,0))
-		nvgRoundedRect(x, y-c, 0, b, 0)
-		nvgStroke()
+		drawCrossLines(Color(0,0,0,self.shadowAlpha), shadow_length, shadow_stroke, shadow_hole)
 	end
 
-	if (self.holeSize == 0) then
-		nvgStrokeColor(color)
-		nvgStrokeWidth(self.strokeWidth)
-
-		nvgBeginPath()
-
-		nvgMoveTo(-self.size, 0)
-		nvgLineTo(self.size, 0)
-
-		nvgMoveTo(0, -self.size)
-		nvgLineTo(0, self.size)
-
-		nvgStroke()
-	else
-		-- lines
-		nvgStrokeColor(color)
-		nvgStrokeWidth(self.strokeWidth)
-
-		nvgBeginPath()
-
-		nvgMoveTo(-line_start, 0)
-		nvgLineTo(-line_end, 0)
-
-		nvgMoveTo(line_start, 0)
-		nvgLineTo(line_end, 0)
-
-		nvgMoveTo(0, -line_start)
-		nvgLineTo(0, -line_end)
-
-		nvgMoveTo(0, line_start)
-		nvgLineTo(0, line_end)
-
-		nvgStroke()
-	end
+	local hole_size = nil
+	if (self.holeSize ~= 0) then hole_size = self.holeSize end
+	drawCrossLines(color, self.size, self.strokeWidth, hole_size)
 end
 
-function drawSvg(self, crosshair, color)
+function Crosshair:drawSvg(svg, color)
 	if (self.useShadow) then
 		nvgFillColor(Color(0,0,0, self.shadowAlpha))
-		nvgSvg(crosshair[1], 0, 0, self.size, self.shadowSize)
+		nvgSvg(svg, 0, 0, self.size, self.shadowSize)
 	end
 
 	nvgFillColor(color)
-	nvgSvg(crosshair[1], 0, 0, self.size, 0)
+	nvgSvg(svg, 0, 0, self.size, 0)
 end
