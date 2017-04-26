@@ -731,7 +731,13 @@ function GoaHud:drawReal()
 		for ii, cc in pairs(comboBoxes) do
 			local i = cc[1]
 			local c = cc[2]
-			comboBoxValues[i] = ui2ComboBox(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
+			local y = c[4]
+			local min_y = -250
+			local preview_height = 630
+			local combobox_height = 35
+			if (y >= min_y - combobox_height/2 and y <= preview_height + min_y - combobox_height/2) then
+				comboBoxValues[i] = ui2ComboBox(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
+			end
 			active_comboboxes = active_comboboxes + 1
 		end
 		comboBoxes = {}
