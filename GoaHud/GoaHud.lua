@@ -1255,13 +1255,28 @@ end
 -- error helpers
 --
 
--- HACK: AccelMeter does not have initialize function so we can define one for it.
--- This makes AccelMeter:initialize the first function which is called before any other initialize functions,
+-- HACK: AccelMeter:initialize is the first function which is called before any other initialize functions,
 -- and we can wrap the error hooks there for other widgets before their initialize functions are called.
 
-function AccelMeter:initialize()
+local first_initialize_table = AccelMeter
+local first_initialize_func = AccelMeter.initialize
+
+function hooked_first_initialize(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	GoaHud_HookErrorFunctions()
+
+	-- call the original initialize function
+	local status, err = pcall(first_initialize_func, self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+	if (status == false) then
+		onError(widget_table, err)
+		consolePrint("lua: " .. tostring(err))
+
+		-- disable draw calls
+		self.draw = function() end
+		self.__draw = self.draw
+	end
 end
+
+first_initialize_table.initialize = hooked_first_initialize
 
 -- Catches all error emitted inside initialize and draw functions,
 -- does not catch any errors thrown during initial load :(.
