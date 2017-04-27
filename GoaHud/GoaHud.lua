@@ -214,7 +214,7 @@ function GoaHud:drawWidgetList(x, y, category, optargs)
 			local enabled, old_enabled
 			optargs.optionalId = optargs.optionalId + 1
 
-			if (category == GOAHUD_MODULE) then
+			if (category == GOAHUD_MODULE or category == GOAHUD_MODULE_EXPERIMENTAL) then
 				enabled = widget_table.enabled
 				old_enabled = enabled
 
