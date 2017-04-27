@@ -976,8 +976,21 @@ function GoaHud:registerWidget(widget_name, category)
 			end
 		end
 
+		local first_time = not GoaHud_HasOptions(widget_table)
+
 		-- load widget options automatically
 		widget_table:loadOptions()
+
+		-- enable new non-experimental widgets by default
+		if (not isExperimental and first_time) then
+			if (isModule) then
+				widget_table.enabled = true
+			else
+				setWidgetVisibility(widget_name, true)
+			end
+			widget_table:saveOptions()
+			widget_table:loadOptions()
+		end
 
 		widget_table:init()
 	end
@@ -1170,6 +1183,10 @@ function applyDefaults(container, varname, vartype, defaults)
 	elseif (t ~= vartype) then
 		container[varname] = defaults
 	end
+end
+
+function GoaHud_HasOptions(self)
+	return loadUserData() ~= nil
 end
 
 function GoaHud_LoadOptions(self)
