@@ -217,8 +217,7 @@ function GoaHud:drawWidgetList(x, y, category, optargs)
 						widget_table.onEnabled(widget_table, enabled)
 					end
 
-					widget_table.saveOptions()
-					widget_table.loadOptions()
+					self:invokeSaveLoadOptions(widget_table)
 				end
 			else
 				enabled = widget.visible
@@ -1046,8 +1045,7 @@ function GoaHud:restoreWidgets(widgets_)
 						widget_table.onEnabled(widget_table, widget_table.enabled)
 					end
 
-					widget_table.saveOptions()
-					widget_table.loadOptions()
+					self:invokeSaveLoadOptions(widget_table)
 				end
 			else
 				setWidgetVisibility(widget.name, widget.name ~= "WeaponName")
@@ -1075,8 +1073,7 @@ function GoaHud:hideWidgets(widgets_)
 						widget_table.onEnabled(widget_table, widget_table.enabled)
 					end
 
-					widget_table.saveOptions()
-					widget_table.loadOptions()
+					self:invokeSaveLoadOptions(widget_table)
 				end
 			else
 				setWidgetVisibility(widget.name, false)
@@ -1223,7 +1220,41 @@ function GoaHud_LoadOptions(self)
 	end
 end
 
-function GoaHud_SaveOptions(self, options)
+function GoaHud:invokeLoadOptions(widget_table)
+	local real_draw = widget_table.draw
+	local draw_load = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		GoaHud_LoadOptions(widget_table)
+
+		widget_table.draw = real_draw
+		return real_draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+	end
+	widget_table.draw = draw_load
+end
+
+function GoaHud:invokeSaveOptions(widget_table)
+	local real_draw = widget_table.draw
+	local draw_save = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		GoaHud_SaveOptions(widget_table)
+
+		widget_table.draw = real_draw
+		return real_draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+	end
+	widget_table.draw = draw_save
+end
+
+function GoaHud:invokeSaveLoadOptions(widget_table)
+	local real_draw = widget_table.draw
+	local draw_saveload = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		GoaHud_SaveOptions(widget_table)
+		GoaHud_LoadOptions(widget_table)
+
+		widget_table.draw = real_draw
+		return real_draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+	end
+	widget_table.draw = draw_saveload
+end
+
+function GoaHud_SaveOptions(self)
 	if (self.enabled ~= nil) then
 		self.options.enabled = self.enabled
 	end
