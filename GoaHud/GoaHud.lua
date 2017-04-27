@@ -764,6 +764,7 @@ end
 
 function GoaHud:drawText1(x, y, size, color, shadow, value, color_codes)
 	if (color.a == 0) then return end
+	local shadow = shadow or {}
 	local color_codes = color_codes or false
 
 	nvgSave()
