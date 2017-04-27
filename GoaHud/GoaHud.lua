@@ -55,7 +55,7 @@ GoaHud =
 	{
 	},
 
-	goaWidgets = {},
+	registeredWidgets = {},
 
 	showOptions = true, -- debug
 	dirtyConvars = false,
@@ -151,31 +151,30 @@ function GoaHud:drawOptions(x, y, intensity)
 	optargs.intensity = intensity
 	optargs.optionalId = 0
 
-	local lastEnabled = self.enabled
-	self.enabled = GoaRowCheckbox(x, y, WIDGET_PROPERTIES_COL_INDENT, "Enable GoaHud", self.enabled, optargs)
-	GoaLabel("(Warning: enabling will hide some of the official widgets)", x + 320, y, optargs)
+	local quick_enable_pressed = GoaButton("Quick Enable GoaHud", x, y, 220, 35, optargs)
+	GoaLabel("(Pressing this button hides some of the official widgets)", x + 320, y, optargs)
+	y = y + GOAHUD_SPACING
+	local restore_widgets_pressed = GoaButton("Quick Disable GoaHud", x, y, 220, 35, optargs)
 
-	if (lastEnabled ~= self.enabled) then
-		local non_experimental_goawidgets = {}
-		for i, k in pairs(self.goaWidgets) do
-			if (k.category == GOAHUD_UI or k.category == GOAHUD_MODULE) then
-				table.insert(non_experimental_goawidgets, k)
+	if (quick_enable_pressed) then
+		local non_experimental_widgets = {}
+		for i, w in pairs(self.registeredWidgets) do
+			if (w.category == GOAHUD_UI or w.category == GOAHUD_MODULE) then
+				table.insert(non_experimental_widgets, w)
 			end
 		end
 
-		if (not isEmpty(self.goaWidgets)) then
-			if (self.enabled) then
-				GoaHud:hideWidgets(replacedOfficialWidgets)
-				GoaHud:restoreWidgets(non_experimental_goawidgets)
-			else
-				GoaHud:hideWidgets(self.goaWidgets)
-				GoaHud:restoreWidgets(replacedOfficialWidgets)
-			end
+		if (not isEmpty(non_experimental_widgets)) then
+			self:hideWidgets(replacedOfficialWidgets)
+			self:restoreWidgets(non_experimental_widgets)
 		end
+	end
+	if (restore_widgets_pressed) then
+		self:hideWidgets(self.registeredWidgets)
+		self:restoreWidgets(replacedOfficialWidgets)
 	end
 
 	local enabled_optargs = clone(optargs)
-	enabled_optargs.enabled = self.enabled
 
 	local elements_height = self:drawWidgetList(x, y + 60, GOAHUD_UI, enabled_optargs)
 
@@ -195,7 +194,7 @@ function GoaHud:drawWidgetList(x, y, category, optargs)
 
 	local count = 0
 
-	for i, w in ipairs(self.goaWidgets) do
+	for i, w in ipairs(self.registeredWidgets) do
 		local name = w.name
 		local name_short = string.gsub(name, "GoaHud_", "")
 
@@ -986,11 +985,11 @@ function GoaHud:registerWidget(widget_name, category)
 	widget_table.widgetName = widget_name
 
 	registerWidget(widget_name)
-	table.insert(self.goaWidgets, widget_info)
+	table.insert(self.registeredWidgets, widget_info)
 end
 
 function GoaHud:postInitWidgets()
-	for i, w in pairs(self.goaWidgets) do
+	for i, w in pairs(self.registeredWidgets) do
 		widget_table = _G[w.name]
 
 		-- register callback functions for new log messages
@@ -1025,7 +1024,21 @@ function GoaHud:restoreWidgets(widgets_)
 		end
 	else
 		for i, widget in pairs(widgets_) do
-			setWidgetVisibility(widget.name, widget.name ~= "WeaponName")
+			if (widget.category == GOAHUD_MODULE or widget.category == GOAHUD_MODULE_EXPERIMENTAL) then
+				local widget_table = _G[widget.name]
+				if (widget_table.enabled == false) then
+					widget_table.enabled = true
+
+					if (widget_table.onEnabled ~= nil) then
+						widget_table.onEnabled(widget_table, widget_table.enabled)
+					end
+
+					widget_table.saveOptions()
+					widget_table.loadOptions()
+				end
+			else
+				setWidgetVisibility(widget.name, widget.name ~= "WeaponName")
+			end
 		end
 	end
 end
@@ -1040,7 +1053,21 @@ function GoaHud:hideWidgets(widgets_)
 		end
 	else
 		for i, widget in pairs(widgets_) do
-			setWidgetVisibility(widget.name, false)
+			if (widget.category == GOAHUD_MODULE or widget.category == GOAHUD_MODULE_EXPERIMENTAL) then
+				local widget_table = _G[widget.name]
+				if (widget_table.enabled == true) then
+					widget_table.enabled = false
+
+					if (widget_table.onEnabled ~= nil) then
+						widget_table.onEnabled(widget_table, widget_table.enabled)
+					end
+
+					widget_table.saveOptions()
+					widget_table.loadOptions()
+				end
+			else
+				setWidgetVisibility(widget.name, false)
+			end
 		end
 	end
 end
