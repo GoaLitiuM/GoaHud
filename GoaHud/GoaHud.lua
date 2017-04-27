@@ -1427,6 +1427,10 @@ function GoaHud:updateEpochTimeMs()
 	lastEpochTime = epochTime
 end
 
+function isValidCountry(country)
+	return country ~= nil and country ~= "" and country ~= "eu"
+end
+
 --
 -- emoji helpers
 --
