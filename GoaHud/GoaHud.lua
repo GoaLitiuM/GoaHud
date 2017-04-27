@@ -53,11 +53,6 @@ GoaHud =
 	canHide = false,
 	canPosition = false,
 
-	enabled = false,
-	options =
-	{
-	},
-
 	registeredWidgets = {},
 
 	showOptions = true, -- debug
@@ -146,7 +141,6 @@ replacedOfficialWidgets = { "AmmoCount", "ArmorBar", "Crosshairs", "FragNotifier
 function GoaHud:initialize()
 	self.widgetName = "GoaHud"
 	self.draw = self.drawFirst
-	GoaHud_LoadOptions(self)
 end
 
 function GoaHud:drawOptions(x, y, intensity)
@@ -186,9 +180,6 @@ function GoaHud:drawOptions(x, y, intensity)
 	local experimental2_height = self:drawWidgetList(x + 450, y + 60 + modules_height + experimental_height + 30, GOAHUD_UI_EXPERIMENTAL, enabled_optargs)
 
 	optargs.optionalId = optargs.optionalId + 1
-
-	GoaHud_SaveOptions(self)
-	GoaHud_LoadOptions(self)
 end
 
 function GoaHud:drawWidgetList(x, y, category, optargs)
