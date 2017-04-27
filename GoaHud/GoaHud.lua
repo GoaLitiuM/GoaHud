@@ -10,7 +10,10 @@ GoaHud_Addon =
 	options = {},		-- userData, loaded automatically by main module
 
 	-- optional: order in which to render options keys
-	optionsDisplayOrder = { "key1", "key2", }
+	optionsDisplayOrder = { "key1", "key2", },
+
+	-- set to true by GoaHud if this widget is new
+	firstTime = true or false,
 }
 GoaHud:registerWidget("GoaHud_Addon", GOAHUD_UI or GOAHUD_MODULE)
 
@@ -991,6 +994,8 @@ function GoaHud:registerWidget(widget_name, category)
 			widget_table:saveOptions()
 			widget_table:loadOptions()
 		end
+
+		widget_table.firstTime = first_time
 
 		widget_table:init()
 	end
