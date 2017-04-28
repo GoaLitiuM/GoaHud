@@ -7,7 +7,8 @@ require "base/internal/ui/reflexcore"
 
 GoaHud_RaceTimer =
 {
-	offset = { x = 0, y = 330 },
+	offset = { x = 0, y = -220 },
+	anchor = { x = 0, y = 1 },
 
 	recalculateBounds = true,
 	textOffsetX = 0,
