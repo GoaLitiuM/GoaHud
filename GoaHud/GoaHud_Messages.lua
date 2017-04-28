@@ -117,11 +117,11 @@ function GoaHud_Messages:draw()
 		if (not shouldShowHUD(optargs_deadspec)) then return end
 	end
 
-	local title_end_time = self.titleInfo.time + self.titleInfo.length + self.options.fragFadeTime
+	local title_end_time = self.titleInfo.time + self.titleInfo.length + self.options.gameModeFadeTime
 	if (self.timer < title_end_time) then
 		local color = clone(self.titleInfo.color)
-		if (self.options.fragFadeTime > 0.0) then
-			color.a = color.a * math.min(self.options.fragFadeTime, title_end_time - self.timer) / self.options.fragFadeTime
+		if (self.options.gameModeFadeTime > 0.0) then
+			color.a = color.a * math.min(self.options.gameModeFadeTime, title_end_time - self.timer) / self.options.gameModeFadeTime
 		end
 
 		local middle_y = -viewport.height/2 * 0.6 + 175
