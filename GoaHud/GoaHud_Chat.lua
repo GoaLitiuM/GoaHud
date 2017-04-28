@@ -353,7 +353,10 @@ function GoaHud_Chat:onLog(entry)
 			colorBackground = color_background,
 		}
 	elseif (entry.type == LOG_TYPE_DROP or entry.type == LOG_TYPE_RECEIVED) then
-		if (getLocalPlayer().name == entry.dropPlayerName) then
+		local player_name = entry.dropPlayerName
+		if (entry.type == LOG_TYPE_RECEIVED) then player_name = entry.receivedPlayerName end
+
+		if (getLocalPlayer().name == player_name) then
 			playSound("internal/ui/sounds/notifyDrop")
 		end
 
@@ -374,9 +377,9 @@ function GoaHud_Chat:onLog(entry)
 
 		local content
 		if (quantity > 1) then
-			content = string.format("%s received items: %dx %s!", entry.dropPlayerName, quantity, item)
+			content = string.format("%s received items: %dx %s!", player_name, quantity, item)
 		else
-			content = string.format("%s received item: %s!", entry.dropPlayerName, item)
+			content = string.format("%s received item: %s!", player_name, item)
 		end
 
 		msg =
