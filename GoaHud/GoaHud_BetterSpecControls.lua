@@ -127,7 +127,7 @@ function GoaHud_BetterSpecControls:command(action, command)
 end
 
 function GoaHud_BetterSpecControls:draw()
-	if (not self.enabled or not GoaHud.enabled) then return end
+	if (not self.enabled) then return end
 
 	local local_player = getLocalPlayer()
 	if (local_player == nil) then return end
