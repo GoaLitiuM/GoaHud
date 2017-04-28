@@ -20,8 +20,6 @@ GoaHud_RaceTimer =
 
 	options =
 	{
-		showBackground = false,
-		softBackground = true,
 		shadow =
 		{
 			shadowEnabled = true,
@@ -123,25 +121,8 @@ function GoaHud_RaceTimer:draw()
 	end
 
 	local margin = 12
-	local margin_shadow_extra = 5
-	local shadow_blur = 8
-	local height_fix = 25
 	local x = -self.textOffsetX - self.textWidth/2
 	local y = self.textOffsetY + margin
-
-	-- background
-	if (self.options.showBackground) then
-		nvgBeginPath()
-		if (self.options.softBackground) then
-			nvgFillBoxGradient(x + self.textOffsetX - margin + margin_shadow_extra/2, y - self.textOffsetY - margin + margin_shadow_extra/2, self.textWidth + margin*2 - margin_shadow_extra, self.textHeight + margin*2 - height_fix - margin_shadow_extra, 0, shadow_blur, Color(0,0,0,64), Color(0,0,0,0))
-		else
-			nvgFillColor(Color(0, 0, 0, 64))
-		end
-
-		-- timer background
-		nvgRect(x + self.textOffsetX - margin, y - self.textOffsetY - margin , self.textWidth + margin*2, self.textHeight + margin*2 - height_fix)
-		nvgFill()
-	end
 
 	-- race time
 	self:setupText()

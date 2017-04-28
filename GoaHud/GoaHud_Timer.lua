@@ -23,7 +23,6 @@ GoaHud_Timer =
 	{
 		countdown = true,
 		countdownRace = true,
-		softBackground = true,
 		showScoreDiff = true,
 		shadow =
 		{
@@ -65,18 +64,15 @@ end
 function GoaHud_Timer:draw()
 	if (not shouldShowHUD(optargs_deadspec)) then return end
 
-	local player = getPlayer()
-	local time_raw = 0
-	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
-	local race = gamemodes[world.gameModeIndex].shortName == "race"
 	local countdown
-
-	if (race) then
+	if (isRaceOrTrainingMode()) then
 		countdown = self.options.countdownRace
 	else
 		countdown = self.options.countdown
 	end
 
+	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
+	local time_raw = 0
 	if (match_countdown) then
 		time_raw = world.gameTimeLimit - (math.floor(world.gameTime / 1000) * 1000)
 	elseif (not world.timerActive) then
@@ -121,25 +117,8 @@ function GoaHud_Timer:draw()
 	end
 
 	local margin = 12
-	local margin_shadow_extra = 5
-	local shadow_blur = 8
-	local height_fix = 25
 	local x = -self.textOffsetX - self.textWidth/2
 	local y = self.textOffsetY + margin - 8
-
-	-- background
-	if (self.options.showBackground) then
-		nvgBeginPath()
-		if (self.options.softBackground) then
-			nvgFillBoxGradient(x + self.textOffsetX - margin + margin_shadow_extra/2, y - self.textOffsetY - margin + margin_shadow_extra/2, self.textWidth + margin*2 - margin_shadow_extra, self.textHeight + margin*2 - height_fix - margin_shadow_extra, 0, shadow_blur, Color(0,0,0,64), Color(0,0,0,0))
-		else
-			nvgFillColor(Color(0, 0, 0, 64))
-		end
-
-		-- timer background
-		nvgRect(x + self.textOffsetX - margin, y - self.textOffsetY - margin , self.textWidth + margin*2, self.textHeight + margin*2 - height_fix)
-		nvgFill()
-	end
 
 	-- round time
 	self:setupText()
@@ -148,6 +127,7 @@ function GoaHud_Timer:draw()
 	self:drawText(x, y, Color(255,255,255,255), display_str)
 
 	-- score difference
+	local player = getPlayer()
 	if (self.options.showScoreDiff and not isRaceOrTrainingMode()) then
 		local score_bg_color = Color(0,0,0,64)
 		local game_mode = gamemodes[world.gameModeIndex]
@@ -183,18 +163,6 @@ function GoaHud_Timer:draw()
 		local score_diff_str = string.format("%s%d", sign, diff)
 
 		x = x - self.scoreOffsetX + margin*2 + 1
-
-		-- score diff background
-		if (self.options.showBackground) then
-			nvgBeginPath()
-			if (self.options.softBackground) then
-				nvgFillBoxGradient(x - margin - self.scoreWidth/2 + margin_shadow_extra/2, y - self.textOffsetY - margin + margin_shadow_extra/2 , self.scoreWidth + margin*2 - margin_shadow_extra, self.textHeight + margin*2 - height_fix - margin_shadow_extra, 0, shadow_blur, score_bg_color, Color(0,0,0,0))
-			else
-				nvgFillColor(score_bg_color)
-			end
-			nvgRect(x - margin - self.scoreWidth/2, y - self.textOffsetY - margin , self.scoreWidth + margin*2, self.textHeight + margin*2 - height_fix)
-			nvgFill()
-		end
 
 		-- stretch text to fit inside the rect
 		if (math.abs(diff) >= 100) then
