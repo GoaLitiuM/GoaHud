@@ -357,6 +357,10 @@ function GoaHud_Chat:onLog(entry)
 			playSound("internal/ui/sounds/notifyDrop")
 		end
 
+		local color = Color(128, 255, 128, 255)
+		local color_background = Color(16, 64, 16, 255)
+		color_background.a = math.min(color_background.a * (self.options.backgroundAlpha/255), 255)
+
 		local def_id = entry.dropItemDefId
 		local quantity = 1
 		if (entry.type == LOG_TYPE_RECEIVED) then
@@ -379,6 +383,9 @@ function GoaHud_Chat:onLog(entry)
 		{
 			content = content,
 			bold = true,
+
+			color = color,
+			colorBackground = color_background,
 		}
 	elseif (entry.type == LOG_TYPE_RACEEVENT) then
 		if (entry.raceEvent == RACE_EVENT_FINISH or entry.raceEvent == RACE_EVENT_FINISHANDWASRECORD) then
