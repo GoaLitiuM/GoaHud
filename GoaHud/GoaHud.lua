@@ -906,12 +906,12 @@ function GoaHud:registerWidget(widget_name, category)
 
 		local nop = function() end
 
-		local tick_wrapper = function()
+		local tick_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 			if (not widget_table.enabled) then return end
-			widget_table:tick()
+			widget_table:tick(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 		end
 
-		function widget_table:draw()
+		function widget_table:draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 			if (widget_table.tick ~= nil) then
 				widget_table.draw = tick_wrapper
 			else
@@ -1341,7 +1341,7 @@ function GoaHud_HookErrorFunctions()
 			-- wrap initialize function with pcall
 			if (widget_table.initialize ~= nil) then
 				local init_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-					local status, err = pcall(widget_table.__initialize, widget_table, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+					local status, err = pcall(widget_table.__initialize, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
 						onError(widget_table, err)
 						consolePrint("lua: " .. tostring(err))
@@ -1359,7 +1359,7 @@ function GoaHud_HookErrorFunctions()
 			-- wrap draw function with pcall
 			if (widget_table.draw ~= nil) then
 				local draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-					local status, err = pcall(widget_table.__draw, widget_table, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+					local status, err = pcall(widget_table.__draw, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
 						onError(widget_table, err)
 						consolePrint("lua: " .. tostring(err))
