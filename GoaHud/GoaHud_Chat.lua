@@ -72,6 +72,8 @@ GoaHud_Chat =
 		caretType = CARET_TYPE_VERTICAL,
 		caretBlinking = true,
 
+		shortenLongNames = false,
+
 		colorTeam = Color(32, 32, 196, 255),
 		colorSpectator = Color(196, 196, 32, 255),
 		colorParty = Color(32, 196, 32, 255),
@@ -98,9 +100,13 @@ GoaHud_Chat =
 		"",
 		"caretType", "caretBlinking",
 		"",
+		"shortenLongNames",
+		"",
 		"colorTeam", "colorSpectator", "colorParty",
 		"shadow",
 	},
+
+	shortenNameLength = 17,
 
 	caretTimer = 0.0,
 	caretBlinkTime = 0.25,
@@ -687,7 +693,21 @@ function GoaHud_Chat:draw()
 			end
 
 			if (m.source) then
-				prefix = m.source .. ": "
+				if (self.options.shortenLongNames and m.source ~= "DEBUG" and string.len(m.source) > self.shortenNameLength) then
+					local break_pos
+					-- break at last possible word before hitting the length limit
+					for index = self.shortenNameLength, 0, -1 do
+						break_pos = string.find(m.source, "[ _.-:]", index)
+						if (break_pos ~= nil and break_pos <= self.shortenNameLength+1) then break end
+					end
+
+					-- fallback to character length
+					if (break_pos == nil) then break_pos = self.shortenNameLength+1 end
+
+					prefix = string.sub(m.source, 0, break_pos-1) .. "...: "
+				else
+					prefix = m.source .. ": "
+				end
 				content = prefix .. content
 				content_offset = content_offset + string.len(prefix)
 			end
