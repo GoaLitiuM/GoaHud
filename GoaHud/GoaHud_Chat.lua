@@ -110,7 +110,7 @@ GoaHud_Chat =
 	messages = {},
 	messagesPreview = {},
 }
-GoaHud:registerWidget("GoaHud_Chat", GOAHUD_UI_EXPERIMENTAL)
+GoaHud:registerWidget("GoaHud_Chat")
 
 local consolePrint_real
 local last_chat_debug = 0
