@@ -1313,14 +1313,16 @@ function hooked_first_initialize(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7,
 	GoaHud_HookErrorFunctions()
 
 	-- call the original initialize function
-	local status, err = pcall(first_initialize_func, self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-	if (status == false) then
-		onError(widget_table, err)
-		consolePrint("lua: " .. tostring(err))
+	if (first_initialize_func ~= nil) then
+		local status, err = pcall(first_initialize_func, self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		if (status == false) then
+			onError(widget_table, err)
+			consolePrint("lua: " .. tostring(err))
 
-		-- disable draw calls
-		self.draw = function() end
-		self.__draw = self.draw
+			-- disable draw calls
+			self.draw = function() end
+			self.__draw = self.draw
+		end
 	end
 end
 
