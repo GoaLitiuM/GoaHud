@@ -73,6 +73,29 @@ GoaHud =
 };
 registerWidget("GoaHud")
 
+local GoaHudOptionsPostfix = " "
+GoaHudOptions =
+{
+	canHide = false,
+	canPosition = false,
+
+	name = nil,
+	widget = nil,
+
+	initialize = function(self)
+		local variable_count = 0
+		for i in pairs(self.widget.options) do variable_count = variable_count + 1 end
+
+		if (variable_count > 0) then
+			self.drawOptions = function(self, x, y, intensity)
+				return self.widget.drawOptions(self.widget, x, y, intensity)
+			end
+		end
+	end,
+
+	draw = function() end,
+};
+
 GOAHUD_FONT1 = "vipnagorgialla"
 GOAHUD_FONT2 = "Lato-Heavy-Optimized"
 GOAHUD_FONT3 = "Volter__28Goldfish_29"
@@ -324,8 +347,7 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 
 	self.getOptionsHeight = function() return offset_y end
 
-	self:saveOptions()
-	self:loadOptions()
+	GoaHud:invokeSaveLoadOptions(self)
 end
 
 local function toReadable(str)
@@ -904,14 +926,22 @@ function GoaHud:registerWidget(widget_name, category)
 
 	if (isModule) then
 		widget_table.canHide = false
-		widget_table.canPosition = false
+		widget_table.isMenu = true
 		if (widget_table.enabled == nil) then
 			widget_table.enabled = false
 		end
 
-		-- modules should not have draw functions, but instead
-		-- we call tick every frame instead only if the module is enabled
+		-- widget.isMenu hides the widget from options menu, so create
+		-- another widget for handling the options rendering for us
 
+		local options_widget = clone(GoaHudOptions)
+		options_widget.name = widget_name
+		options_widget.widget = widget_table
+		_G[widget_name .. GoaHudOptionsPostfix] = options_widget
+		registerWidget(widget_name .. GoaHudOptionsPostfix)
+
+		-- modules should not have draw functions, but instead we call
+		-- the tick every frame instead for modules which are enabled
 		local tick_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 			if (not widget_table.enabled) then return end
 
@@ -1238,6 +1268,30 @@ function GoaHud_LoadOptions(self)
 	end
 end
 
+function GoaHud_SaveOptions(self)
+	if (self.enabled ~= nil) then
+		self.options.enabled = self.enabled
+	end
+
+	-- save only the values that were changed by the user
+	local changed = getChangedValues(self.options, self.defaults)
+
+	saveUserData(changed)
+
+	if (self.enabled ~= nil) then
+		self.options.enabled = nil
+	end
+end
+
+function GoaHud_ResetOptions(self)
+	self.options = clone(self.defaults)
+
+	if (self.enabled ~= nil) then
+		self.enabled = self.options.enabled
+		self.options.enabled = nil
+	end
+end
+
 function GoaHud:invokeLoadOptions(widget_table)
 	local real_draw = widget_table.draw
 	local draw_load = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
@@ -1270,30 +1324,6 @@ function GoaHud:invokeSaveLoadOptions(widget_table)
 		return real_draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	end
 	widget_table.draw = draw_saveload
-end
-
-function GoaHud_SaveOptions(self)
-	if (self.enabled ~= nil) then
-		self.options.enabled = self.enabled
-	end
-
-	-- save only the values that were changed by the user
-	local changed = getChangedValues(self.options, self.defaults)
-
-	saveUserData(changed)
-
-	if (self.enabled ~= nil) then
-		self.options.enabled = nil
-	end
-end
-
-function GoaHud_ResetOptions(self)
-	self.options = clone(self.defaults)
-
-	if (self.enabled ~= nil) then
-		self.enabled = self.options.enabled
-		self.options.enabled = nil
-	end
 end
 
 function getChangedValues(new, old)
