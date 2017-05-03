@@ -36,7 +36,7 @@ function GoaHud_Addon:onEnabled(enabled)
 function GoaHud_Addon:onLog(entry)
 
 -- called when addon throws an error
-function GoaHud_Addon:onError(widget, err)
+function GoaHud_Addon:onError(widget_name, err)
 
 -- provides custom rendering for each options variable
 -- by default following function is called for each variable, and is returned:
@@ -662,7 +662,7 @@ function GoaHud:drawReal()
 					local status, err = pcall(o.func, o.t, e.widget, e.err)
 					if (status == false) then
 						consolePrint("onError: " .. err)
-						table.insert(new_errors, {o.t, "onError:" .. err})
+						table.insert(new_errors, {o.name, "onError:" .. err})
 
 						-- remove observer on error
 						self.errorObservers[j] = nil
@@ -692,7 +692,7 @@ function GoaHud:drawReal()
 					for j, o in pairs(self.logObservers) do
 						local status, err = pcall(o.func, o.t, entry)
 						if (status == false) then
-							onError(o.t, "onLog: " .. err)
+							onError(o.name, "onLog: " .. err)
 							consolePrint("onLog: " .. err)
 
 							-- remove observer on error
@@ -1006,13 +1006,13 @@ function GoaHud:postInitWidgets()
 
 		-- register callback functions for new log messages
 		if (widget_table.onLog ~= nil) then
-			table.insert(self.logObservers, { t = widget_table, func = widget_table.onLog })
+			table.insert(self.logObservers, { t = widget_table, name = w.name, func = widget_table.onLog })
 			self.logObserversCount = self.logObserversCount + 1
 		end
 
 		-- register callback functions for addon errors
 		if (widget_table.onError ~= nil) then
-			table.insert(self.errorObservers, { t = widget_table, func = widget_table.onError })
+			table.insert(self.errorObservers, { t = widget_table, name = w.name, func = widget_table.onError })
 			self.errorObserversCount = self.errorObserversCount + 1
 		end
 	end
@@ -1309,15 +1309,16 @@ end
 local first_initialize_table = AccelMeter
 local first_initialize_func = AccelMeter.initialize
 
-function hooked_first_initialize(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+function hooked_first_initialize(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	GoaHud_HookErrorFunctions()
 
 	-- call the original initialize function
 	if (first_initialize_func ~= nil) then
-		local status, err = pcall(first_initialize_func, self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		local status, err = pcall(first_initialize_func, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 		if (status == false) then
-			onError(widget_table, err)
 			consolePrint("lua: " .. tostring(err))
+			local widget_name = getWidgetName(first_initialize_table)
+			onError(widget_name, err)
 
 			-- disable draw calls
 			self.draw = function() end
@@ -1345,8 +1346,8 @@ function GoaHud_HookErrorFunctions()
 				local init_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					local status, err = pcall(widget_table.__initialize, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
-						onError(widget_table, err)
 						consolePrint("lua: " .. tostring(err))
+						onError(k.name, err)
 
 						-- disable draw calls
 						widget_table.draw = function() end
@@ -1363,8 +1364,8 @@ function GoaHud_HookErrorFunctions()
 				local draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					local status, err = pcall(widget_table.__draw, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
-						onError(widget_table, err)
 						consolePrint("lua: " .. tostring(err))
+						onError(k.name, err)
 
 						-- disable future draw calls
 						widget_table.draw = function() end
@@ -1380,6 +1381,16 @@ end
 --
 -- utility
 --
+
+function getWidgetName(widget)
+	for i, w in pairs(widgets) do
+		local t = _G[w.name]
+		if (t ~= nil and t == widget) then
+			return w.name
+		end
+	end
+	return nil
+end
 
 function GoaHud:formatTime(elapsed, wat)
 	local seconds_total = math.floor(elapsed)
