@@ -261,6 +261,7 @@ function GoaHud_Chat:onDebug(text)
 
 	if (text == debugLastMsg.content) then
 		debugLastMsg.debugRepeat = debugLastMsg.debugRepeat + 1
+		debugLastMsg.timestamp = epochTimeMs
 		return
 	end
 
