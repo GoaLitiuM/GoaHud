@@ -1311,11 +1311,12 @@ end
 -- error helpers
 --
 
--- HACK: AccelMeter:initialize is the first function which is called before any other initialize functions,
--- and we can wrap the error hooks there for other widgets before their initialize functions are called.
+-- HACK: ScreenEffects:initialize seems to be the one of the first function which is called
+-- during addon initialization process, and we can initialize the error hooks there for other
+-- widgets before their initialize functions are called.
 
-local first_initialize_table = AccelMeter
-local first_initialize_func = AccelMeter.initialize
+local first_initialize_table = ScreenEffects
+local first_initialize_func = ScreenEffects.initialize
 
 function hooked_first_initialize(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	GoaHud_HookErrorFunctions()
@@ -1324,65 +1325,90 @@ function hooked_first_initialize(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	if (first_initialize_func ~= nil) then
 		local status, err = pcall(first_initialize_func, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 		if (status == false) then
-			consolePrint("lua: " .. tostring(err))
 			local widget_name = getWidgetName(first_initialize_table)
 			onError(widget_name, err)
+			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
 
-			-- disable draw calls
-			self.draw = function() end
-			self.__draw = self.draw
+			-- disable draw calls in case error occured in the detoured initialize function
+			GoaHud_SetWidgetDraw(first_initialize_table, function() end)
 		end
 	end
 end
 
 first_initialize_table.initialize = hooked_first_initialize
 
--- Catches all error emitted inside initialize and draw functions,
--- does not catch any errors thrown during initial load :(.
+-- Catches most of the error emitted inside initialize and draw functions,
+-- does not catch any errors thrown during initial load >:(.
 
-local errorFunctionsHooked = false
+local hooked_widgets = {}
 function GoaHud_HookErrorFunctions()
-	if (errorFunctionsHooked) then return end
-	errorFunctionsHooked = true
-
 	for i, k in pairs(widgets) do
-		if (k.name ~= nil and k.name ~= "GoaHud") then
+		if (k.name ~= nil and k.name ~= "GoaHud" and hooked_widgets[k.name] == nil) then
+
 			local widget_table = _G[k.name]
 
 			-- wrap initialize function with pcall
 			if (widget_table.initialize ~= nil) then
 				local init_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-					local status, err = pcall(widget_table.__initialize, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+					local status, err = pcall(GoaHud_GetWidgetOriginalInitialize(widget_table), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
-						consolePrint("lua: " .. tostring(err))
 						onError(k.name, err)
+						consolePrint(string.format("lua (%s): %s", k.name, tostring(err)))
 
 						-- disable draw calls
-						widget_table.draw = function() end
-						widget_table.__draw = widget_table.draw
+						GoaHud_SetWidgetDraw(widget_table, function() end)
 					end
 				end
 
-				widget_table.__initialize = widget_table.initialize
-				widget_table.initialize = init_error_wrapper
+				GoaHud_SetWidgetInitialize(widget_table, init_error_wrapper)
 			end
 
 			-- wrap draw function with pcall
 			if (widget_table.draw ~= nil) then
 				local draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-					local status, err = pcall(widget_table.__draw, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+					local status, err = pcall(GoaHud_GetWidgetOriginalDraw(widget_table), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					if (status == false) then
-						consolePrint("lua: " .. tostring(err))
 						onError(k.name, err)
+						consolePrint(string.format("lua (%s): %s", k.name, tostring(err)))
 
 						-- disable future draw calls
-						widget_table.draw = function() end
+						GoaHud_SetWidgetDraw(widget_table, function() end)
 					end
 				end
-				widget_table.__draw = widget_table.draw
-				widget_table.draw = draw_error_wrapper
+
+				GoaHud_SetWidgetDraw(widget_table, draw_error_wrapper)
 			end
+
+			hooked_widgets[k.name] = true
 		end
+	end
+end
+
+function GoaHud_GetWidgetOriginalInitialize(widget)
+	if (widget.__goahud_real_initialize ~= nil) then return widget.__goahud_real_initialize end
+	return widget.initialize
+end
+
+function GoaHud_GetWidgetOriginalDraw(widget)
+	if (widget.__goahud_real_draw ~= nil) then return widget.__goahud_real_draw end
+	return widget.draw
+end
+
+function GoaHud_SetWidgetInitialize(widget, func)
+	if (widget.__goahud_real_initialize == nil) then
+		widget.__goahud_real_initialize = widget.initialize
+		widget.initialize = func
+	else
+		widget.__goahud_real_initialize = func
+	end
+end
+
+function GoaHud_SetWidgetDraw(widget, func)
+	if (widget.__goahud_real_draw == nil) then
+		widget.__goahud_real_draw = widget.draw
+		widget.draw = func
+	else
+		widget.__goahud_real_draw = func
 	end
 end
 
