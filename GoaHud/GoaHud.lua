@@ -959,6 +959,8 @@ function GoaHud:registerWidget(widget_name, category)
 
 	-- hook initialize function
 	function widget_table:initialize()
+		GoaHud_HookErrorFunctions() -- in case one of my widgets happens to be called before others
+
 		if (widget_table.init == nil) then
 			consolePrint(widget_name .. " does not have init() function")
 			return
