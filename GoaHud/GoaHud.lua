@@ -889,6 +889,14 @@ function GoaHud:registerWidget(widget_name, category)
 		category = category
 	}
 
+	-- ignore duplicate widget registrations
+	for i, w in pairs(self.registeredWidgets) do
+		if (w.name == widget_name) then
+			consolePrint("Multiple " .. widget_name .. " widgets detected, please remove extra copies of GoaHud and restart the game")
+			return
+		end
+	end
+
 	local isExperimental = category == GOAHUD_UI_EXPERIMENTAL or category == GOAHUD_MODULE_EXPERIMENTAL
 	local isModule = category == GOAHUD_MODULE or category == GOAHUD_MODULE_EXPERIMENTAL
 
