@@ -32,31 +32,8 @@ GoaHud_Zoom =
 GoaHud:registerWidget("GoaHud_Zoom", GOAHUD_MODULE);
 
 function GoaHud_Zoom:init()
-	self:scoreboardWorkaround(self.enabled)
-
 	GoaHud:createConsoleVariable("zoom", "int", 0)
 	GoaHud:setConsoleVariable("zoom", 0)
-end
-
--- workaround for Scoreboard getting drawn before GoaHud_Zoom tries to hide the scoreboard
-local old_scoreboard_draw
-function GoaHud_Zoom:scoreboardWorkaround(enabled)
-	local Scoreboard = _G["Scoreboard"]
-	if (Scoreboard == nil) then return end
-
-	if (old_scoreboard_draw == nil) then old_scoreboard_draw = GoaHud_GetWidgetOriginalDraw(Scoreboard) end
-
-	if (enabled) then
-		local scoreboard_draw_zoom = function(self)
-			local held = consoleGetVariable("ui_goahud_zoom") ~= 0
-			if (held) then return end
-
-			old_scoreboard_draw(self)
-		end
-		GoaHud_SetWidgetDraw(Scoreboard, scoreboard_draw_zoom)
-	else
-		GoaHud_SetWidgetDraw(Scoreboard, old_scoreboard_draw)
-	end
 end
 
 function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
@@ -85,8 +62,6 @@ function GoaHud_Zoom:onEnabled(enabled)
 	self.rebindTimer = 0.0
 	self.zoomTimer = 0.0
 	GoaHud:setConsoleVariable("zoom", 0)
-
-	self:scoreboardWorkaround(enabled)
 end
 
 function GoaHud_Zoom:show()
