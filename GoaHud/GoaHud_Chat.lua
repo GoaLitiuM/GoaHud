@@ -249,7 +249,7 @@ function GoaHud_Chat:onError(widget, err)
 		timestampHide = epochTimeMs + self.options.messageTime,
 
 		source = "LUA ERROR",
-		content = err,
+		content = string.format("%s: %s", widget, err),
 		colorBackground = Color(255, 0, 0, math.min((self.options.backgroundAlpha/255)*2, 1.0)*255),
 	}
 	self:newMessage(msg)
