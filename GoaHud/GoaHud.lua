@@ -21,7 +21,7 @@ GoaHud:registerWidget("GoaHud_Addon", GOAHUD_UI or GOAHUD_MODULE)
 -- required functions:
 --
 
-function GoaHud_Addon:init() end
+function GoaHud_Addon:init() end -- handles loading of options table
 function GoaHud_Addon:draw() end -- for UI
 function GoaHud_Addon:tick() end -- for modules
 
@@ -1005,7 +1005,9 @@ function GoaHud:registerWidget(widget_name, category)
 
 		widget_table.firstTime = first_time
 
-		widget_table:init()
+		if (widget_table.init ~= nil) then
+			widget_table:init()
+		end
 	end
 
 	widget_table.widgetName = widget_name
