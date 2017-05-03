@@ -912,11 +912,17 @@ function GoaHud:registerWidget(widget_name, category)
 		-- modules should not have draw functions, but instead
 		-- we call tick every frame instead only if the module is enabled
 
-		local nop = function() end
-
 		local tick_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 			if (not widget_table.enabled) then return end
-			widget_table:tick(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+
+			local status, err = pcall(widget_table.tick, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+			if (status == false) then
+				onError(widget_name, err)
+				consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
+
+				-- disable future tick calls
+				widget_table.tick = function() end
+			end
 		end
 
 		function widget_table:draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
@@ -924,7 +930,7 @@ function GoaHud:registerWidget(widget_name, category)
 				widget_table.draw = tick_wrapper
 			else
 				consolePrint(widget_name .. " does not have tick() function")
-				widget_table.draw = nop
+				widget_table.draw = function() end
 			end
 		end
 	end
