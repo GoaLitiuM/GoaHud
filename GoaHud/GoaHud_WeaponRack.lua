@@ -34,7 +34,7 @@ GoaHud_WeaponRack =
 GoaHud:registerWidget("GoaHud_WeaponRack");
 
 function GoaHud_WeaponRack:init()
-	for i=1, 10 do
+	for i=1, 9 do
 		table.insert(self.showWeapons, true);
 	end
 end
@@ -93,16 +93,22 @@ function GoaHud_WeaponRack:draw()
 	local weapon_count = 0
 	local icon_size = 15
 	local font_size = 40
-	local offset_width = icon_size*2 + font_size*0.75*3
 	local border = 5
+	local offset_width = icon_size*2 + font_size*0.75*3 + border
+	local weapon_definitions = weaponDefinitions
 
+	-- show stake in competitive mode if player has it
+	if (player.weapons[9].pickedup and player.weapons[9].ammo > 0 and weapon_definitions[9] == nil) then
+		weapon_definitions = clone(weaponDefinitions)
+		table.insert(weapon_definitions, { lowAmmoWarning = 5, color = Color(128, 0, 0, 255), damagePerPellet = 100, maxAmmo = 20, name = "Stake Launcher", reloadTime = 1250 })
+	end
 
-	for i in ipairs(weaponDefinitions) do
+	for i in ipairs(weapon_definitions) do
 		weapon_count = weapon_count + 1
 		if (self.showWeapons[i] and player.weapons[i].pickedup) then weapons_picked = weapons_picked + 1 end
 	end
 
-	local background_width = (weapons_picked * offset_width) + border*2
+	local background_width = (weapons_picked * (offset_width)) --+ border*2
 	local background_height = math.max(font_size*0.6, icon_size*2) + border*2
 
 	offset_x = -weapons_picked * offset_width / 2
@@ -120,8 +126,8 @@ function GoaHud_WeaponRack:draw()
 	nvgTextLetterSpacing(0)
 
 	for i=1, weapon_count do
-		if (self.showWeapons[i] and player.weapons[i].pickedup) then
-			local def = weaponDefinitions[i];
+		local def = weapon_definitions[i]
+		if (def ~= nil and self.showWeapons[i] and player.weapons[i].pickedup) then
 			local ammo = math.min(player.weapons[i].ammo, 999)
 			local color = Color(def.color.r, def.color.g, def.color.b, def.color.a);
 
@@ -139,9 +145,9 @@ function GoaHud_WeaponRack:draw()
 
 			local weapon_icon = "internal/ui/icons/weapon" .. i
 			if (i == 1 and player.inventoryMelee ~= nil) then
-				local def = inventoryDefinitions[player.inventoryMelee]
-				if (def ~= nil) then
-					weapon_icon = def.asset or weapon_icon
+				local melee_def = inventoryDefinitions[player.inventoryMelee]
+				if (melee_def ~= nil) then
+					weapon_icon = melee_def.asset or weapon_icon
 				end
 			end
 
@@ -153,7 +159,7 @@ function GoaHud_WeaponRack:draw()
 			end
 
 			if (i ~= 1) then
-				nvgText(offset_x + offset_width/2, 0, tostring(ammo))
+				nvgText(offset_x + (font_size*3 - border/2)/2, 0, tostring(ammo))
 			end
 
 			offset_x = offset_x + offset_width
