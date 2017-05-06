@@ -367,7 +367,8 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 
 	self.getOptionsHeight = function() return offset_y end
 
-	GoaHud:invokeSaveLoadOptions(self)
+	self:saveOptions()
+    self:loadOptions()
 end
 
 local function toReadable(str)
