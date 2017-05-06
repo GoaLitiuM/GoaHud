@@ -114,10 +114,10 @@ function GoaHud_FragMessages:drawPreview(x, y, intensity)
 		preview_timer = 0.0
 	end
 
-	self:drawFragged(x + 280, y + 40, intensity)
+	self:drawFragged(x + 280, y + 30, intensity)
 
 	nvgRestore()
-	return 60
+	return 80
 end
 
 local comboBoxData1 = {}
