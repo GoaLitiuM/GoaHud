@@ -152,6 +152,9 @@ optargs_deadspec =
 }
 
 local popupActive = false
+local comboBoxes = {}
+local comboBoxValues = {}
+local comboBoxesCount = 0
 
 local function onError(widget, err)
 	table.insert(GoaHud.errors, { widget = widget, err = err })
@@ -343,6 +346,23 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowColor", x + offset_x, y + offset_y, optargs_shadows, "Color")
 
 		offset_x = offset_x - GOAHUD_INDENTATION
+	end
+
+	if (comboBoxesCount > 0) then
+		local active_comboboxes = 0
+		table.reverse(comboBoxes)
+		for ii, cc in pairs(comboBoxes) do
+			local i = cc[1]
+			local c = cc[2]
+			comboBoxValues[i] = ui2ComboBox(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
+			active_comboboxes = active_comboboxes + 1
+		end
+		comboBoxes = {}
+
+		if (active_comboboxes == 0) then
+			comboBoxValues = {}
+			comboBoxesCount = 0
+		end
 	end
 
 	self.getOptionsHeight = function() return offset_y end
@@ -558,9 +578,6 @@ function GoaEditBox4Decimals(value, x, y, w, optargs)
 	return ui2EditBox4Decimals(value, x, y, w, optargs)
 end
 
-local comboBoxes = {}
-local comboBoxValues = {}
-local comboBoxesCount = 0
 function GoaComboBox(options, selection, x, y, w, comboBoxData, optargs)
 	if (popupActive) then return selection end
 
@@ -742,6 +759,7 @@ function GoaHud:drawReal()
 		consolePerformCommand("m_enabled 1")
 	end--]]
 
+	--[[
 	if (comboBoxesCount > 0) then
 		local active_comboboxes = 0
 		table.reverse(comboBoxes)
@@ -764,6 +782,7 @@ function GoaHud:drawReal()
 			comboBoxesCount = 0
 		end
 	end
+	--]]
 
 	self:processConVars()
 end
