@@ -363,7 +363,7 @@ function GoaHud_Chat:onLog(entry)
 		local player_name = entry.dropPlayerName
 		if (entry.type == LOG_TYPE_RECEIVED) then player_name = entry.receivedPlayerName end
 
-		if (getLocalPlayer().name == player_name) then
+		if (entry.type == LOG_TYPE_DROP and getLocalPlayer().name == player_name) then
 			playSound("internal/ui/sounds/notifyDrop")
 		end
 
