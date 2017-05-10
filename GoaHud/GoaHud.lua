@@ -430,6 +430,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		local seconds = false
 		local units = optargs.units or nil
 		local fov = optargs.fov or false
+		local tick = optargs.tick
 		local slider_width = 200
 		local editbox_width = 75
 
@@ -451,6 +452,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		elseif (fov) then
 			min_value = 10
 			max_value = 178
+			tick = 1
 		elseif (values ~= nil) then
 			min_value = values[1]
 			max_value = values[#values]
@@ -460,8 +462,8 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 
 		local enforceFunc = function(new_value)
 			-- enforce min/max value range, and rounding to nearest tick
-			if (optargs.tick ~= nil) then
-				new_value = round(new_value * optargs.tick) / optargs.tick
+			if (tick ~= nil) then
+				new_value = round(new_value * tick) / tick
 			elseif (milliseconds) then
 				new_value = round(new_value)
 				new_value = math.min(max_value, new_value)
