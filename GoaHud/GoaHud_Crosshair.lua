@@ -5,21 +5,38 @@
 
 require "base/internal/ui/reflexcore"
 
-local Crosshair =
+local CrosshairShape =
 {
-	useDefault = true,
+	enabled = true,
 
-	crosshair = 3,
-	crosshairColor = Color(255, 255, 255, 255),
+	type = 3,
+	color = Color(255, 255, 255, 255),
 
 	size = 13,
 	strokeWidth = 4,
 	holeSize = 9,
-	dot = false,
 
 	useShadow = true,
-	shadowAlpha = 64,
+	shadowColor = Color(0, 0, 0, 64),
 	shadowSize = 1,
+}
+
+function initCrosshairShapes(count)
+	local t = {}
+	for i=1, count do
+		local s = clone(CrosshairShape)
+		if (i > 1) then	s.enabled = false end
+		table.insert(t, s)
+	end
+
+	return t
+end
+
+local Crosshair =
+{
+	useDefault = true,
+	shapes = initCrosshairShapes(2),
+	dot = false,
 }
 
 function initCrosshairs(count)
@@ -58,7 +75,7 @@ GoaHud_Crosshair =
 		crosshairDefault = initCrosshairs(1),
 		weaponCrosshairs = initCrosshairs(10),
 	},
-	optionsDisplayOrder = { "smoothTransitions", "showTime", "fadeTime", "preview", "crosshairDefault", "weaponCrosshairs", },
+	optionsDisplayOrder = { "smoothTransitions", "showTime", "fadeTime", "preview", "crosshairDefault", "weaponCrosshairs", "preview", },
 };
 GoaHud:registerWidget("GoaHud_Crosshair");
 
@@ -87,6 +104,31 @@ function GoaHud_Crosshair:init()
 	if (shouldShowHUD()) then
 		self.lastWeapon = getPlayer().weaponIndexweaponChangingTo
 		self.oldWeapon = self.lastWeapon
+	end
+
+	-- migrate old crosshair shape settings to new system
+	for i, c in pairs(self.options.weaponCrosshairs) do
+		if (c.crosshair ~= nil) then
+			c.shapes = initCrosshairShapes(2)
+			c.shapes[1].type = c.crosshair
+
+			if (c.crosshairColor ~= nil and not isEmpty(c.crosshairColor)) then c.shapes[1].color = c.crosshairColor end
+			if (c.size ~= nil) then c.shapes[1].size = c.size end
+			if (c.strokeWidth ~= nil) then c.shapes[1].strokeWidth = c.strokeWidth end
+			if (c.holeSize ~= nil) then c.shapes[1].holeSize = c.holeSize end
+			if (c.useShadow ~= nil) then c.shapes[1].useShadow = c.useShadow end
+			if (c.shadowAlpha ~= nil) then c.shapes[1].shadowColor.a = c.shadowAlpha end
+			if (c.shadowSize ~= nil) then c.shapes[1].shadowSize = c.shadowSize end
+
+			c.crosshair = nil
+			c.crosshairColor = nil
+			c.size = nil
+			c.strokeWidth = nil
+			c.holeSize = nil
+			c.useShadow = nil
+			c.shadowAlpha = nil
+			c.shadowSize = nil
+		end
 	end
 end
 
@@ -131,22 +173,38 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 		optargs.enabled = false
 	end
 
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "crosshair", x + offset_x, y + offset_y,
-		table.merge(optargs, { tick = 1, min_value = 1, max_value = self.crosshairCount, show_editbox = false }))
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "crosshairColor", x + offset_x, y + offset_y, optargs)
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "size", x + offset_x, y + offset_y,
-		table.merge(optargs, { tick = 1, min_value = 1, max_value = 100 }))
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "strokeWidth", x + offset_x, y + offset_y,
-		table.merge(optargs, { tick = 1, min_value = 1, max_value = 50, enabled = optargs.enabled and (weapon.crosshair >= 2 and weapon.crosshair <= 3) }))
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "holeSize", x + offset_x, y + offset_y,
-		table.merge(optargs, { tick = 1, min_value = 0, max_value = 20, enabled = optargs.enabled and weapon.crosshair == 3 }))
+	for i, shape in ipairs(weapon.shapes) do
+		local shape_enabled = shape.enabled and optargs.enabled
+		if (i == 1) then
+			GoaLabel("Shape " .. i .. ":", x + offset_x, y + offset_y, table.merge(optargs, { enabled = shape_enabled }))
+		else
+			shape.enabled = GoaRowCheckbox(x + offset_x, y + offset_y, WIDGET_PROPERTIES_COL_INDENT, "Enable Shape " .. i, shape.enabled, optargs)
+		end
+		offset_x = offset_x + GOAHUD_INDENTATION
+		offset_y = offset_y + GOAHUD_SPACING
+
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "type", x + offset_x, y + offset_y,
+			table.merge(optargs, { enabled = shape_enabled, tick = 1, min_value = 1, max_value = self.crosshairCount, show_editbox = false }))
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "color", x + offset_x, y + offset_y,
+			table.merge(optargs, { enabled = shape_enabled }))
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "size", x + offset_x, y + offset_y,
+			table.merge(optargs, { enabled = shape_enabled, tick = 1, min_value = 1, max_value = 100 }))
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "strokeWidth", x + offset_x, y + offset_y,
+			table.merge(optargs, { enabled = shape_enabled and (shape.type >= 2 and shape.type <= 3), tick = 1, min_value = 1, max_value = 50 }))
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "holeSize", x + offset_x, y + offset_y,
+			table.merge(optargs, { enabled = shape_enabled and shape.type == 3, tick = 1, min_value = 0, max_value = 20}))
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "useShadow", x + offset_x, y + offset_y,
+			table.merge(optargs, { enabled = shape_enabled }))
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "shadowColor", x + offset_x + 40, y + offset_y,
+			table.merge(optargs, { enabled = shape_enabled and weapon.useShadow }), "Color")
+		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "shadowSize", x + offset_x + 40, y + offset_y,
+			table.merge(optargs, { enabled = shape_enabled and weapon.useShadow, tick = 1, min_value = 1, max_value = 50 }), "Size")
+
+		offset_x = offset_x - GOAHUD_INDENTATION
+	end
+
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "dot", x + offset_x, y + offset_y,
-		table.merge(optargs, { enabled = optargs.enabled and weapon.crosshair == 3 }))
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "useShadow", x + offset_x, y + offset_y, optargs)
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "shadowAlpha", x + offset_x + 40, y + offset_y,
-		table.merge(optargs, { tick = 1, min_value = 1, max_value = 255, enabled = optargs.enabled and weapon.useShadow }), "Transparency")
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "shadowSize", x + offset_x + 40, y + offset_y,
-		table.merge(optargs, { tick = 1, min_value = 1, max_value = 50, enabled = optargs.enabled and weapon.useShadow }), "Size")
+		optargs)
 
 	return offset_y
 end
@@ -227,57 +285,64 @@ function GoaHud_Crosshair:draw()
 end
 
 function GoaHud_Crosshair:drawCrosshair(weapon, x, y, intensity)
-	local crosshair_settings
-	if (weapon <= 0) then crosshair_settings = self.options.crosshairDefault
-	else crosshair_settings = self.options.weaponCrosshairs[weapon] end
+	local crosshair = self.options.crosshairDefault
+	if (weapon > 0 and not self.options.weaponCrosshairs[weapon].useDefault) then
+		crosshair = self.options.weaponCrosshairs[weapon]
+	end
 
-	if (crosshair_settings.useDefault) then crosshair_settings = self.options.crosshairDefault end
+	for i, shape in ipairs(crosshair.shapes) do
+		if (shape.enabled) then
+			local shape_index = math.min(self.crosshairCount, shape.type)
+			local shape_info = self.crosshairs[shape_index]
+			local shape_scale = 1.0 - intensity
+			local final_color = clone(shape.color)
+			final_color.a = final_color.a * (1.0 - intensity)
 
-	local crosshair_index = math.min(self.crosshairCount, crosshair_settings.crosshair)
-	local crosshair_template = self.crosshairs[crosshair_index]
-	local crosshair_scale = 1.0 - intensity
-	local final_color = clone(crosshair_settings.crosshairColor)
-	final_color.a = final_color.a * (1.0 - intensity)
+			nvgSave()
 
-	nvgScale(crosshair_scale, crosshair_scale)
-	nvgTranslate(x + (crosshair_settings.size * crosshair_template[2]), y + (crosshair_settings.size * crosshair_template[3]))
+			nvgScale(shape_scale, shape_scale)
+			nvgTranslate(x + (shape.size * shape_info[2]), y + (shape.size * shape_info[3]))
 
-	if (type(crosshair_template[1]) == "string") then
-		Crosshair.drawSvg(crosshair_settings, crosshair_template[1], final_color)
-	else
-		crosshair_template[1](crosshair_settings, nil, final_color)
+			if (type(shape_info[1]) == "string") then
+				Crosshair.drawSvg(crosshair, shape_info[1], shape, final_color)
+			else
+				shape_info[1](crosshair, shape, final_color)
+			end
+
+			nvgRestore()
+		end
 	end
 end
 
-function Crosshair:drawDot(svg, color)
+function Crosshair:drawDot(shape, color)
 	-- shadow
-	if (self.useShadow) then
+	if (shape.useShadow) then
 		nvgBeginPath()
-		nvgFillRadialGradient(0, 0, self.size/2, self.size+self.shadowSize, Color(0,0,0, self.shadowAlpha), Color(0,0,0,0))
-		nvgCircle(0, 0, self.size+self.shadowSize)
+		nvgFillRadialGradient(0, 0, shape.size/2, shape.size+shape.shadowSize, shape.shadowColor, Color(0,0,0,0))
+		nvgCircle(0, 0, shape.size+shape.shadowSize)
 		nvgFill()
 	end
 
 	-- dot
 	nvgBeginPath()
 	nvgFillColor(color)
-	nvgCircle(0, 0, self.size)
+	nvgCircle(0, 0, shape.size)
 	nvgFill()
 end
 
-function Crosshair:drawCircle(svg, color)
-	if (self.useShadow) then
+function Crosshair:drawCircle(shape, color)
+	if (shape.useShadow) then
 		-- inner shadow
 		nvgBeginPath()
-		nvgFillRadialGradient(0, 0, self.size-self.shadowSize, self.size*2, Color(0,0,0,0), Color(0,0,0,self.shadowAlpha))
-		nvgCircle(0, 0, self.size)
+		nvgFillRadialGradient(0, 0, shape.size-shape.shadowSize, shape.size*2, Color(0,0,0,0), shape.shadowColor)
+		nvgCircle(0, 0, shape.size)
 		nvgFill()
 
 		-- outer shadow
 		nvgBeginPath()
-		nvgFillRadialGradient(0, 0, self.size/2, self.size+self.shadowSize, Color(0,0,0,self.shadowAlpha), Color(0,0,0,0))
-		nvgCircle(0, 0, self.size+self.shadowSize)
-		nvgCircle(0, 0, self.size)
+		nvgFillRadialGradient(0, 0, shape.size/2, shape.size+shape.shadowSize, shape.shadowColor, Color(0,0,0,0))
+		nvgCircle(0, 0, shape.size+shape.shadowSize)
+		nvgCircle(0, 0, shape.size)
 		nvgPathWinding(NVG_HOLE)
 		nvgFill()
 	end
@@ -285,20 +350,20 @@ function Crosshair:drawCircle(svg, color)
 	-- circle
 	nvgBeginPath()
 	nvgStrokeColor(color)
-	nvgStrokeWidth(self.strokeWidth)
-	nvgCircle(0, 0, self.size)
+	nvgStrokeWidth(shape.strokeWidth)
+	nvgCircle(0, 0, shape.size)
 	nvgStroke()
 end
 
-function Crosshair:drawCross(svg, color)
-	local draw_dot = self.dot and self.holeSize > 0
-	local function drawCrossLines(color, length, stroke_width, hole_size)
+function Crosshair:drawCross(shape, color)
+	local draw_dot = self.dot and shape.holeSize > 0
+	local function drawCrossLines(line_color, length, stroke_width, hole_size)
 		nvgSave()
 		local half_offset = 0
 		if (math.floor(stroke_width) % 2 ~= 0) then half_offset = 0.5 end
 
 		if (hole_size == nil) then
-			nvgStrokeColor(color)
+			nvgStrokeColor(line_color)
 			nvgStrokeWidth(stroke_width)
 
 			nvgBeginPath()
@@ -318,7 +383,7 @@ function Crosshair:drawCross(svg, color)
 			local line_end = length + line_start
 
 			-- lines
-			nvgStrokeColor(color)
+			nvgStrokeColor(line_color)
 			nvgStrokeWidth(stroke_width)
 
 			nvgBeginPath()
@@ -349,30 +414,30 @@ function Crosshair:drawCross(svg, color)
 		nvgRestore()
 	end
 
-	if (self.useShadow) then
-		local shadow_length = self.size + self.shadowSize
-		local shadow_stroke = self.strokeWidth + self.shadowSize*2
+	if (shape.useShadow) then
+		local shadow_length = shape.size + shape.shadowSize
+		local shadow_stroke = shape.strokeWidth + shape.shadowSize*2
 		local shadow_hole = nil
 
-		if (self.holeSize ~= 0) then
-			shadow_hole = self.holeSize - self.shadowSize * 2
-			shadow_length = shadow_length + self.shadowSize
+		if (shape.holeSize ~= 0) then
+			shadow_hole = shape.holeSize - shape.shadowSize * 2
+			shadow_length = shadow_length + shape.shadowSize
 		end
 
-		drawCrossLines(Color(0,0,0,self.shadowAlpha), shadow_length, shadow_stroke, shadow_hole)
+		drawCrossLines(shape.shadowColor, shadow_length, shadow_stroke, shadow_hole)
 	end
 
 	local hole_size = nil
-	if (self.holeSize ~= 0) then hole_size = self.holeSize end
-	drawCrossLines(color, self.size, self.strokeWidth, hole_size)
+	if (shape.holeSize ~= 0) then hole_size = shape.holeSize end
+	drawCrossLines(color, shape.size, shape.strokeWidth, hole_size)
 end
 
-function Crosshair:drawSvg(svg, color)
-	if (self.useShadow) then
-		nvgFillColor(Color(0,0,0, self.shadowAlpha))
-		nvgSvg(svg, 0, 0, self.size, self.shadowSize)
+function Crosshair:drawSvg(svg, shape, color)
+	if (shape.useShadow) then
+		nvgFillColor(shape.shadowColor)
+		nvgSvg(svg, 0, 0, shape.size, shape.shadowSize)
 	end
 
 	nvgFillColor(color)
-	nvgSvg(svg, 0, 0, self.size, 0)
+	nvgSvg(svg, 0, 0, shape.size, 0)
 end
