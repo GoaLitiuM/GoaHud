@@ -359,6 +359,9 @@ function GoaHud_Chat:onLog(entry)
 			color = color,
 			colorBackground = color_background,
 		}
+
+		-- hide join messages triggered by menu replay
+		if (replayName == "menu") then msg = nil end
 	elseif (entry.type == LOG_TYPE_DROP or entry.type == LOG_TYPE_RECEIVED) then
 		local player_name = entry.dropPlayerName
 		if (entry.type == LOG_TYPE_RECEIVED) then player_name = entry.receivedPlayerName end
