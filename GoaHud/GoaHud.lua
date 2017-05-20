@@ -204,8 +204,6 @@ function GoaHud:drawOptions(x, y, intensity)
 	local modules_height = self:drawWidgetList(x + 450, y + 60, GOAHUD_MODULE, enabled_optargs)
 	local experimental_height = self:drawWidgetList(x + 450, y + 60 + modules_height + 30, GOAHUD_MODULE_EXPERIMENTAL, enabled_optargs)
 	local experimental2_height = self:drawWidgetList(x + 450, y + 60 + modules_height + experimental_height + 30, GOAHUD_UI_EXPERIMENTAL, enabled_optargs)
-
-	optargs.optionalId = optargs.optionalId + 1
 end
 
 function GoaHud:drawWidgetList(x, y, category, optargs)
@@ -265,7 +263,10 @@ function GoaHud:drawWidgetList(x, y, category, optargs)
 	return offset_y
 end
 
+local firstWidgetOptionalId = 2
+local lastWidgetOptionalId = -1
 function GoaHud_DrawOptions(self, x, y, intensity)
+	lastWidgetOptionalId = -1
 	local optargs = { intensity = intensity, optionalId = 1 }
 	local offset_x = 0
 	local offset_y = 0
@@ -278,6 +279,7 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 	offset_y = offset_y + GOAHUD_SPACING*1.5
 
 	optargs.optionalId = optargs.optionalId + 1
+	firstWidgetOptionalId = optargs.optionalId
 
 	-- we try to iterate names over defaults table because the order of keys in options table may not remain the same
 	local options_keys = self.defaults
@@ -346,6 +348,7 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowColor", x + offset_x, y + offset_y, optargs_shadows, "Color")
 
 		offset_x = offset_x - GOAHUD_INDENTATION
+		optargs.optionalId = optargs_shadows.optionalId
 	end
 
 	if (comboBoxesCount > 0) then
@@ -375,7 +378,7 @@ local function toReadable(str)
 end
 
 function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
-	local optargs = optargs or {}
+	local optargs = optargs or { optionalId = lastWidgetOptionalId }
 	local offset_x = 0
 	local offset_y = 0
 	local value = options[name]
@@ -383,6 +386,10 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	local name_readable = name_readable or toReadable(name)
 	local draw_label = vartype ~= "boolean"
 	local is_color = optargs.color or (vartype == "table" and string.find(name_readable, "Color"))
+
+	if (optargs.optionalId < lastWidgetOptionalId) then
+		optargs.optionalId = lastWidgetOptionalId
+	end
 
 	nvgSave()
 	ui2FontNormal()
@@ -527,6 +534,8 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	end
 
 	optargs.optionalId = optargs.optionalId + 1
+
+	lastWidgetOptionalId = optargs.optionalId
 
 	return offset_y
 end
