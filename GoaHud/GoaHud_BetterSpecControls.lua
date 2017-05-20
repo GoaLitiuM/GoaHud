@@ -31,8 +31,8 @@ GoaHud_BetterSpecControls =
 };
 GoaHud:registerWidget("GoaHud_BetterSpecControls", GOAHUD_MODULE)
 
-local BIND_NAMES = { "Attack", "Jump", "Crouch", "Forward", "Back", "Strafe Left", "Strafe Right" }
-local BIND_VALUES = { "attack", "jump", "crouch", "forward", "back", "left", "right" }
+local BIND_NAMES = { "Disabled", "Attack", "Jump", "Crouch", "Forward", "Back", "Strafe Left", "Strafe Right" }
+local BIND_VALUES = { "", "attack", "jump", "crouch", "forward", "back", "left", "right" }
 
 function GoaHud_BetterSpecControls:init()
 end
@@ -66,16 +66,13 @@ function GoaHud_BetterSpecControls:drawOptionsVariable(varname, x, y, optargs)
 		ui2Label("Free Camera: ", x, y + offset_y, optargs)
 		camera_free = ui2ComboBox(BIND_NAMES, camera_free, x + 175, y + offset_y, 150, comboBoxData1, optargs)
 		offset_y = offset_y - 50
-		optargs.optionalId = optargs.optionalId + 1
 
 		ui2Label("Camera Previous: ", x, y + offset_y, optargs)
 		camera_prev = ui2ComboBox(BIND_NAMES, camera_prev, x + 175, y + offset_y, 150, comboBoxData2, optargs)
 		offset_y = offset_y - 50
-		optargs.optionalId = optargs.optionalId + 1
 
 		ui2Label("Camera Next: ", x, y + offset_y, optargs)
 		camera_next = ui2ComboBox(BIND_NAMES, camera_next, x + 175, y + offset_y, 150, comboBoxData3, optargs)
-		optargs.optionalId = optargs.optionalId + 1
 
 		for i, name in pairs(BIND_NAMES) do
 			if (camera_next == name) then camera_next = BIND_VALUES[i] end
@@ -100,10 +97,13 @@ end
 function GoaHud_BetterSpecControls:getHookedBind(command)
 	for i, k in pairs(self.options.binds) do
 		if (k == command) then
-			return "+" .. i
+			if (i == "") then return nil
+			else
+				return "+" .. i
+			end
 		end
 	end
-	return ""
+	return nil
 end
 
 function GoaHud_BetterSpecControls:command(action, command)
