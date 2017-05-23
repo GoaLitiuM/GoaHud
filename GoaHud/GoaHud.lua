@@ -809,29 +809,12 @@ end
 
 function GoaHud:drawText1(x, y, size, color, shadow, value, color_codes)
 	if (color.a == 0) then return end
-	local shadow = shadow or {}
-	local color_codes = color_codes or false
 
 	nvgSave()
+
 	self:drawTextStyle1(size)
-
-	nvgTranslate(round(x), round(y))
-
-	if (shadow.shadowEnabled) then
-		self:drawTextShadow(0, 0, value, shadow, { alpha = color.a, color_codes = color_codes, emoji_size = size })
-	end
-
 	nvgFillColor(color)
-
-	if (color_codes) then
-		if (self.colorCodesSupported) then
-			self:drawTextWithEmojis(0, 0, value, size)
-		else
-			nvgText(0, 0, string.gsub(value, "%^[0-9]", ""))
-		end
-	else
-		nvgText(0, 0, value)
-	end
+	self:drawTextWithShadow(x, y, value, shadow, { color_codes = color_codes})
 
 	nvgRestore()
 end
@@ -842,6 +825,30 @@ end
 
 function GoaHud:drawTextHA(x, y, size, color, shadow, value)
 	self:drawText1(x, y, size, color, shadow, value, color_codes)
+end
+
+function GoaHud:drawTextWithShadow(x, y, value, shadow, optargs)
+	local shadow = shadow or {}
+
+	nvgSave()
+
+	nvgTranslate(round(x), round(y))
+
+	if (shadow.shadowEnabled) then
+		self:drawTextShadow(0, 0, value, shadow, optargs)
+	end
+
+	if (optargs.color_codes or optargs.emoji_size ~= nil) then
+		if (self.colorCodesSupported) then
+			self:drawTextWithEmojis(0, 0, value, optargs.emoji_size)
+		else
+			nvgText(0, 0, string.gsub(value, "%^[0-9]", ""))
+		end
+	else
+		nvgText(0, 0, value)
+	end
+
+	nvgRestore()
 end
 
 function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
