@@ -912,12 +912,12 @@ function GoaHud:drawTextWithEmojis(x, y, text, emoji_size)
 
 	-- draw the text before next emoji if any was found
 	nvgColorText(x, y, print_text)
-	x = x + nvgTextWidth(print_text)
+	x = x + nvgTextWidthEmoji(print_text, emoji_size)
 
 	-- draw emoji
 	if (svg ~= nil) then
 		local radius = emoji_size/2
-		local bounds = nvgTextBounds(print_text)
+		local bounds = nvgTextBoundsEmoji(print_text, emoji_size)
 		local offset_y = (bounds.miny + bounds.maxy) / 2
 
 		nvgSvg(svg, x + radius, y + offset_y, radius)
