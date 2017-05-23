@@ -1062,6 +1062,7 @@ function GoaHud:registerWidget(widget_name, category)
 		widget_table:loadOptions()
 
 		-- enable new non-experimental widgets by default
+		--[[
 		if (not isExperimental and first_time) then
 			if (isModule) then
 				widget_table.enabled = true
@@ -1071,6 +1072,7 @@ function GoaHud:registerWidget(widget_name, category)
 			widget_table:saveOptions()
 			widget_table:loadOptions()
 		end
+		--]]
 
 		widget_table.firstTime = first_time
 
