@@ -1,11 +1,40 @@
--- GoaHud_BetterSpecControls made by GoaLitiuM
+-- GoaHud_BetterSpectator made by GoaLitiuM
 --
 -- Control spectator camera with attack, jump and crouch keys (no rebinding required)
 --
 
 require "base/internal/ui/reflexcore"
 
+-- dummy widget
 GoaHud_BetterSpecControls =
+{
+	canHide = false,
+	isMenu = true,
+
+	options = { binds = {}, },
+}
+
+function GoaHud_BetterSpecControls:initialize()
+	if (GoaHud_BetterSpectator ~= nil and GoaHud_BetterSpectator.options ~= nil) then
+		local options = loadUserData()
+
+		if (options == nil or isEmpty(options)) then return end
+
+		-- migrate settings from
+		GoaHud_BetterSpectator.options.binds = clone(options.binds)
+		if (options.enabled ~= nil) then GoaHud_BetterSpectator.enabled = options.enabled end
+
+		saveUserData({})
+
+		-- save the new widget options
+		GoaHud:invokeSaveLoadOptions(_G["GoaHud_BetterSpectator"])
+	end
+end
+
+function GoaHud_BetterSpecControls:draw()
+end
+
+GoaHud_BetterSpectator =
 {
 	canHide = false,
 	canPosition = false,
@@ -29,18 +58,22 @@ GoaHud_BetterSpecControls =
 	lastFollowedPlayer = -1,
 	lastButtons = {},
 };
-GoaHud:registerWidget("GoaHud_BetterSpecControls", GOAHUD_MODULE)
+GoaHud:registerWidget("GoaHud_BetterSpectator", GOAHUD_MODULE)
 
 local BIND_NAMES = { "Disabled", "Attack", "Jump", "Crouch", "Forward", "Back", "Strafe Left", "Strafe Right" }
 local BIND_VALUES = { "", "attack", "jump", "crouch", "forward", "back", "left", "right" }
 
-function GoaHud_BetterSpecControls:init()
+function GoaHud_BetterSpectator:init()
+	if (self.firstTime) then
+		-- register the old widget as a dummy so we can migrate settings from it to this new widget
+		registerWidget("GoaHud_BetterSpecControls")
+	end
 end
 
 local comboBoxData1 = {}
 local comboBoxData2 = {}
 local comboBoxData3 = {}
-function GoaHud_BetterSpecControls:drawOptionsVariable(varname, x, y, optargs)
+function GoaHud_BetterSpectator:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "binds") then
 		local offset_y = 150
 
@@ -94,7 +127,7 @@ function GoaHud_BetterSpecControls:drawOptionsVariable(varname, x, y, optargs)
 	return nil
 end
 
-function GoaHud_BetterSpecControls:getHookedBind(command)
+function GoaHud_BetterSpectator:getHookedBind(command)
 	for i, k in pairs(self.options.binds) do
 		if (k == command) then
 			if (i == "") then return nil
@@ -106,7 +139,7 @@ function GoaHud_BetterSpecControls:getHookedBind(command)
 	return nil
 end
 
-function GoaHud_BetterSpecControls:command(action, command)
+function GoaHud_BetterSpectator:command(action, command)
 	if (command == "") then return end
 	local freecam = playerIndexCameraAttachedTo == playerIndexLocalPlayer
 
@@ -126,7 +159,7 @@ function GoaHud_BetterSpecControls:command(action, command)
 	end
 end
 
-function GoaHud_BetterSpecControls:draw()
+function GoaHud_BetterSpectator:draw()
 	if (not self.enabled) then return end
 
 	local local_player = getLocalPlayer()
