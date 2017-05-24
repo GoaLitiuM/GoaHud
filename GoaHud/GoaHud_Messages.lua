@@ -218,13 +218,16 @@ function GoaHud_Messages:draw()
 		local warmup_text = ""
 		if (not world.isMatchmakingLobby) then
 			local warmup_format = "Warmup, %d/%d players ready"
+			local player_target = players_ready
 			if (world.matchmakingPlayerCount > 0) then
 				players_required = world.matchmakingPlayerCount
 				warmup_format = "Matchmaking, %d/%d players connected"
+				player_target = players_total
 			elseif (players_total < game_mode.playersRequired) then
 				warmup_format = "Warmup, %d/%d required players joined"
+				player_target = players_total
 			end
-			warmup_text = string.format(warmup_format, players_total, players_required)
+			warmup_text = string.format(warmup_format, player_target, players_required)
 		end
 
 		GoaHud:drawTextHA(0, top_y+40, 24, Color(255,255,255,200), self.options.shadow, warmup_text)
