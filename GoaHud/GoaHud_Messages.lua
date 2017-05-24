@@ -14,6 +14,10 @@ GoaHud_Messages =
 		showSpectatorControls = true,
 		showCountry = false,
 
+		messageFadeInTime = 0.15,
+		messageShowTime = 5.0,
+		messageFadeOutTime = 0.5,
+
 		gameModeShowTime = 10.0,
 		gameModeFadeTime = 1.5,
 
@@ -26,18 +30,12 @@ GoaHud_Messages =
 			shadowStrength = 1,
 		},
 	},
-	optionsDisplayOrder = { "showSpectatorControls", "showCountry", "", "gameModeShowTime", "gameModeFadeTime", "", "shadow" },
+	optionsDisplayOrder = { "showSpectatorControls", "showCountry", "", "messageFadeInTime", "messageShowTime", "messageFadeOutTime", "", "gameModeShowTime", "gameModeFadeTime", "", "shadow" },
 
 	lastReady = {},
 	readyList = { { "nobody", true, 0} },
 
-	titleInfo =
-	{
-		text = "hello world",
-		time = -99999,
-		color = Color(255,255,255,255),
-		length = 10,
-	},
+	gameMessages = {},
 
 	gameModeTimer = 0.0,
 
@@ -53,9 +51,16 @@ function GoaHud_Messages:init()
 end
 
 function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
-	if (varname == "gameModeShowTime") then
-		GoaLabel("Game Mode:", x, y, optargs)
-		return GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y + GOAHUD_SPACING, optargs, "Show Time")
+	if (varname == "messageFadeInTime") then
+		GoaLabel("Game Messages:", x, y, optargs)
+		return GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y + GOAHUD_SPACING, table.merge(optargs, { milliseconds = true, max_value = 1000 }), "Fade In Time")
+	elseif (varname == "messageShowTime") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, table.merge(optargs, { max_value = 10.0 }), "Show Time")
+	elseif (varname == "messageFadeOutTime") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, table.merge(optargs, { milliseconds = true, max_value = 1000 }), "Fade Out Time")
+	elseif (varname == "gameModeShowTime") then
+		GoaLabel("Game Mode Title:", x, y, optargs)
+		return GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y + GOAHUD_SPACING, table.merge(optargs, { max_value = 30.0 }), "Show Time")
 	elseif (varname == "gameModeFadeTime") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fade Time")
 	end
@@ -88,14 +93,18 @@ function GoaHud_Messages:onLog(entry)
 			end
 		end
 
-		self.titleInfo =
+		self:newMessage(
 		{
 			text = text,
-			time = self.timer,
 			color = team_color,
-			length = 4.0,
-		}
+			length = self.options.messageShowTime,
+		})
 	end
+end
+
+function GoaHud_Messages:newMessage(message)
+	message.time = self.timer
+	table.insert(self.gameMessages, message)
 end
 
 function GoaHud_Messages:draw()
@@ -117,21 +126,35 @@ function GoaHud_Messages:draw()
 		if (not shouldShowHUD(optargs_deadspec)) then return end
 	end
 
-	local title_end_time = self.titleInfo.time + self.titleInfo.length + self.options.gameModeFadeTime
-	if (self.timer < title_end_time) then
-		local color = clone(self.titleInfo.color)
-		if (self.options.gameModeFadeTime > 0.0) then
-			color.a = color.a * math.min(self.options.gameModeFadeTime, title_end_time - self.timer) / self.options.gameModeFadeTime
+	local message_font_size = 40
+	local message_start_y = -viewport.height/2 * 0.6 + 175
+	local messages = clone(self.gameMessages)
+	table.reverse(messages)
+
+	GoaHud:drawTextStyle1(message_font_size)
+
+	for i, message in pairs(messages) do
+		local message_start_time = message.time + self.options.messageFadeInTime
+		local message_end_time = message_start_time + message.length + self.options.messageFadeOutTime
+
+		if (self.timer < message_end_time) then
+			local color = clone(message.color)
+			local fade = 1.0
+			if (self.timer < message_start_time) then
+				fade = 1.0 - math.min(self.options.messageFadeInTime, message_start_time - self.timer) / self.options.messageFadeInTime
+			elseif (self.options.messageFadeOutTime > 0.0) then
+				fade = math.min(self.options.messageFadeOutTime, message_end_time - self.timer) / self.options.messageFadeOutTime
+			end
+			color.a = color.a * EaseIn(fade)
+
+			nvgFillColor(color)
+
+			local text_width = nvgTextWidthEmoji(message.text, message_font_size)
+			GoaHud:drawTextWithShadow(-text_width/2, message_start_y - ((i-1) * message_font_size), message.text, self.options.shadow, { alpha = color.a, emoji_size = message_font_size})
 		end
-
-		local middle_y = -viewport.height/2 * 0.6 + 175
-
-		nvgSave()
-		GoaHud:drawTextStyle1(40)
-		local text_width = nvgTextWidth(string.gsub(self.titleInfo.text, "%^[0-9]", ""))
-		nvgRestore()
-
-		GoaHud:drawText1(-text_width/2, middle_y, 40, color, self.options.shadow, self.titleInfo.text, true)
+		if (self.timer >= message_end_time) then
+			table.remove(self.gameMessages, #messages - i)
+		end
 	end
 
 	nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
