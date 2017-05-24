@@ -856,11 +856,9 @@ function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
 	local optargs = optargs or { }
 	local alpha = optargs.alpha or 255
 
-	-- HACK: with transparent text, shadows will shine through the text...
-	-- halven the transparency to make it look better visually
-	if (alpha < 255) then
-		alpha = alpha * 0.5
-	end
+	-- HACK: with transparent text, shadows will shine through the text,
+	-- ease in the alpha to make it look more natural
+	alpha = EaseIn(alpha / 255) * 255
 
 	-- strip color codes from the text, we don't want to color our shadows
 	if (optargs.color_codes or optargs.emoji_size ~= nil) then
