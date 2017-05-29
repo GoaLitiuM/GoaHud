@@ -1167,6 +1167,22 @@ function GoaHud:hideWidgets(widgets_)
 	end
 end
 
+function GoaHud:isWidgetEnabled(widget)
+	for i, w in pairs(self.registeredWidgets) do
+		if (w.name == widget) then
+			if (w.category == GOAHUD_MODULE or w.category == GOAHUD_MODULE_EXPERIMENTAL) then
+				return _G[w.name].enabled
+			end
+		end
+	end
+
+	for i, w in pairs(widgets) do
+		if (w.name == widget) then
+			return w.visible
+		end
+	end
+end
+
 --
 -- convar stuff
 --

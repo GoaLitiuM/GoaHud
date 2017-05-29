@@ -174,10 +174,10 @@ function GoaHud_Messages:draw()
 		local camera_next_command = "cl_camera_next_player"
 		local camera_prev_command = "cl_camera_prev_player"
 		local camera_free_command = "cl_camera_freecam"
-		if (GoaHud_BetterSpecControls ~= nil and GoaHud_BetterSpecControls.enabled) then
-			camera_next_command = GoaHud_BetterSpecControls:getHookedBind(camera_next_command) or camera_next_command
-			camera_prev_command = GoaHud_BetterSpecControls:getHookedBind(camera_prev_command) or camera_prev_command
-			camera_free_command = GoaHud_BetterSpecControls:getHookedBind(camera_free_command) or camera_free_command
+		if (GoaHud:isWidgetEnabled("GoaHud_BetterSpectator")) then
+			camera_next_command = GoaHud_BetterSpectator:getHookedBind(camera_next_command) or camera_next_command
+			camera_prev_command = GoaHud_BetterSpectator:getHookedBind(camera_prev_command) or camera_prev_command
+			camera_free_command = GoaHud_BetterSpectator:getHookedBind(camera_free_command) or camera_free_command
 		end
 
 		local camera_next_key = bindReverseLookup(camera_next_command, "game")
