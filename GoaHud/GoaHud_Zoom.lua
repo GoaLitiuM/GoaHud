@@ -68,7 +68,7 @@ function GoaHud_Zoom:show()
 	consolePerformCommand("ui_set_widget_zindex GoaHud_Zoom 10000")
 end
 
-function GoaHud_Zoom:tick()
+function GoaHud_Zoom:draw()
 	self.rebindTimer = self.rebindTimer + deltaTimeRaw
 	if (self.rebindTimer >= 1.0) then
 		-- bindReverseLookup is very slow so let's not call it too often

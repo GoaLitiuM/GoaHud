@@ -53,7 +53,7 @@ function GoaHud_Updater:drawText(x, y, value)
 	nvgText(x, y, value)
 end
 
-function GoaHud_Updater:tick()
+function GoaHud_Updater:draw()
 	if (replayName ~= "menu" and (replayName == "" and world.mapName ~= '')) then return end
 	if (isInMenu()) then return end
 

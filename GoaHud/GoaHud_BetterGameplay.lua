@@ -28,7 +28,7 @@ function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
 	return nil
 end
 
-function GoaHud_BetterGameplay:tick()
+function GoaHud_BetterGameplay:draw()
 	local respawn = GoaHud:getConsoleVariable("respawn")
 	if (respawn ~= 0) then
 		GoaHud:setConsoleVariable("respawn", 0)

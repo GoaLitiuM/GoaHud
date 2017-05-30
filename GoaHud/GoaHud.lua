@@ -21,9 +21,12 @@ GoaHud:registerWidget("GoaHud_Addon", GOAHUD_UI or GOAHUD_MODULE)
 -- required functions:
 --
 
-function GoaHud_Addon:init() end -- handles loading of options table
-function GoaHud_Addon:draw() end -- for UI
-function GoaHud_Addon:tick() end -- for modules
+-- called during addon initialization, the actual initialize function
+-- is handled by GoaHud so do not define it by yourself and use this function instead
+function GoaHud_Addon:init() end
+
+-- called every frame when the addon is visible or enabled
+function GoaHud_Addon:draw() end
 
 --
 -- optional functions:
@@ -122,6 +125,10 @@ GOAHUD_MODULE_EXPERIMENTAL = 4
 
 GOAHUD_SPACING = 40
 GOAHUD_INDENTATION = 26
+
+local GOAHUD_INVOKE_LOAD = 1
+local GOAHUD_INVOKE_SAVE = 2
+local GOAHUD_INVOKE_SAVELOAD = 3
 
 local GOAHUD_CATEGORY_NAMES =
 {
@@ -974,30 +981,6 @@ function GoaHud:registerWidget(widget_name, category)
 		options_widget.widget = widget_table
 		_G[widget_name .. GoaHudOptionsPostfix] = options_widget
 		registerWidget(widget_name .. GoaHudOptionsPostfix)
-
-		-- modules should not have draw functions, but instead we call
-		-- the tick every frame instead for modules which are enabled
-		local tick_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-			if (not widget_table.enabled) then return end
-
-			local status, err = pcall(widget_table.tick, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-			if (status == false) then
-				onError(widget_name, err)
-				consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
-
-				-- disable future tick calls
-				widget_table.tick = function() end
-			end
-		end
-
-		function widget_table:draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-			if (widget_table.tick ~= nil) then
-				widget_table.draw = tick_wrapper
-			else
-				consolePrint(widget_name .. " does not have tick() function")
-				widget_table.draw = function() end
-			end
-		end
 	end
 
 	if (widget_table.options == nil) then
@@ -1011,6 +994,20 @@ function GoaHud:registerWidget(widget_name, category)
 	function widget_table:saveOptions()
 		GoaHud_SaveOptions(widget_table)
 	end
+	function widget_table:__goahud_pre_draw()
+		-- handle invoked options functions
+		if (widget_table.__goahud_invoke_method ~= 0) then
+			if (widget_table.__goahud_invoke_method == GOAHUD_INVOKE_LOAD) then
+				widget_table.loadOptions()
+			elseif (widget_table.__goahud_invoke_method == GOAHUD_INVOKE_SAVE) then
+				widget_table.saveOptions()
+			elseif (widget_table.__goahud_invoke_method == GOAHUD_INVOKE_SAVELOAD) then
+				widget_table.saveOptions()
+				widget_table.loadOptions()
+			end
+			widget_table.__goahud_invoke_method = 0
+		end
+	end
 
 	-- default drawOptions for widget
 	local variable_count = 0
@@ -1019,6 +1016,10 @@ function GoaHud:registerWidget(widget_name, category)
 	if (variable_count > 0) then
 		function widget_table:drawOptions(x, y, intensity)
 			GoaHud_DrawOptions(widget_table, x, y, intensity)
+
+			-- handle options invocation here in cases where the widget is invisible
+			-- which leads to draw function not being called during the next frame.
+			widget_table:__goahud_pre_draw()
 		end
 	end
 
@@ -1074,11 +1075,33 @@ function GoaHud:registerWidget(widget_name, category)
 
 		widget_table.firstTime = first_time
 
+		-- wrap draw calls
+		local draw_original = widget_table.draw
+		local draw_wrapper
+		if (isModule) then
+			draw_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+				widget_table:__goahud_pre_draw()
+
+				-- modules visibility state can not be changed so
+				-- the draw call must be prevented manually
+				if (not widget_table.enabled) then return end
+
+				return draw_original(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+			end
+		else
+			draw_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+				widget_table:__goahud_pre_draw()
+				return draw_original(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+			end
+		end
+		widget_table.draw = draw_wrapper
+
 		if (widget_table.init ~= nil) then
 			widget_table:init()
 		end
 	end
 
+	widget_table.__goahud_invoke_method = 0
 	widget_table.widgetName = widget_name
 
 	registerWidget(widget_name)
@@ -1346,37 +1369,15 @@ function GoaHud_ResetOptions(self)
 end
 
 function GoaHud:invokeLoadOptions(widget_table)
-	local real_draw = widget_table.draw
-	local draw_load = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-		GoaHud_LoadOptions(widget_table)
-
-		widget_table.draw = real_draw
-		return real_draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-	end
-	widget_table.draw = draw_load
+	widget_table.__goahud_invoke_method = GOAHUD_INVOKE_LOAD
 end
 
 function GoaHud:invokeSaveOptions(widget_table)
-	local real_draw = widget_table.draw
-	local draw_save = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-		GoaHud_SaveOptions(widget_table)
-
-		widget_table.draw = real_draw
-		return real_draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-	end
-	widget_table.draw = draw_save
+	widget_table.__goahud_invoke_method = GOAHUD_INVOKE_SAVE
 end
 
 function GoaHud:invokeSaveLoadOptions(widget_table)
-	local real_draw = widget_table.draw
-	local draw_saveload = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-		GoaHud_SaveOptions(widget_table)
-		GoaHud_LoadOptions(widget_table)
-
-		widget_table.draw = real_draw
-		return real_draw(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-	end
-	widget_table.draw = draw_saveload
+	widget_table.__goahud_invoke_method = GOAHUD_INVOKE_SAVELOAD
 end
 
 function getChangedValues(new, old)
