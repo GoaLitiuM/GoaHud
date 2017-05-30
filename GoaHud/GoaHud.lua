@@ -1061,28 +1061,27 @@ function GoaHud:registerWidget(widget_name, category)
 
 	function widget_table:__goahud_draw_movables()
 		for i, m in pairs(my_movables) do
-			--if (m.movable.visible) then
+			if (m.movable.visible) then
+				nvgSave()
 
-			nvgSave()
+				local x = m.movable.offset.x
+				local y = m.movable.offset.y
+				local anchor = m.movable.anchor
+				local scale = m.movable.scale
 
-			local x = m.movable.offset.x
-			local y = m.movable.offset.y
-			local anchor = m.movable.anchor
-			local scale = m.movable.scale
+				if (anchor.x ~= 0) then x = (sign(anchor.x)*viewport.width/2) + x end
+				if (anchor.y ~= 0) then y = (sign(anchor.y)*viewport.height/2) + y end
 
-			if (anchor.x ~= 0) then x = (sign(anchor.x)*viewport.width/2) + x end
-			if (anchor.y ~= 0) then y = (sign(anchor.y)*viewport.height/2) + y end
+				nvgTranslate(x, y)
 
-			nvgTranslate(x, y)
+				if (scale ~= 1) then
+					nvgScale(scale, scale)
+				end
 
-			if (scale ~= 1) then
-				nvgScale(scale, scale)
+				m.draw(widget_table)
+
+				nvgRestore()
 			end
-
-			m.draw(widget_table)
-
-			nvgRestore()
-			--end
 		end
 	end
 
@@ -1096,7 +1095,7 @@ function GoaHud:registerWidget(widget_name, category)
 	end
 
 	-- hook initialize function
-	function widget_table:initialize()
+	local initialize_func = function()
 		GoaHud_HookErrorFunctions() -- in case one of my widgets happens to be called before others
 
 		if (widget_table.init == nil) then
@@ -1171,10 +1170,31 @@ function GoaHud:registerWidget(widget_name, category)
 				widget_table:__goahud_post_draw()
 			end
 		end
-		widget_table.draw = draw_wrapper
+
+		widget_table.draw = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+			local status, err = pcall(draw_wrapper, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+			if (status == false) then
+				onError(widget_name, err)
+				consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
+
+				-- disable draw calls
+				GoaHud_SetWidgetDraw(widget_table, function() end)
+			end
+		end
 
 		if (widget_table.init ~= nil) then
 			widget_table:init()
+		end
+	end
+
+	widget_table.initialize = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		local status, err = pcall(initialize_func, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		if (status == false) then
+			onError(widget_name, err)
+			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
+
+			-- disable draw calls
+			GoaHud_SetWidgetDraw(widget_table, function() end)
 		end
 	end
 
@@ -1545,106 +1565,114 @@ first_initialize_table.initialize = hooked_first_initialize
 -- Catches most of the error emitted inside initialize and draw functions,
 -- does not catch any errors thrown during initial load >:(.
 
+local function GoaHud_Detour(widget_name, func)
+	local widget = _G[widget_name]
+	assert(widget ~= nil, "detour failed, invalid widget " .. widget_name)
+
+	-- wrap function call with pcall
+	local error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		local status, err = pcall(func(widget), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		if (status == false) then
+			onError(widget_name, err)
+			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
+
+			-- disable draw calls
+			GoaHud_SetWidgetDraw(widget, function() end)
+		end
+	end
+
+	return error_wrapper
+end
+
+local function GoaHud_DetourInitialize(widget_name)
+	local widget = _G[widget_name]
+	assert(widget ~= nil, "detour failed, invalid widget " .. widget_name)
+
+	if (widget.initialize == nil) then return end
+	GoaHud_SetWidgetInitialize(widget, GoaHud_Detour(widget_name, GoaHud_GetWidgetOriginalInitialize))
+end
+
+local function GoaHud_DetourDraw(widget_name)
+	local widget = _G[widget_name]
+	assert(widget ~= nil, "detour failed, invalid widget " .. widget_name)
+
+	if (widget.draw == nil) then return end
+	GoaHud_SetWidgetDraw(widget, GoaHud_Detour(widget_name, GoaHud_GetWidgetOriginalDraw))
+end
+
 local hooked_widgets = {}
 function GoaHud_HookErrorFunctions()
 	for i, k in pairs(widgets) do
-		if (k.name ~= nil and k.name ~= "GoaHud" and hooked_widgets[k.name] == nil) then
-
+		if (k.name ~= nil and string.find(k.name, "GoaHud") ~= 1 and hooked_widgets[k.name] == nil) then
 			local widget_table = _G[k.name]
 
-			-- wrap initialize function with pcall
-			if (widget_table.initialize ~= nil) then
-				local init_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-					local status, err = pcall(GoaHud_GetWidgetOriginalInitialize(widget_table), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-					if (status == false) then
-						onError(k.name, err)
-						consolePrint(string.format("lua (%s): %s", k.name, tostring(err)))
+			GoaHud_DetourInitialize(k.name)
 
-						-- disable draw calls
-						GoaHud_SetWidgetDraw(widget_table, function() end)
-					end
-				end
-
-				GoaHud_SetWidgetInitialize(widget_table, init_error_wrapper)
-			end
-
-			-- wrap draw function with pcall
-			if (widget_table.draw ~= nil) then
+			if (k.name ~= "br_HudEditorPopup") then
+				GoaHud_DetourDraw(k.name)
+			else
 				local draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+					local getMovableName = function(m)
+						return m.widget.widgetName .. "_" .. m.movable.name
+					end
+
+					for i, m in pairs(GoaHud.movables) do
+						local w = clone(m.movable)
+						w.name = getMovableName(m)
+						table.insert(widgets, w)
+						_G[getMovableName(m)] = { __some_random_shit = m.widget.widgetName }
+					end
+
+					local old_consolePerformCommand = consolePerformCommand
+					consolePerformCommand = function(str, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+						local args = {}
+						for i in string.gmatch(str, "%S+") do args[#args + 1] = i end
+
+						local movable = nil
+						local widget = nil
+						for i, m in pairs(GoaHud.movables) do
+							if (getMovableName(m) == args[2]) then
+								movable = m.movable
+								widget = m.widget
+								break
+							end
+						end
+
+						if (movable ~= nil) then
+							if (args[1] == "ui_set_widget_offset") then
+								movable.offset = { x = tonumber(args[3]), y = tonumber(args[4]) }
+							elseif (args[1] == "ui_set_widget_anchor") then
+								movable.anchor = { x = tonumber(args[3]), y = tonumber(args[4]) }
+							elseif (args[1] == "ui_set_widget_scale") then
+								movable.scale = tonumber(args[3])
+							elseif (args[1] == "ui_set_widget_zindex") then
+								--movable.zIndex = tonumber(args[3])
+							elseif (args[1] == "ui_hide_widget") then
+								movable.visible = false
+							elseif (args[1] == "ui_show_widget") then
+								movable.visible = true
+							end
+
+							GoaHud:invokeSaveLoadOptions(widget)
+						else
+							return old_consolePerformCommand(str, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+						end
+					end
+
 					local status, err = pcall(GoaHud_GetWidgetOriginalDraw(widget_table), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+
+					for i, m in pairs(GoaHud.movables) do
+						_G[getMovableName(m)] = nil
+					end
+
+					consolePerformCommand = old_consolePerformCommand
+
 					if (status == false) then
 						onError(k.name, err)
 						consolePrint(string.format("lua (%s): %s", k.name, tostring(err)))
 
 						-- disable future draw calls
 						GoaHud_SetWidgetDraw(widget_table, function() end)
-					end
-				end
-
-				if (k.name == "br_HudEditorPopup") then
-					draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-						local getMovableName = function(m)
-							return m.widget.widgetName .. "_" .. m.movable.name
-						end
-
-						for i, m in pairs(GoaHud.movables) do
-							local w = clone(m.movable)
-							w.name = getMovableName(m)
-							table.insert(widgets, w)
-							_G[getMovableName(m)] = { __some_random_shit = m.widget.widgetName }
-						end
-
-						local old_consolePerformCommand = consolePerformCommand
-						consolePerformCommand = function(str, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-							local args = {}
-							for i in string.gmatch(str, "%S+") do args[#args + 1] = i end
-
-							local movable = nil
-							local widget = nil
-							for i, m in pairs(GoaHud.movables) do
-								if (getMovableName(m) == args[2]) then
-									movable = m.movable
-									widget = m.widget
-									break
-								end
-							end
-
-							if (movable ~= nil) then
-								if (args[1] == "ui_set_widget_offset") then
-									movable.offset = { x = tonumber(args[3]), y = tonumber(args[4]) }
-								elseif (args[1] == "ui_set_widget_anchor") then
-									movable.anchor = { x = tonumber(args[3]), y = tonumber(args[4]) }
-								elseif (args[1] == "ui_set_widget_scale") then
-									movable.scale = tonumber(args[3])
-								elseif (args[1] == "ui_set_widget_zindex") then
-									--movable.zIndex = tonumber(args[3])
-								elseif (args[1] == "ui_hide_widget") then
-									--movable.visible = false
-								elseif (args[1] == "ui_show_widget") then
-									--movable.visible = true
-								end
-
-								GoaHud:invokeSaveLoadOptions(widget)
-							else
-								return old_consolePerformCommand(str, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-							end
-						end
-
-						local status, err = pcall(GoaHud_GetWidgetOriginalDraw(widget_table), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-
-						for i, m in pairs(GoaHud.movables) do
-							_G[getMovableName(m)] = nil
-						end
-
-						consolePerformCommand = old_consolePerformCommand
-
-						if (status == false) then
-							onError(k.name, err)
-							consolePrint(string.format("lua (%s): %s", k.name, tostring(err)))
-
-							-- disable future draw calls
-							GoaHud_SetWidgetDraw(widget_table, function() end)
-						end
 					end
 				end
 
