@@ -1411,9 +1411,10 @@ function GoaHud_LoadOptions(self)
 		self.defaults.enabled = self.enabled
 	end
 
-	self.options = loadUserData()
+	local userData = loadUserData()
+	applyValues(self, "options", "table", userData)
 
-	local first_time = self.options == nil
+	local first_time = userData == nil
 
 	if (self.enabled ~= nil and self.options ~= nil and self.options.enabled ~= nil) then
 		self.enabled = self.options.enabled
