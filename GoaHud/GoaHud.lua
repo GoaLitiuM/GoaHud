@@ -1638,7 +1638,7 @@ function GoaHud_HookErrorFunctions()
 						local w = clone(m.movable)
 						w.name = getMovableName(m)
 						table.insert(widgets, w)
-						_G[getMovableName(m)] = { __some_random_shit = m.widget.widgetName }
+						_G[getMovableName(m)] = {}
 					end
 
 					local old_consolePerformCommand = consolePerformCommand
@@ -1678,10 +1678,6 @@ function GoaHud_HookErrorFunctions()
 					end
 
 					local status, err = pcall(GoaHud_GetWidgetOriginalDraw(widget_table), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-
-					for i, m in pairs(GoaHud.movables) do
-						_G[getMovableName(m)] = nil
-					end
 
 					consolePerformCommand = old_consolePerformCommand
 

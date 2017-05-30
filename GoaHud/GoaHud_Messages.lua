@@ -77,7 +77,7 @@ GoaHud_Messages =
 		"gameModeShowTime", "gameModeFadeTime",
 		"",
 		"shadow",
-		"movableCountdown", "movableGameMode", "movableWarmup", "movableFollowText", "movableControlsText",
+		"movableMessages", "movableCountdown", "movableGameMode", "movableWarmup", "movableFollowText", "movableControlsText",
 	},
 
 	lastReady = {},
