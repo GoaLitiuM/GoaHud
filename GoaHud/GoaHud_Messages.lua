@@ -184,7 +184,7 @@ function GoaHud_Messages:draw()
 
 	self.timer = self.timer + deltaTimeRaw
 
-	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
+	local match_countdown = (world.gameState == GAME_STATE_WARMUP or world.gameState == GAME_STATE_ROUNDPREPARE) and world.timerActive
 
 	-- countdown ticking sound
 	if (match_countdown) then
@@ -247,7 +247,7 @@ function GoaHud_Messages:drawMessages()
 end
 
 function GoaHud_Messages:drawCountdown()
-	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
+	local match_countdown = (world.gameState == GAME_STATE_WARMUP or world.gameState == GAME_STATE_ROUNDPREPARE) and world.timerActive
 
 	if (GoaHud.previewMode) then
 		match_countdown = true
