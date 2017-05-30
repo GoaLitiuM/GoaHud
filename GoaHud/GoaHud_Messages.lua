@@ -84,6 +84,7 @@ GoaHud_Messages =
 	readyList = { { "nobody", true, 0} },
 
 	gameMessages = {},
+	gameMessagesPreview = {},
 
 	gameModeTimer = 0.0,
 
@@ -102,6 +103,21 @@ function GoaHud_Messages:init()
 	self:addMovableElement(self.options.movableWarmup, self.drawWarmupText)
 	self:addMovableElement(self.options.movableFollowText, self.drawFollowText)
 	self:addMovableElement(self.options.movableControlsText, self.drawControls)
+
+	table.insert(self.gameMessagesPreview,
+	{
+		text = "someone returned the flag",
+		color = Color(0, 255, 0, 255),
+		length = 9999999999999,
+		time = self.timer,
+	})
+	table.insert(self.gameMessagesPreview,
+	{
+		text = "somebody captured the flag",
+		color = Color(52, 125, 255, 255),
+		length = 9999999999999,
+		time = self.timer,
+	})
 end
 
 function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
@@ -181,17 +197,28 @@ function GoaHud_Messages:draw()
 end
 
 local function shouldHide()
-	if (world == nil) then return true end
+	local hide = false
+
+	if (GoaHud.previewMode) then hide = false end
 
 	if (GoaHud_Zoom == nil or not GoaHud_Zoom.held) then
-		if (not shouldShowHUD(optargs_deadspec)) then return true end
+		if (not shouldShowHUD(optargs_deadspec)) then hide = true end
 	end
-	return false
+
+	if (world == nil) then hide = true end
+	return hide
 end
 
 function GoaHud_Messages:drawMessages()
 	local message_font_size = 40
-	local messages = clone(self.gameMessages)
+	local messages
+
+	if (GoaHud.previewMode) then
+		messages = clone(self.gameMessagesPreview)
+	else
+		messages = clone(self.gameMessages)
+	end
+
 	table.reverse(messages)
 
 	GoaHud:drawTextStyle1(message_font_size)
@@ -223,6 +250,11 @@ end
 
 function GoaHud_Messages:drawCountdown()
 	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
+
+	if (GoaHud.previewMode) then
+		match_countdown = true
+	end
+
 	if (match_countdown) then
 		local seconds = math.max(1, math.ceil((world.gameTimeLimit - world.gameTime) / 1000))
 		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
@@ -244,6 +276,10 @@ function GoaHud_Messages:drawGameModeText()
 		end
 	end
 
+	if (GoaHud.previewMode) then
+		game_mode_alpha = 1.0
+	end
+
 	if (game_mode_alpha > 0.0) then
 		local game_mode_text
 		if (world.isMatchmakingLobby) then
@@ -263,10 +299,16 @@ end
 function GoaHud_Messages:drawWarmupText()
 	if (shouldHide()) then return end
 
-	local game_mode = gamemodes[world.gameModeIndex]
+	local world = world
+
+	if (GoaHud.previewMode) then
+		world = clone(world)
+		world.gameState = GAME_STATE_WARMUP
+	end
 
 	if (world.gameState ~= GAME_STATE_WARMUP) then return end
 
+	local game_mode = gamemodes[world.gameModeIndex]
 	local players_ready = 0
 	local players_total = 0
 	local players_required = game_mode.playersRequired
@@ -308,6 +350,14 @@ function GoaHud_Messages:drawFollowText()
 	local local_player = getLocalPlayer()
 	local player = getPlayer()
 	local freecam = local_player.index == player.index
+	local playerIndexCameraAttachedTo = playerIndexCameraAttachedTo
+
+	if (GoaHud.previewMode) then
+		local_player = clone(local_player)
+		local_player.state = PLAYER_STATE_SPECTATOR
+		playerIndexCameraAttachedTo = -222
+		freecam = false
+	end
 
 	if (local_player.state == PLAYER_STATE_SPECTATOR or
 		local_player.state == PLAYER_STATE_QUEUED or
@@ -351,6 +401,14 @@ function GoaHud_Messages:drawControls()
 	local local_player = getLocalPlayer()
 	local player = getPlayer()
 	local freecam = local_player.index == player.index
+	local playerIndexCameraAttachedTo = playerIndexCameraAttachedTo
+
+	if (GoaHud.previewMode) then
+		local_player = clone(local_player)
+		local_player.state = PLAYER_STATE_SPECTATOR
+		playerIndexCameraAttachedTo = -222
+		freecam = false
+	end
 
 	if (local_player.state == PLAYER_STATE_SPECTATOR or
 		local_player.state == PLAYER_STATE_QUEUED or
