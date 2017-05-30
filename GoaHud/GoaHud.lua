@@ -281,7 +281,7 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 
 	local reset_pressed, hover = GoaButton("Reset Settings", x + offset_x, y + offset_y, 150, 35, optargs)
 	if (reset_pressed) then
-		self.options = clone(self.defaults)
+		GoaHud_ResetOptions(self)
 	end
 	offset_y = offset_y + GOAHUD_SPACING*1.5
 
@@ -1288,21 +1288,37 @@ end
 -- userData helpers
 --
 
+-- fills missing information in container with default values
 function applyDefaults(container, varname, vartype, defaults)
 	if (defaults == nil) then return end
-
-	local t = type(container[varname])
 
 	if (vartype == "table") then
 		if (container[varname] == nil) then
 			container[varname] = clone(defaults)
 		else
 			for i, v in pairs(defaults) do
-				applyDefaults(container[varname], i, type(defaults[i]), defaults[i])
+				applyDefaults(container[varname], i, type(v), v)
 			end
 		end
-	elseif (t ~= vartype) then
+	elseif (type(container[varname]) ~= vartype) then
 		container[varname] = defaults
+	end
+end
+
+-- updates existing information with new values
+function applyValues(container, varname, vartype, values)
+	if (values == nil) then return end
+
+	if (vartype == "table") then
+		if (container[varname] == nil) then
+			container[varname] = clone(values)
+		else
+			for i, v in pairs(values) do
+				applyValues(container[varname], i, type(v), v)
+			end
+		end
+	elseif (values ~= nil) then
+		container[varname] = values
 	end
 end
 
@@ -1360,12 +1376,7 @@ function GoaHud_SaveOptions(self)
 end
 
 function GoaHud_ResetOptions(self)
-	self.options = clone(self.defaults)
-
-	if (self.enabled ~= nil) then
-		self.enabled = self.options.enabled
-		self.options.enabled = nil
-	end
+	applyValues(self, "options", "table", self.defaults)
 end
 
 function GoaHud:invokeLoadOptions(widget_table)
