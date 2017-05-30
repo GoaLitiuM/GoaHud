@@ -82,8 +82,19 @@ function GoaHud_Health:draw()
 	end
 
 	local player = getPlayer()
-	local health = math.max(0, player.health)
-	local armor = player.armor
+	local health = 100
+	local armor = 100
+	local protection = 1
+	local mega = false
+	local hidden = false
+
+	if (player ~= nil) then
+		health = math.max(0, player.health)
+		armor = player.armor
+		protection = player.armorProtection
+		mega = player.hasMega
+		hidden = player.infoHidden
+	end
 
 	if (self.playerHealth ~= health and health <= 0) then
 		self.deadTimer = self.deadFadeTime
@@ -113,15 +124,15 @@ function GoaHud_Health:draw()
 	end
 
 	local health_str, health_color
-	if (not player.infoHidden) then
+	if (not hidden) then
 		health_str = tostring(self.playerHealth)
-		health_color = clone(GoaHud_Health:getHealthColor(health, armor, player.armorProtection, player.hasMega))
+		health_color = clone(GoaHud_Health:getHealthColor(health, armor, protection, mega))
 	else
 		health_str = "?"
 		health_color = clone(self.options.healthColorNormal)
 	end
 
-	if (health <= 0 and not player.infoHidden) then
+	if (health <= 0 and not hidden) then
 		health_color.a = self.deadTimer / self.deadFadeTime * health_color.a
 	end
 
