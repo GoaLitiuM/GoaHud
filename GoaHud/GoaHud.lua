@@ -1734,11 +1734,7 @@ function clone(t)
     local meta = getmetatable(t)
     local target = {}
     for k, v in pairs(t) do
-        if type(v) == "table" then
-            target[k] = clone(v)
-        else
-            target[k] = v
-        end
+		target[k] = clone(v)
     end
     setmetatable(target, meta)
     return target
