@@ -58,6 +58,8 @@ function GoaHud_TimerBig:draw()
 	local time_raw = 0
 	if (world.gameState == GAME_STATE_WARMUP) then
 		time_raw = (epochTime - self.connectedTime) * 1000
+	elseif (world.gameState == GAME_STATE_ROUNDPREPARE or world.gameState == GAME_STATE_ROUNDCOOLDOWN_SOMEONEWON or world.gameState == GAME_STATE_ROUNDCOOLDOWN_DRAW) then
+		time_raw = 0
 	else
 		time_raw = math.floor(world.gameTime / 1000) * 1000
 	end

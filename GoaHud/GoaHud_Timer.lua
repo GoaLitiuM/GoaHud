@@ -71,16 +71,22 @@ function GoaHud_Timer:draw()
 		countdown = self.options.countdown
 	end
 
-	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
-	local time_raw = 0
-	if (match_countdown) then
-		time_raw = world.gameTimeLimit - (math.floor(world.gameTime / 1000) * 1000)
+	local round_intermission = world.gameState == GAME_STATE_ROUNDPREPARE or world.gameState == GAME_STATE_ROUNDCOOLDOWN_SOMEONEWON or world.gameState == GAME_STATE_ROUNDCOOLDOWN_DRAW
+	local time_raw
+	if (round_intermission) then
+		if (countdown) then
+			time_raw = world.timeLimitRound * 1000
+		else
+			time_raw = 0
+		end
 	elseif (not world.timerActive) then
 		time_raw = 0
-	elseif (countdown) then
-		time_raw = world.gameTimeLimit - world.gameTime
 	else
-		time_raw = math.floor(world.gameTime / 1000) * 1000
+		if (countdown) then
+			time_raw = world.gameTimeLimit - world.gameTime
+		else
+			time_raw = math.floor(world.gameTime / 1000) * 1000
+		end
 	end
 
 	local t = GoaHud:formatTime(time_raw / 1000)
