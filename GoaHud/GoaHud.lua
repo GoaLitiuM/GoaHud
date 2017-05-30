@@ -47,6 +47,11 @@ function GoaHud_Addon:onError(widget_name, err)
 -- return: the required height for rendering, or nil if no custom rendering was provided for given variable
 function GoaHud_Addon:drawOptionsVariable(varname, x, y, optargs)
 
+-- adds movable UI element which can be manipulated with Brandon's Hud Editor
+-- movable: table where movable properties are stored (shares the same structure with widgets)
+-- movable_draw: draw function for movable
+function GoaHud_Addon:addMovableElement(movable, movable_draw)
+
 --]]
 
 require "base/internal/ui/reflexcore"
@@ -70,6 +75,8 @@ GoaHud =
 	errorCount = 0,
 	errorObservers = {},
 	errorObserversCount = 0,
+
+	movables = {},
 
 	colorCodesSupported = false, -- Kimi's EmojiChat
 	previewMode = false, -- Brandon's Hud Editor
@@ -157,6 +164,25 @@ optargs_deadspec =
 	showWhenDead = true,
 	showWhenSpec = true,
 }
+
+local Movable_defaults =
+{
+	name = "Generic Movable",
+	addonName = "GoaHud",
+	offset = { x = 0, y = 0, },
+	anchor = { x = 0, y = 0, },
+	scale = 1.0,
+	zIndex = 0,
+	visible = true,
+	isMenu = false,
+	canPosition = true,
+	canHide = true,
+}
+Movable = {}
+function Movable.new(o)
+	o = table.merge(Movable_defaults, o)
+	return o
+end
 
 local popupActive = false
 local comboBoxes = {}
@@ -994,7 +1020,7 @@ function GoaHud:registerWidget(widget_name, category)
 	function widget_table:saveOptions()
 		GoaHud_SaveOptions(widget_table)
 	end
-	function widget_table:__goahud_pre_draw()
+	function widget_table:__goahud_invoked()
 		-- handle invoked options functions
 		if (widget_table.__goahud_invoke_method ~= 0) then
 			if (widget_table.__goahud_invoke_method == GOAHUD_INVOKE_LOAD) then
@@ -1019,8 +1045,54 @@ function GoaHud:registerWidget(widget_name, category)
 
 			-- handle options invocation here in cases where the widget is invisible
 			-- which leads to draw function not being called during the next frame.
-			widget_table:__goahud_pre_draw()
+			widget_table:__goahud_invoked()
 		end
+	end
+
+	-- movable registration
+	local my_movables = {}
+	function widget_table:addMovableElement(movable, movable_draw)
+
+		local movable_info = { movable = movable, draw = movable_draw, widget = widget_table }
+		if (GoaHud:addMovableElement(movable_info)) then
+			table.insert(my_movables, movable_info)
+		end
+	end
+
+	function widget_table:__goahud_draw_movables()
+		for i, m in pairs(my_movables) do
+			--if (m.movable.visible) then
+
+			nvgSave()
+
+			local x = m.movable.offset.x
+			local y = m.movable.offset.y
+			local anchor = m.movable.anchor
+			local scale = m.movable.scale
+
+			if (anchor.x ~= 0) then x = (sign(anchor.x)*viewport.width/2) + x end
+			if (anchor.y ~= 0) then y = (sign(anchor.y)*viewport.height/2) + y end
+
+			nvgTranslate(x, y)
+
+			if (scale ~= 1) then
+				nvgScale(scale, scale)
+			end
+
+			m.draw(widget_table)
+
+			nvgRestore()
+			--end
+		end
+	end
+
+	-- pre and post draw functions
+	function widget_table:__goahud_pre_draw()
+		nvgSave()
+	end
+	function widget_table:__goahud_post_draw()
+		nvgRestore()
+		widget_table:__goahud_draw_movables()
 	end
 
 	-- hook initialize function
@@ -1080,18 +1152,23 @@ function GoaHud:registerWidget(widget_name, category)
 		local draw_wrapper
 		if (isModule) then
 			draw_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-				widget_table:__goahud_pre_draw()
+				widget_table:__goahud_invoked()
 
 				-- modules visibility state can not be changed so
 				-- the draw call must be prevented manually
 				if (not widget_table.enabled) then return end
 
-				return draw_original(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+				widget_table:__goahud_pre_draw()
+				draw_original(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+				widget_table:__goahud_post_draw()
 			end
 		else
 			draw_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+				widget_table:__goahud_invoked()
+
 				widget_table:__goahud_pre_draw()
-				return draw_original(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+				draw_original(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+				widget_table:__goahud_post_draw()
 			end
 		end
 		widget_table.draw = draw_wrapper
@@ -1412,6 +1489,28 @@ function getChangedValues(new, old)
 	return changed
 end
 
+function GoaHud:addMovableElement(movable_info)
+	for i, m in pairs(self.movables) do
+		if (m.movable == movable_info.movable or m.movable.name == movable_info.movable.name) then
+			consolePrint("GoaHud: movable already exists: " .. movable_info.movable.name)
+			return false
+		end
+	end
+
+	if (movable_info.movable.name == nil or string.len(movable_info.movable.name) == 0) then
+		consolePrint("GoaHud: invalid name for movable: " .. tostring(movable_info.movable.name))
+		return false
+	end
+
+	if (movable_info.draw == nil) then
+		consolePrint("GoaHud: movable lacks draw function: " .. tostring(movable_info.movable.name))
+		return false
+	end
+
+	table.insert(self.movables, movable_info)
+	return true
+end
+
 --
 -- error helpers
 --
@@ -1478,6 +1577,73 @@ function GoaHud_HookErrorFunctions()
 
 						-- disable future draw calls
 						GoaHud_SetWidgetDraw(widget_table, function() end)
+					end
+				end
+
+				if (k.name == "br_HudEditorPopup") then
+					draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+						local getMovableName = function(m)
+							return m.widget.widgetName .. "_" .. m.movable.name
+						end
+
+						for i, m in pairs(GoaHud.movables) do
+							local w = clone(m.movable)
+							w.name = getMovableName(m)
+							table.insert(widgets, w)
+							_G[getMovableName(m)] = { __some_random_shit = m.widget.widgetName }
+						end
+
+						local old_consolePerformCommand = consolePerformCommand
+						consolePerformCommand = function(str, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+							local args = {}
+							for i in string.gmatch(str, "%S+") do args[#args + 1] = i end
+
+							local movable = nil
+							local widget = nil
+							for i, m in pairs(GoaHud.movables) do
+								if (getMovableName(m) == args[2]) then
+									movable = m.movable
+									widget = m.widget
+									break
+								end
+							end
+
+							if (movable ~= nil) then
+								if (args[1] == "ui_set_widget_offset") then
+									movable.offset = { x = tonumber(args[3]), y = tonumber(args[4]) }
+								elseif (args[1] == "ui_set_widget_anchor") then
+									movable.anchor = { x = tonumber(args[3]), y = tonumber(args[4]) }
+								elseif (args[1] == "ui_set_widget_scale") then
+									movable.scale = tonumber(args[3])
+								elseif (args[1] == "ui_set_widget_zindex") then
+									--movable.zIndex = tonumber(args[3])
+								elseif (args[1] == "ui_hide_widget") then
+									--movable.visible = false
+								elseif (args[1] == "ui_show_widget") then
+									--movable.visible = true
+								end
+
+								GoaHud:invokeSaveLoadOptions(widget)
+							else
+								return old_consolePerformCommand(str, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+							end
+						end
+
+						local status, err = pcall(GoaHud_GetWidgetOriginalDraw(widget_table), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+
+						for i, m in pairs(GoaHud.movables) do
+							_G[getMovableName(m)] = nil
+						end
+
+						consolePerformCommand = old_consolePerformCommand
+
+						if (status == false) then
+							onError(k.name, err)
+							consolePrint(string.format("lua (%s): %s", k.name, tostring(err)))
+
+							-- disable future draw calls
+							GoaHud_SetWidgetDraw(widget_table, function() end)
+						end
 					end
 				end
 
