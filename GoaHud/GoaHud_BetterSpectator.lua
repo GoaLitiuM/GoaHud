@@ -27,7 +27,7 @@ function GoaHud_BetterSpecControls:initialize()
 		saveUserData({})
 
 		-- save the new widget options
-		GoaHud:invokeSaveLoadOptions(_G["GoaHud_BetterSpectator"])
+		GoaHud:invokeSaveLoadOptions(GoaHud_BetterSpectator)
 	end
 end
 
@@ -57,6 +57,8 @@ GoaHud_BetterSpectator =
 	lastPlayer = -1,
 	lastFollowedPlayer = -1,
 	lastButtons = {},
+
+	deathTimer = 0,
 };
 GoaHud:registerWidget("GoaHud_BetterSpectator", GOAHUD_MODULE)
 
@@ -159,34 +161,45 @@ function GoaHud_BetterSpectator:command(action, command)
 	end
 end
 
-function GoaHud_BetterSpectator:draw()
-	if (not self.enabled) then return end
+function GoaHud_BetterSpectator:onLog(entry)
+	local local_player = getLocalPlayer()
+	if (local_player == nil) then return end
 
+	if (entry.type == LOG_TYPE_DEATHMESSAGE and entry.deathKilled == local_player.name) then
+		self.deathTimer = 0.75
+	end
+end
+
+function GoaHud_BetterSpectator:draw()
 	local local_player = getLocalPlayer()
 	if (local_player == nil) then return end
 
 	local buttons = local_player.buttons
 
-	if (buttons.attack and self.lastButtons.attack ~= buttons.attack) then
-		self:command("attack", self.options.binds["attack"])
-	end
-	if (buttons.jump and self.lastButtons.jump ~= buttons.jump) then
-		self:command("jump", self.options.binds["jump"])
-	end
-	if (buttons.crouch and self.lastButtons.crouch ~= buttons.crouch) then
-		self:command("crouch", self.options.binds["crouch"])
-	end
-	if (buttons.forward and self.lastButtons.forward ~= buttons.forward) then
-		self:command("forward", self.options.binds["forward"])
-	end
-	if (buttons.back and self.lastButtons.back ~= buttons.back) then
-		self:command("back", self.options.binds["back"])
-	end
-	if (buttons.left and self.lastButtons.left ~= buttons.left) then
-		self:command("left", self.options.binds["left"])
-	end
-	if (buttons.right and self.lastButtons.right ~= buttons.right) then
-		self:command("right", self.options.binds["right"])
+	if (self.deathTimer <= 0.0) then
+		if (buttons.attack and self.lastButtons.attack ~= buttons.attack) then
+			self:command("attack", self.options.binds["attack"])
+		end
+		if (buttons.jump and self.lastButtons.jump ~= buttons.jump) then
+			self:command("jump", self.options.binds["jump"])
+		end
+		if (buttons.crouch and self.lastButtons.crouch ~= buttons.crouch) then
+			self:command("crouch", self.options.binds["crouch"])
+		end
+		if (buttons.forward and self.lastButtons.forward ~= buttons.forward) then
+			self:command("forward", self.options.binds["forward"])
+		end
+		if (buttons.back and self.lastButtons.back ~= buttons.back) then
+			self:command("back", self.options.binds["back"])
+		end
+		if (buttons.left and self.lastButtons.left ~= buttons.left) then
+			self:command("left", self.options.binds["left"])
+		end
+		if (buttons.right and self.lastButtons.right ~= buttons.right) then
+			self:command("right", self.options.binds["right"])
+		end
+	else
+		self.deathTimer = self.deathTimer - deltaTimeRaw
 	end
 
 	self.lastButtons = buttons
