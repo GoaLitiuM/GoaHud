@@ -201,11 +201,9 @@ local function shouldHide()
 
 	if (GoaHud.previewMode) then hide = false end
 
-	if (GoaHud_Zoom == nil or not GoaHud_Zoom.held) then
-		if (not shouldShowHUD(optargs_deadspec)) then hide = true end
-	end
-
+	if (not shouldShowHUD(optargs_deadspec)) then hide = true end
 	if (world == nil) then hide = true end
+
 	return hide
 end
 
