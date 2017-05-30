@@ -194,6 +194,14 @@ local function onError(widget, err)
 	GoaHud.errorCount = GoaHud.errorCount + 1
 end
 
+local function isModule(widget)
+	return widget.category == GOAHUD_MODULE or widget.category == GOAHUD_MODULE_EXPERIMENTAL
+end
+
+local function isExperimental(widget)
+	return widget.category == GOAHUD_UI_EXPERIMENTAL or widget.category == GOAHUD_MODULE_EXPERIMENTAL
+end
+
 officialWidgets = { "AmmoCount", "ArmorBar", "AwardNotifier", "Buffs", "ChatLog", "Crosshairs", "FragNotifier", "GameMessages", "GoalList", "HealthBar", "KillFeed", "LagNotifier", "LowAmmo", "Matchmaking", "Message", "MovementKeys", "PickupNotifier", "PickupTimers", "PlayerSpeed", "PlayerStatus", "RaceMessages", "RaceRecords", "RaceTimer", "Scoreboard", "ScreenEffects", "TeamHud", "Timer", "TrueHealth", "Vote", "WeaponName", "WeaponRack" }
 replacedOfficialWidgets = { "AmmoCount", "ArmorBar", "Crosshairs", "FragNotifier", "GameMessages", "HealthBar", "LowAmmo", "PlayerStatus", "RaceTimer", "Timer", "WeaponRack", "TrueHealth" }
 
@@ -215,7 +223,7 @@ function GoaHud:drawOptions(x, y, intensity)
 	if (quick_enable_pressed) then
 		local non_experimental_widgets = {}
 		for i, w in pairs(self.registeredWidgets) do
-			if (w.category == GOAHUD_UI or w.category == GOAHUD_MODULE) then
+			if (not isExperimental(widget)) then
 				table.insert(non_experimental_widgets, w)
 			end
 		end
@@ -262,7 +270,7 @@ function GoaHud:drawWidgetList(x, y, category, optargs)
 			local enabled, old_enabled
 			optargs.optionalId = optargs.optionalId + 1
 
-			if (category == GOAHUD_MODULE or category == GOAHUD_MODULE_EXPERIMENTAL) then
+			if (isModule(w)) then
 				enabled = widget_table.enabled
 				old_enabled = enabled
 
@@ -987,8 +995,8 @@ function GoaHud:registerWidget(widget_name, category)
 		end
 	end
 
-	local isExperimental = category == GOAHUD_UI_EXPERIMENTAL or category == GOAHUD_MODULE_EXPERIMENTAL
-	local isModule = category == GOAHUD_MODULE or category == GOAHUD_MODULE_EXPERIMENTAL
+	local isExperimental = isExperimental(widget_info)
+	local isModule = isModule(widget_info)
 
 	-- define missing variables
 
@@ -1241,7 +1249,7 @@ function GoaHud:restoreWidgets(widgets_)
 		end
 	else
 		for i, widget in pairs(widgets_) do
-			if (widget.category == GOAHUD_MODULE or widget.category == GOAHUD_MODULE_EXPERIMENTAL) then
+			if (isModule(widget)) then
 				local widget_table = _G[widget.name]
 				if (widget_table.enabled == false) then
 					widget_table.enabled = true
@@ -1269,7 +1277,7 @@ function GoaHud:hideWidgets(widgets_)
 		end
 	else
 		for i, widget in pairs(widgets_) do
-			if (widget.category == GOAHUD_MODULE or widget.category == GOAHUD_MODULE_EXPERIMENTAL) then
+			if (isModule(widget)) then
 				local widget_table = _G[widget.name]
 				if (widget_table.enabled == true) then
 					widget_table.enabled = false
@@ -1290,7 +1298,7 @@ end
 function GoaHud:isWidgetEnabled(widget)
 	for i, w in pairs(self.registeredWidgets) do
 		if (w.name == widget) then
-			if (w.category == GOAHUD_MODULE or w.category == GOAHUD_MODULE_EXPERIMENTAL) then
+			if (isModule(w)) then
 				return _G[w.name].enabled
 			end
 		end
