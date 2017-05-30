@@ -1624,6 +1624,16 @@ function GoaHud_HookErrorFunctions()
 						return m.widget.widgetName .. "_" .. m.movable.name
 					end
 
+
+					for i, w in pairs(widgets) do
+						for j, r in pairs(GoaHud.registeredWidgets) do
+							if (w.name == r.name and isModule(r)) then
+								widgets[i] = nil
+								break
+							end
+						end
+					end
+
 					for i, m in pairs(GoaHud.movables) do
 						local w = clone(m.movable)
 						w.name = getMovableName(m)
