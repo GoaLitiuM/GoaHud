@@ -29,8 +29,56 @@ GoaHud_Messages =
 			shadowColor = Color(0,0,0,255),
 			shadowStrength = 1,
 		},
+
+		movableMessages = Movable.new
+		{
+			name = "Messages",
+			offset = { x = 0, y = -150 },
+			anchor = { x = 0, y = 0 },
+		},
+		movableCountdown = Movable.new
+		{
+			name = "Countdown",
+			offset = { x = 0, y = -260 },
+			anchor = { x = 0, y = 0 },
+		},
+		movableGameMode = Movable.new
+		{
+			name = "GameMode",
+			offset = { x = 0, y = 120 },
+			anchor = { x = 0, y = -1 },
+		},
+		movableWarmup = Movable.new
+		{
+			name = "Warmup",
+			offset = { x = 0, y = 150 },
+			anchor = { x = 0, y = -1 },
+		},
+		movableFollowText = Movable.new
+		{
+			name = "FollowText",
+			offset = { x = 0, y = -270 },
+			anchor = { x = 0, y = 1 },
+		},
+		movableControlsText = Movable.new
+		{
+			name = "Controls",
+			offset = { x = 0, y = -240 },
+			anchor = { x = 0, y = 1 },
+		},
+
 	},
-	optionsDisplayOrder = { "showSpectatorControls", "showCountry", "", "messageFadeInTime", "messageShowTime", "messageFadeOutTime", "", "gameModeShowTime", "gameModeFadeTime", "", "shadow" },
+	optionsDisplayOrder =
+	{
+		"showSpectatorControls", "showCountry",
+		"",
+		"messageFadeInTime", "messageShowTime", "messageFadeOutTime",
+		"",
+		"gameModeShowTime", "gameModeFadeTime",
+		"",
+		"shadow",
+		"movableCountdown", "movableGameMode", "movableWarmup", "movableFollowText", "movableControlsText",
+	},
 
 	lastReady = {},
 	readyList = { { "nobody", true, 0} },
@@ -48,6 +96,12 @@ GoaHud_Messages =
 GoaHud:registerWidget("GoaHud_Messages")
 
 function GoaHud_Messages:init()
+	self:addMovableElement(self.options.movableMessages, self.drawMessages)
+	self:addMovableElement(self.options.movableCountdown, self.drawCountdown)
+	self:addMovableElement(self.options.movableGameMode, self.drawGameModeText)
+	self:addMovableElement(self.options.movableWarmup, self.drawWarmupText)
+	self:addMovableElement(self.options.movableFollowText, self.drawFollowText)
+	self:addMovableElement(self.options.movableControlsText, self.drawControls)
 end
 
 function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
@@ -63,6 +117,8 @@ function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 		return GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y + GOAHUD_SPACING, table.merge(optargs, { max_value = 30.0 }), "Show Time")
 	elseif (varname == "gameModeFadeTime") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fade Time")
+	elseif (string.find(varname, "movable") ~= nil) then
+		return 0
 	end
 	return nil
 end
@@ -109,6 +165,7 @@ end
 
 function GoaHud_Messages:draw()
 	if (world == nil) then return end
+
 	self.timer = self.timer + deltaTimeRaw
 
 	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
@@ -121,13 +178,19 @@ function GoaHud_Messages:draw()
 			playSound("internal/ui/match/match_countdown_tick")
 		end
 	end
+end
+
+local function shouldHide()
+	if (world == nil) then return true end
 
 	if (GoaHud_Zoom == nil or not GoaHud_Zoom.held) then
-		if (not shouldShowHUD(optargs_deadspec)) then return end
+		if (not shouldShowHUD(optargs_deadspec)) then return true end
 	end
+	return false
+end
 
+function GoaHud_Messages:drawMessages()
 	local message_font_size = 40
-	local message_start_y = -viewport.height/2 * 0.6 + 175
 	local messages = clone(self.gameMessages)
 	table.reverse(messages)
 
@@ -150,63 +213,37 @@ function GoaHud_Messages:draw()
 			nvgFillColor(color)
 
 			local text_width = nvgTextWidthEmoji(message.text, message_font_size)
-			GoaHud:drawTextWithShadow(-text_width/2, message_start_y - ((i-1) * message_font_size), message.text, self.options.shadow, { alpha = color.a, emoji_size = message_font_size})
+			GoaHud:drawTextWithShadow(-text_width/2, 0 - ((i-1) * message_font_size), message.text, self.options.shadow, { alpha = color.a, emoji_size = message_font_size})
 		end
 		if (self.timer >= message_end_time) then
 			table.remove(self.gameMessages, #messages - i)
 		end
 	end
+end
 
-	nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
-
+function GoaHud_Messages:drawCountdown()
+	local match_countdown = world.gameState == GAME_STATE_WARMUP and world.timerActive
 	if (match_countdown) then
 		local seconds = math.max(1, math.ceil((world.gameTimeLimit - world.gameTime) / 1000))
-
-		local alpha = 1.0
-		local pos = -viewport.height/2 * 0.6 + 100
-		GoaHud:drawText1(0, pos, 120, Color(255,255,255,alpha * 255), self.options.shadow, tostring(seconds))
+		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
+		GoaHud:drawText1(0, 0, 120, Color(255,255,255,255), self.options.shadow, tostring(seconds))
 	end
+end
+
+function GoaHud_Messages:drawGameModeText()
+	if (shouldHide()) then return end
+
+	self.gameModeTimer = self.gameModeTimer + deltaTimeRaw
 
 	local game_mode = gamemodes[world.gameModeIndex]
-
-	self.bindTimer = self.bindTimer + deltaTimeRaw
-	if (self.bindTimer >= 1.0) then
-		local camera_next_command = "cl_camera_next_player"
-		local camera_prev_command = "cl_camera_prev_player"
-		local camera_free_command = "cl_camera_freecam"
-		if (GoaHud:isWidgetEnabled("GoaHud_BetterSpectator")) then
-			camera_next_command = GoaHud_BetterSpectator:getHookedBind(camera_next_command) or camera_next_command
-			camera_prev_command = GoaHud_BetterSpectator:getHookedBind(camera_prev_command) or camera_prev_command
-			camera_free_command = GoaHud_BetterSpectator:getHookedBind(camera_free_command) or camera_free_command
-		end
-
-		local camera_next_key = bindReverseLookup(camera_next_command, "game")
-		local camera_prev_key = bindReverseLookup(camera_prev_command, "game")
-		local camera_free_key = bindReverseLookup(camera_free_command, "game")
-
-		self.followText = string.format("[%s] Next, [%s] Previous, [%s] Freecam", string.upper(camera_next_key), string.upper(camera_prev_key), string.upper(camera_free_key))
-
-		if (camera_next_command == "+attack") then
-			self.followTextFreecam = string.format("[%s] or [%s] Follow Players", string.upper(camera_next_key), string.upper(camera_free_key))
-		elseif (camera_prev_command == "+attack") then
-			self.followTextFreecam = string.format("[%s] or [%s] Follow Players", string.upper(camera_prev_key), string.upper(camera_free_key))
-		else
-			self.followTextFreecam = string.format("[%s] Follow Players", string.upper(camera_free_key))
-		end
-
-		self.bindTimer = 0.0
-	end
-
-	-- game mode information
-	self.gameModeTimer = self.gameModeTimer + deltaTimeRaw
 	local game_mode_alpha = 1.0
+
 	if (world.gameState ~= GAME_STATE_WARMUP) then
 		if (self.gameModeTimer >= self.options.gameModeShowTime) then
 			game_mode_alpha = math.max(0.0, 1.0 - ((self.gameModeTimer - self.options.gameModeShowTime) / self.options.gameModeFadeTime))
 		end
 	end
 
-	local top_y = -viewport.height/2 * 0.95 + 100
 	if (game_mode_alpha > 0.0) then
 		local game_mode_text
 		if (world.isMatchmakingLobby) then
@@ -218,55 +255,67 @@ function GoaHud_Messages:draw()
 			end
 		end
 
-		GoaHud:drawText1(0, top_y, 40, Color(255,255,255,game_mode_alpha * 255), self.options.shadow, game_mode_text, true)
+		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
+		GoaHud:drawText1(0, 0, 40, Color(255,255,255,game_mode_alpha * 255), self.options.shadow, game_mode_text, true)
 	end
+end
 
-	if (world.gameState == GAME_STATE_WARMUP) then
-		local players_ready = 0
-		local players_total = 0
-		local players_required = game_mode.playersRequired
-		for i, p in ipairs(players) do
-			if (p.connected and p.state == PLAYER_STATE_INGAME) then
-				if (p.ready) then players_ready = players_ready + 1 end
-				players_total = players_total + 1
+function GoaHud_Messages:drawWarmupText()
+	if (shouldHide()) then return end
 
-				if (self.lastReady[i] ~= p.ready) then
-					self:onPlayerReady(p, p.ready)
-					self.lastReady[i] = p.ready
-				end
+	local game_mode = gamemodes[world.gameModeIndex]
+
+	if (world.gameState ~= GAME_STATE_WARMUP) then return end
+
+	local players_ready = 0
+	local players_total = 0
+	local players_required = game_mode.playersRequired
+	for i, p in ipairs(players) do
+		if (p.connected and p.state == PLAYER_STATE_INGAME) then
+			if (p.ready) then players_ready = players_ready + 1 end
+			players_total = players_total + 1
+
+			if (self.lastReady[i] ~= p.ready) then
+				self:onPlayerReady(p, p.ready)
+				self.lastReady[i] = p.ready
 			end
 		end
-
-		-- warmup info
-		local warmup_text = ""
-		if (not world.isMatchmakingLobby) then
-			local warmup_format = "Warmup, %d/%d players ready"
-			local player_target = players_ready
-			if (world.matchmakingPlayerCount > 0) then
-				players_required = world.matchmakingPlayerCount
-				warmup_format = "Matchmaking, %d/%d players connected"
-				player_target = players_total
-			elseif (players_total < game_mode.playersRequired) then
-				warmup_format = "Warmup, %d/%d required players joined"
-				player_target = players_total
-			end
-			warmup_text = string.format(warmup_format, player_target, players_required)
-		end
-
-		GoaHud:drawTextHA(0, top_y+40, 24, Color(255,255,255,200), self.options.shadow, warmup_text)
 	end
 
-	-- spectator text
+	-- warmup info
+	local warmup_text = ""
+	if (not world.isMatchmakingLobby) then
+		local warmup_format = "Warmup, %d/%d players ready"
+		local player_target = players_ready
+		if (world.matchmakingPlayerCount > 0) then
+			players_required = world.matchmakingPlayerCount
+			warmup_format = "Matchmaking, %d/%d players connected"
+			player_target = players_total
+		elseif (players_total < game_mode.playersRequired) then
+			warmup_format = "Warmup, %d/%d required players joined"
+			player_target = players_total
+		end
+		warmup_text = string.format(warmup_format, player_target, players_required)
+	end
+
+	nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
+	GoaHud:drawTextHA(0, 0, 24, Color(255,255,255,200), self.options.shadow, warmup_text)
+end
+
+function GoaHud_Messages:drawFollowText()
+	if (shouldHide()) then return end
+
 	local local_player = getLocalPlayer()
 	local player = getPlayer()
+	local freecam = local_player.index == player.index
+
 	if (local_player.state == PLAYER_STATE_SPECTATOR or
 		local_player.state == PLAYER_STATE_QUEUED or
 		playerIndexCameraAttachedTo ~= playerIndexLocalPlayer) then
 
-		local bottom_y = viewport.height/2 * 0.7 - 100
-		local freecam = local_player.index == player.index
-		local name_font_size = 40
+		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
 
+		local name_font_size = 40
 		if (not freecam) then
 			local offset_x = 0
 			if (self.options.showCountry and isValidCountry(player.country)) then
@@ -282,20 +331,62 @@ function GoaHud_Messages:draw()
 
 				if (self.options.shadow.shadowEnabled) then
 					nvgFillColor(Color(0,0,0,255))
-					nvgSvg(flag_svg, -name_width/2 - flag_offset/2 + self.options.shadow.shadowOffset, bottom_y - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
+					nvgSvg(flag_svg, -name_width/2 - flag_offset/2 + self.options.shadow.shadowOffset, 0 - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
 				end
 
 				nvgFillColor(Color(255,255,255,255))
-				nvgSvg(flag_svg, -name_width/2 - flag_offset/2, bottom_y - flag_size/2, flag_size)
+				nvgSvg(flag_svg, -name_width/2 - flag_offset/2, 0 - flag_size/2, flag_size)
 
 				nvgRestore()
 			end
 
-			GoaHud:drawText1(offset_x, bottom_y, name_font_size, Color(255,255,255,255), self.options.shadow, player.name, true)
+			GoaHud:drawText1(offset_x, 0, name_font_size, Color(255,255,255,255), self.options.shadow, player.name, true)
+		end
+	end
+end
+
+function GoaHud_Messages:drawControls()
+	if (shouldHide()) then return end
+
+	local local_player = getLocalPlayer()
+	local player = getPlayer()
+	local freecam = local_player.index == player.index
+
+	if (local_player.state == PLAYER_STATE_SPECTATOR or
+		local_player.state == PLAYER_STATE_QUEUED or
+		playerIndexCameraAttachedTo ~= playerIndexLocalPlayer) then
+
+		self.bindTimer = self.bindTimer + deltaTimeRaw
+		if (self.bindTimer >= 1.0) then
+			local camera_next_command = "cl_camera_next_player"
+			local camera_prev_command = "cl_camera_prev_player"
+			local camera_free_command = "cl_camera_freecam"
+			if (GoaHud:isWidgetEnabled("GoaHud_BetterSpectator")) then
+				camera_next_command = GoaHud_BetterSpectator:getHookedBind(camera_next_command) or camera_next_command
+				camera_prev_command = GoaHud_BetterSpectator:getHookedBind(camera_prev_command) or camera_prev_command
+				camera_free_command = GoaHud_BetterSpectator:getHookedBind(camera_free_command) or camera_free_command
+			end
+
+			local camera_next_key = bindReverseLookup(camera_next_command, "game")
+			local camera_prev_key = bindReverseLookup(camera_prev_command, "game")
+			local camera_free_key = bindReverseLookup(camera_free_command, "game")
+
+			self.followText = string.format("[%s] Next, [%s] Previous, [%s] Freecam", string.upper(camera_next_key), string.upper(camera_prev_key), string.upper(camera_free_key))
+
+			if (camera_next_command == "+attack") then
+				self.followTextFreecam = string.format("[%s] or [%s] Follow Players", string.upper(camera_next_key), string.upper(camera_free_key))
+			elseif (camera_prev_command == "+attack") then
+				self.followTextFreecam = string.format("[%s] or [%s] Follow Players", string.upper(camera_prev_key), string.upper(camera_free_key))
+			else
+				self.followTextFreecam = string.format("[%s] Follow Players", string.upper(camera_free_key))
+			end
+
+			self.bindTimer = 0.0
 		end
 
 		if (self.options.showSpectatorControls) then
-			local spec_y = round(bottom_y)+25
+			nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
+
 			local follow_text
 			if (not freecam) then
 				follow_text = self.followText
@@ -306,10 +397,10 @@ function GoaHud_Messages:draw()
 			nvgFontSize(24)
 			nvgFontFace(GOAHUD_FONT4)
 
-			GoaHud:drawTextShadow(0, spec_y, follow_text, self.options.shadow)
+			GoaHud:drawTextShadow(0, 0, follow_text, self.options.shadow)
 
 			nvgFillColor(Color(255,255,255,196))
-			nvgText(0, spec_y, follow_text)
+			nvgText(0, 0, follow_text)
 		end
 	end
 end
