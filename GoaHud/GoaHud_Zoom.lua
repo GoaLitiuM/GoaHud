@@ -77,10 +77,12 @@ function GoaHud_Zoom:draw()
 	end
 
 	-- reset zoom when menu is opened
-	if (isInMenu() and self.held) then
+	if ((isInMenu() and self.held) or world.gameState == GAME_STATE_GAMEOVER) then
 		self.lastZoomState = -1
 		GoaHud:setConsoleVariable("zoom", 0)
-		consolePerformCommand("-showscores")
+		if (world.gameState ~= GAME_STATE_GAMEOVER) then
+			consolePerformCommand("-showscores")
+		end
 		self:onZoomReleased()
 	end
 
