@@ -77,6 +77,7 @@ GoaHud_Crosshair =
 
 	lastHealth = 0,
 	lastDamageDone = 0,
+	lastDamageDoneIon = 0,
 	lastDamageTime = -99,
 	lastDamageTakenTime = -99,
 
@@ -351,8 +352,17 @@ function GoaHud_Crosshair:draw()
 	if (player.stats.totalDamageDone > self.lastDamageDone) then
 		self.lastDamageTime = epochTimeMs
 	end
+
+	local ion_damage = player.weaponStats[7].damageDone
+	-- when hitting with ion cannon, adjust the time so the hit indicator stays a little bit longer
+	-- on screem to prevent fluctuations in transparency when most of the damage ticks are hitting
+	if (ion_damage > self.lastDamageDoneIon) then
+		self.lastDamageTime = epochTimeMs + weaponDefinitions[7].reloadTime * 2 / 1000
+	end
+
 	self.lastHealth = player.health
 	self.lastDamageDone = player.stats.totalDamageDone
+	self.lastDamageDoneIon = ion_damage
 
 	if (player.isDead) then return end
 
@@ -418,9 +428,9 @@ function GoaHud_Crosshair:drawCrosshair(weapon, x, y, intensity)
 
 			local mode_intensity = 1.0
 			if (shape.mode == CROSSHAIR_MODE_DAMAGE) then
-				mode_intensity = 1.0 - math.min((epochTimeMs - self.lastDamageTime) / shape.modeFadeTime, 1.0)
+				mode_intensity = 1.0 - math.max(math.min((epochTimeMs - self.lastDamageTime) / shape.modeFadeTime, 1.0), 0.0)
 			elseif (shape.mode == CROSSHAIR_MODE_DAMAGETAKEN) then
-				mode_intensity = 1.0 - math.min((epochTimeMs - self.lastDamageTakenTime) / shape.modeFadeTime, 1.0)
+				mode_intensity = 1.0 - math.max(math.min((epochTimeMs - self.lastDamageTakenTime) / shape.modeFadeTime, 1.0), 0.0)
 			end
 
 			final_color.a = final_color.a * EaseIn(mode_intensity)
