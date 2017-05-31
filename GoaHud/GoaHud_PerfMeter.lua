@@ -21,6 +21,8 @@ GoaHud_PerfMeter =
 	-- configurable
 	options =
 	{
+		showAlways = false,
+
 		shadow =
 		{
 			shadowEnabled = true,
@@ -38,6 +40,8 @@ function GoaHud_PerfMeter:init()
 end
 
 function GoaHud_PerfMeter:draw()
+	if (not self.options.showAlways and consoleGetVariable("cl_show_hud") == 0) then return end
+
 	-- collect the current deltaTime value
 	self.deltaTimes[self.deltaIndex] = deltaTimeRaw * 1000.0
 	self.deltaIndex = self.deltaIndex + 1
