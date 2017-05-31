@@ -168,6 +168,13 @@ function GoaHud_Crosshair:init()
 		end
 		c.dot = nil
 	end
+
+	local player = getPlayer()
+	if (player ~= nil) then
+		self.lastHealth = player.health
+		self.lastDamageDone = player.stats.totalDamageDone
+		self.lastDamageDoneIon = player.weaponStats[7].damageDone
+	end
 end
 
 local comboBoxData = {}
