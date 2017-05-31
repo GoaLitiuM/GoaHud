@@ -80,6 +80,7 @@ GoaHud_Crosshair =
 	lastDamageDoneIon = 0,
 	lastDamageTime = -99,
 	lastDamageTakenTime = -99,
+	lastPlayer = -1,
 
 	switching = false,
 
@@ -174,6 +175,7 @@ function GoaHud_Crosshair:init()
 		self.lastHealth = player.health
 		self.lastDamageDone = player.stats.totalDamageDone
 		self.lastDamageDoneIon = player.weaponStats[7].damageDone
+		self.lastPlayer = player.index
 	end
 end
 
@@ -348,28 +350,31 @@ function GoaHud_Crosshair:draw()
 	if (local_player.state == PLAYER_STATE_SPECTATOR and playerIndexLocalPlayer == playerIndexCameraAttachedTo) then return end
 
 	local weapon = player.weaponIndexweaponChangingTo
+	local ion_damage = player.weaponStats[7].damageDone
 
 	-- can not track current weapon while spectating enemy team
 	if (player.infoHidden) then weapon = self.lastWeapon end
 
-	-- keep track of when player has taken or dealt damage last time
-	if (player.health < self.lastHealth) then
-		self.lastDamageTakenTime = epochTimeMs
-	end
-	if (player.stats.totalDamageDone > self.lastDamageDone) then
-		self.lastDamageTime = epochTimeMs
-	end
+	if (player.index == self.lastPlayer) then
+		-- keep track of when player has taken or dealt damage last time
+		if (player.health < self.lastHealth) then
+			self.lastDamageTakenTime = epochTimeMs
+		end
+		if (player.stats.totalDamageDone > self.lastDamageDone) then
+			self.lastDamageTime = epochTimeMs
+		end
 
-	local ion_damage = player.weaponStats[7].damageDone
-	-- when hitting with ion cannon, adjust the time so the hit indicator stays a little bit longer
-	-- on screem to prevent fluctuations in transparency when most of the damage ticks are hitting
-	if (ion_damage > self.lastDamageDoneIon) then
-		self.lastDamageTime = epochTimeMs + weaponDefinitions[7].reloadTime * 2 / 1000
+		-- when hitting with ion cannon, adjust the time so the hit indicator stays a little bit longer
+		-- on screem to prevent fluctuations in transparency when most of the damage ticks are hitting
+		if (ion_damage > self.lastDamageDoneIon) then
+			self.lastDamageTime = epochTimeMs + weaponDefinitions[7].reloadTime * 2 / 1000
+		end
 	end
 
 	self.lastHealth = player.health
 	self.lastDamageDone = player.stats.totalDamageDone
 	self.lastDamageDoneIon = ion_damage
+	self.lastPlayer = player.index
 
 	if (player.isDead) then return end
 
