@@ -5,6 +5,17 @@
 
 require "base/internal/ui/reflexcore"
 
+local CROSSHAIR_MODE_NORMAL = 1
+local CROSSHAIR_MODE_DAMAGE = 2
+local CROSSHAIR_MODE_DAMAGETAKEN = 3
+
+local CROSSHAIR_MODE_NAMES =
+{
+	"Normal",
+	"Damage",
+	"Damage Taken",
+}
+
 local CrosshairShape =
 {
 	enabled = true,
@@ -15,6 +26,10 @@ local CrosshairShape =
 	size = 13,
 	strokeWidth = 4,
 	holeSize = 9,
+	dot = false,
+
+	mode = CROSSHAIR_MODE_NORMAL,
+	modeFadeTime = 0.5,
 
 	useShadow = true,
 	shadowColor = Color(0, 0, 0, 64),
@@ -35,8 +50,7 @@ end
 local Crosshair =
 {
 	useDefault = true,
-	shapes = initCrosshairShapes(2),
-	dot = false,
+	shapes = initCrosshairShapes(4),
 }
 
 function initCrosshairs(count)
@@ -61,6 +75,11 @@ GoaHud_Crosshair =
 	oldWeapon = -1,
 	state = AMMO_STATE_SWITCHING,
 
+	lastHealth = 0,
+	lastDamageDone = 0,
+	lastDamageTime = -99,
+	lastDamageTakenTime = -99,
+
 	switching = false,
 
 	crosshairs = {},
@@ -75,7 +94,7 @@ GoaHud_Crosshair =
 		crosshairDefault = initCrosshairs(1),
 		weaponCrosshairs = initCrosshairs(10),
 	},
-	optionsDisplayOrder = { "smoothTransitions", "showTime", "fadeTime", "preview", "crosshairDefault", "weaponCrosshairs", "preview", },
+	optionsDisplayOrder = { "smoothTransitions", "showTime", "fadeTime", "preview", "crosshairDefault", "weaponCrosshairs", },
 };
 GoaHud:registerWidget("GoaHud_Crosshair");
 
@@ -129,6 +148,24 @@ function GoaHud_Crosshair:init()
 			c.shadowAlpha = nil
 			c.shadowSize = nil
 		end
+
+		if (c.dot ~= nil) then
+			for j, s in pairs(c.shapes) do
+				if (s.type == 3) then -- cross
+					s.dot = c.dot
+				end
+			end
+			c.dot = nil
+		end
+	end
+
+	if (self.options.crosshairDefault.dot ~= nil) then
+		for j, s in pairs(self.options.crosshairDefault.shapes) do
+			if (s.type == 3) then -- cross
+				s.dot = self.options.crosshairDefault.dot
+			end
+		end
+		c.dot = nil
 	end
 end
 
@@ -160,13 +197,19 @@ function GoaHud_Crosshair:drawOptionsVariable(varname, x, y, optargs)
 	return nil
 end
 
+local comboBoxDataShapes1 = {}
+local values_changed_last = -1
 function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 	local offset_y = 0
 	local offset_x = GOAHUD_INDENTATION
 	local optargs = clone(optargs)
 
+	local values_changed = 0
+	if (weapon.useDefault) then values_changed = values_changed + 1 end
+
 	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "useDefault", x + offset_x + 215, y + offset_y,
 		table.merge(optargs, { enabled = weapon ~= self.options.crosshairDefault }))
+	optargs.optionalId = optargs.optionalId + 1
 
 	optargs.enabled = true
 	if (weapon.useDefault and weapon ~= self.options.crosshairDefault) then
@@ -175,41 +218,99 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 
 	for i, shape in ipairs(weapon.shapes) do
 		local shape_enabled = shape.enabled and optargs.enabled
+
+		if (shape.enabled) then values_changed = values_changed + 1 end
+		if (shape.dot) then values_changed = values_changed + 1 end
+		if (shape.useShadow) then values_changed = values_changed + 1 end
+		if (shape.shadowSize) then values_changed = values_changed + 1 end
+		values_changed = values_changed + shape.type
+		values_changed = values_changed + shape.size
+		values_changed = values_changed + shape.strokeWidth
+		values_changed = values_changed + shape.modeFadeTime
+		values_changed = values_changed + shape.holeSize
+
 		if (i == 1) then
 			GoaLabel("Shape " .. i .. ":", x + offset_x, y + offset_y, table.merge(optargs, { enabled = shape_enabled }))
 		else
 			shape.enabled = GoaRowCheckbox(x + offset_x, y + offset_y, WIDGET_PROPERTIES_COL_INDENT, "Enable Shape " .. i, shape.enabled, optargs)
+			optargs.optionalId = optargs.optionalId + 1
 		end
-		offset_x = offset_x + GOAHUD_INDENTATION
+
 		offset_y = offset_y + GOAHUD_SPACING
+		if (shape_enabled) then
+			offset_x = offset_x + GOAHUD_INDENTATION
 
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "type", x + offset_x, y + offset_y,
-			table.merge(optargs, { enabled = shape_enabled, tick = 1, min_value = 1, max_value = self.crosshairCount, show_editbox = false }))
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "color", x + offset_x, y + offset_y,
-			table.merge(optargs, { enabled = shape_enabled }))
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "size", x + offset_x, y + offset_y,
-			table.merge(optargs, { enabled = shape_enabled, tick = 1, min_value = 1, max_value = 100 }))
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "strokeWidth", x + offset_x, y + offset_y,
-			table.merge(optargs, { enabled = shape_enabled and (shape.type >= 2 and shape.type <= 3), tick = 1, min_value = 1, max_value = 50 }))
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "holeSize", x + offset_x, y + offset_y,
-			table.merge(optargs, { enabled = shape_enabled and shape.type == 3, tick = 1, min_value = 0, max_value = 20}))
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "useShadow", x + offset_x, y + offset_y,
-			table.merge(optargs, { enabled = shape_enabled }))
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "shadowColor", x + offset_x + 40, y + offset_y,
-			table.merge(optargs, { enabled = shape_enabled and weapon.useShadow }), "Color")
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "shadowSize", x + offset_x + 40, y + offset_y,
-			table.merge(optargs, { enabled = shape_enabled and weapon.useShadow, tick = 1, min_value = 1, max_value = 50 }), "Size")
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "type", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = shape_enabled, tick = 1, min_value = 1, max_value = self.crosshairCount, show_editbox = false }))
+			optargs.optionalId = optargs.optionalId + 1
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "color", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = shape_enabled }))
+			optargs.optionalId = optargs.optionalId + 1
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "size", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = shape_enabled, tick = 1, min_value = 1, max_value = 100 }))
+			optargs.optionalId = optargs.optionalId + 1
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "strokeWidth", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = shape_enabled and (shape.type >= 2 and shape.type <= 3), tick = 1, min_value = 1, max_value = 50 }))
+			optargs.optionalId = optargs.optionalId + 1
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "holeSize", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = shape_enabled and shape.type == 3, tick = 1, min_value = 0, max_value = 20}))
+			optargs.optionalId = optargs.optionalId + 1
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "dot", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = shape_enabled and shape.type == 3 }))
+			optargs.optionalId = optargs.optionalId + 1
 
-		offset_x = offset_x - GOAHUD_INDENTATION
+			if (comboBoxDataShapes1[i] == nil) then comboBoxDataShapes1[i] = {} end
+
+			local mode_enabled = shape_enabled and i > 1
+			shape.mode = GoaComboBoxIndex(CROSSHAIR_MODE_NAMES, shape.mode, x + offset_x, y + offset_y, 250, comboBoxDataShapes1[i],
+				table.merge(optargs, { enabled = mode_enabled }))
+			optargs.optionalId = optargs.optionalId + 1
+			offset_y = offset_y + GOAHUD_SPACING
+
+			offset_x = offset_x + GOAHUD_INDENTATION
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "modeFadeTime", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = mode_enabled and shape.mode ~= CROSSHAIR_MODE_NORMAL, milliseconds = true, min_value = 1, max_value = 1000 }), "Fade Time")
+			optargs.optionalId = optargs.optionalId + 1
+			offset_x = offset_x - GOAHUD_INDENTATION
+
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "useShadow", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = shape_enabled }))
+			optargs.optionalId = optargs.optionalId + 1
+
+			offset_x = offset_x + GOAHUD_INDENTATION
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "shadowColor", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = shape_enabled and weapon.useShadow }), "Color")
+			optargs.optionalId = optargs.optionalId + 1
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "shadowSize", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = shape_enabled and weapon.useShadow, tick = 1, min_value = 1, max_value = 50 }), "Size")
+			optargs.optionalId = optargs.optionalId + 1
+			offset_x = offset_x - GOAHUD_INDENTATION
+
+			offset_x = offset_x - GOAHUD_INDENTATION
+
+			if (shape_enabled) then
+				offset_y = offset_y + 25
+				self:drawPreview(x + offset_x, y + offset_y, 1.0)
+				offset_y = offset_y + 100
+			end
+		end
 	end
 
-	offset_y = offset_y + GoaHud_DrawOptionsVariable(weapon, "dot", x + offset_x, y + offset_y,
-		optargs)
+	if (values_changed ~= values_changed_last) then
+		self.lastDamageTakenTime = epochTimeMs
+		self.lastDamageTime = epochTimeMs
+	end
+	values_changed_last = values_changed
 
 	return offset_y
 end
 
 function GoaHud_Crosshair:drawPreview(x, y, intensity)
+	if (self.lastDamageTakenTime < epochTime) then
+		self.lastDamageTakenTime = epochTime
+		self.lastDamageTime = epochTime
+	end
+
 	nvgSave()
 
 	nvgSave()
@@ -230,12 +331,29 @@ end
 function GoaHud_Crosshair:draw()
 	if (not shouldShowHUD(optargs_deadspec)) then return end
 
+	local player = getPlayer()
 	local local_player = getLocalPlayer()
+
+	if (player == nil or local_player == nil) then return end
+
+	-- hide in free camera mode
 	if (local_player.state == PLAYER_STATE_SPECTATOR and playerIndexLocalPlayer == playerIndexCameraAttachedTo) then return end
 
-	local player = getPlayer()
 	local weapon = player.weaponIndexweaponChangingTo
+
+	-- can not track current weapon while spectating enemy team
 	if (player.infoHidden) then weapon = self.lastWeapon end
+
+	-- keep track of when player has taken or dealt damage last time
+	if (player.health < self.lastHealth) then
+		self.lastDamageTakenTime = epochTimeMs
+	end
+	if (player.stats.totalDamageDone > self.lastDamageDone) then
+		self.lastDamageTime = epochTimeMs
+	end
+	self.lastHealth = player.health
+	self.lastDamageDone = player.stats.totalDamageDone
+
 	if (player.isDead) then return end
 
 	local weapon_show = weapon
@@ -297,6 +415,15 @@ function GoaHud_Crosshair:drawCrosshair(weapon, x, y, intensity)
 			local shape_scale = 1.0 - intensity
 			local final_color = clone(shape.color)
 			final_color.a = final_color.a * (1.0 - intensity)
+
+			local mode_intensity = 1.0
+			if (shape.mode == CROSSHAIR_MODE_DAMAGE) then
+				mode_intensity = 1.0 - math.min((epochTimeMs - self.lastDamageTime) / shape.modeFadeTime, 1.0)
+			elseif (shape.mode == CROSSHAIR_MODE_DAMAGETAKEN) then
+				mode_intensity = 1.0 - math.min((epochTimeMs - self.lastDamageTakenTime) / shape.modeFadeTime, 1.0)
+			end
+
+			final_color.a = final_color.a * EaseIn(mode_intensity)
 
 			nvgSave()
 
