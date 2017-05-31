@@ -444,8 +444,11 @@ end
 function Crosshair:drawDot(shape, color)
 	-- shadow
 	if (shape.useShadow) then
+		local shadow_color = clone(shape.shadowColor)
+		shadow_color.a = (shadow_color.a / 255) * (color.a / 255) * 255
+
 		nvgBeginPath()
-		nvgFillRadialGradient(0, 0, shape.size/2, shape.size+shape.shadowSize, shape.shadowColor, Color(0,0,0,0))
+		nvgFillRadialGradient(0, 0, shape.size/2, shape.size+shape.shadowSize, shadow_color, Color(0,0,0,0))
 		nvgCircle(0, 0, shape.size+shape.shadowSize)
 		nvgFill()
 	end
@@ -459,15 +462,18 @@ end
 
 function Crosshair:drawCircle(shape, color)
 	if (shape.useShadow) then
+		local shadow_color = clone(shape.shadowColor)
+		shadow_color.a = (shadow_color.a / 255) * (color.a / 255) * 255
+
 		-- inner shadow
 		nvgBeginPath()
-		nvgFillRadialGradient(0, 0, shape.size-shape.shadowSize, shape.size*2, Color(0,0,0,0), shape.shadowColor)
+		nvgFillRadialGradient(0, 0, shape.size-shape.shadowSize, shape.size*2, Color(0,0,0,0), shadow_color)
 		nvgCircle(0, 0, shape.size)
 		nvgFill()
 
 		-- outer shadow
 		nvgBeginPath()
-		nvgFillRadialGradient(0, 0, shape.size/2, shape.size+shape.shadowSize, shape.shadowColor, Color(0,0,0,0))
+		nvgFillRadialGradient(0, 0, shape.size/2, shape.size+shape.shadowSize, shadow_color, Color(0,0,0,0))
 		nvgCircle(0, 0, shape.size+shape.shadowSize)
 		nvgCircle(0, 0, shape.size)
 		nvgPathWinding(NVG_HOLE)
@@ -483,7 +489,7 @@ function Crosshair:drawCircle(shape, color)
 end
 
 function Crosshair:drawCross(shape, color)
-	local draw_dot = self.dot and shape.holeSize > 0
+	local draw_dot = shape.dot and shape.holeSize > 0
 	local function drawCrossLines(line_color, length, stroke_width, hole_size)
 		nvgSave()
 		local half_offset = 0
@@ -542,6 +548,9 @@ function Crosshair:drawCross(shape, color)
 	end
 
 	if (shape.useShadow) then
+		local shadow_color = clone(shape.shadowColor)
+		shadow_color.a = (shadow_color.a / 255) * (color.a / 255) * 255
+
 		local shadow_length = shape.size + shape.shadowSize
 		local shadow_stroke = shape.strokeWidth + shape.shadowSize*2
 		local shadow_hole = nil
@@ -551,7 +560,7 @@ function Crosshair:drawCross(shape, color)
 			shadow_length = shadow_length + shape.shadowSize
 		end
 
-		drawCrossLines(shape.shadowColor, shadow_length, shadow_stroke, shadow_hole)
+		drawCrossLines(shadow_color, shadow_length, shadow_stroke, shadow_hole)
 	end
 
 	local hole_size = nil
@@ -561,7 +570,10 @@ end
 
 function Crosshair:drawSvg(svg, shape, color)
 	if (shape.useShadow) then
-		nvgFillColor(shape.shadowColor)
+		local shadow_color = clone(shape.shadowColor)
+		shadow_color.a = (shadow_color.a / 255) * (color.a / 255) * 255
+
+		nvgFillColor(shadow_color)
 		nvgSvg(svg, 0, 0, shape.size, shape.shadowSize)
 	end
 
