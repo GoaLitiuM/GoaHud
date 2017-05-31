@@ -89,7 +89,7 @@ GoaHud_Crosshair =
 	{
 		smoothTransitions = true,
 		showTime = 0.0,
-		fadeTime = 0.050,
+		fadeTime = 0.0425,
 
 		crosshairDefault = initCrosshairs(1),
 		weaponCrosshairs = initCrosshairs(10),
