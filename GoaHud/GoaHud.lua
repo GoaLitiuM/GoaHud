@@ -636,6 +636,8 @@ end
 function GoaComboBoxIndex(options, index, x, y, w, comboBoxData, optargs)
 	assert(type(w) == "number", "invalid width for GoaComboBoxIndex")
 	assert(w > 0, "invalid width for GoaComboBoxIndex")
+	assert(options ~= nil, "invalid options for GoaComboBoxIndex")
+	assert(options[index] ~= nil, "invalid options index for GoaComboBoxIndex")
 
 	local selection = options[index]
 	selection = GoaComboBox(options, selection, x, y, w, comboBoxData, optargs)
