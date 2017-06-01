@@ -249,13 +249,14 @@ end
 function GoaHud_Messages:drawCountdown()
 	if (shouldHide()) then return end
 	local match_countdown = (world.gameState == GAME_STATE_WARMUP or world.gameState == GAME_STATE_ROUNDPREPARE) and world.timerActive
+	local seconds = math.max(1, math.ceil((world.gameTimeLimit - world.gameTime) / 1000))
 
 	if (GoaHud.previewMode) then
 		match_countdown = true
+		seconds = (seconds % 10) + 1
 	end
 
 	if (match_countdown) then
-		local seconds = math.max(1, math.ceil((world.gameTimeLimit - world.gameTime) / 1000))
 		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
 		GoaHud:drawText1(0, 0, 120, Color(255,255,255,255), self.options.shadow, tostring(seconds))
 	end
