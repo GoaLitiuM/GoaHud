@@ -32,8 +32,7 @@ GoaHud_Zoom =
 GoaHud:registerWidget("GoaHud_Zoom", GOAHUD_MODULE);
 
 function GoaHud_Zoom:init()
-	GoaHud:createConsoleVariable("zoom", "int", 0)
-	GoaHud:setConsoleVariable("zoom", 0)
+	GoaHud:createConsoleVariable("zoom", "int", 0, false)
 end
 
 function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
