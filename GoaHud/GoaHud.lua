@@ -67,14 +67,8 @@ GoaHud =
 	dirtyConvars = false,
 	convarQueue = {},
 
-	logObservers = {},
-	logObserversCount = 0,
-	logLastId = -1,
-
 	errors = {},
-	errorCount = 0,
 	errorObservers = {},
-	errorObserversCount = 0,
 
 	movables = {},
 
@@ -191,7 +185,6 @@ local comboBoxesCount = 0
 
 local function onError(widget, err)
 	table.insert(GoaHud.errors, { widget = widget, err = err })
-	GoaHud.errorCount = GoaHud.errorCount + 1
 end
 
 local function isModule(widget)
@@ -746,57 +739,16 @@ end
 function GoaHud:drawReal()
 	self:updateEpochTimeMs()
 
-	-- handle errors, notify error observers
-	if (self.errorCount > 0) then
-		local new_errors = {}
-		if (self.errorObserversCount > 0) then
+	-- propagate caught errors for listeners
+	if (#self.errors > 0) then
+		if (#self.errorObservers > 0) then
 			for i, e in pairs(self.errors) do
-				-- calls widget.onError
 				for j, o in pairs(self.errorObservers) do
-					local status, err = pcall(o.func, o.t, e.widget, e.err)
-					if (status == false) then
-						consolePrint("onError: " .. err)
-						table.insert(new_errors, {o.name, "onError:" .. err})
-
-						-- remove observer on error
-						self.errorObservers[j] = nil
-						self.errorObserversCount = self.errorObserversCount - 1
-					end
+					table.insert(o.t.__goahud_errors, e)
 				end
 			end
 		end
-
 		self.errors = {}
-		self.errorCount = 0
-
-		for i, e in pairs(new_errors) do
-			onError(e[1], e[2])
-		end
-	end
-
-	-- notify log observers of new log entries
-	if (self.logObserversCount > 0) then
-		if (log[1] ~= nil and log[1].id ~= self.logLastId) then
-			for i=#log, 1, -1 do
-				local entry = log[i]
-				if (entry.id > self.logLastId) then
-					self.logLastId = entry.id
-
-					-- calls widget.onLog
-					for j, o in pairs(self.logObservers) do
-						local status, err = pcall(o.func, o.t, entry)
-						if (status == false) then
-							onError(o.name, "onLog: " .. err)
-							consolePrint("onLog: " .. err)
-
-							-- remove observer on error
-							self.logObservers[j] = nil
-							self.logObserversCount = self.logObserversCount - 1
-						end
-					end
-				end
-			end
-		end
 	end
 
 	if (br_HudEditorPopup ~= nil) then self.previewMode = not br_HudEditorPopup.show_menu end
@@ -1002,7 +954,6 @@ function GoaHud:registerWidget(widget_name, category)
 	local isModule = isModule(widget_info)
 
 	-- define missing variables
-
 	if (isModule) then
 		widget_table.canHide = false
 		widget_table.isMenu = true
@@ -1023,6 +974,8 @@ function GoaHud:registerWidget(widget_name, category)
 	if (widget_table.options == nil) then
 		widget_table.options = {}
 	end
+
+	widget_table.__goahud_errors = {}
 
 	-- define load and saving function for widget.options
 	function widget_table:loadOptions()
@@ -1099,6 +1052,8 @@ function GoaHud:registerWidget(widget_name, category)
 	-- pre and post draw functions
 	function widget_table:__goahud_pre_draw()
 		nvgSave()
+		widget_table:__goahud_update_errors()
+		widget_table:__goahud_update_logs()
 	end
 	function widget_table:__goahud_post_draw()
 		nvgRestore()
@@ -1186,11 +1141,44 @@ function GoaHud:registerWidget(widget_name, category)
 			local status, err = pcall(draw_wrapper, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 			if (status == false) then
 				onError(widget_name, err)
-				consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
+				consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)), true)
 
 				-- disable draw calls
 				GoaHud_SetWidgetDraw(widget_table, function() end)
 			end
+		end
+
+		-- setup notifications for new log entries
+		if (widget_table.onLog ~= nil) then
+			local log_last_id = -1
+			widget_table.__goahud_update_logs = function()
+
+				if (log[1] ~= nil and log[1].id ~= log_last_id) then
+					for i=#log, 1, -1 do
+						local entry = log[i]
+						if (entry.id > log_last_id) then
+							log_last_id = entry.id
+							widget_table:onLog(entry)
+						end
+					end
+				end
+			end
+		else
+			widget_table.__goahud_update_logs = function() end
+		end
+
+		-- setup error notifications
+		if (widget_table.onError ~= nil) then
+			widget_table.__goahud_update_errors = function()
+				if (#widget_table.__goahud_errors > 0) then
+					for i, e in pairs(widget_table.__goahud_errors) do
+						widget_table:onError(e.widget, e.err)
+					end
+					widget_table.__goahud_errors = {}
+				end
+			end
+		else
+			widget_table.__goahud_update_errors = function() end
 		end
 
 		if (widget_table.init ~= nil) then
@@ -1202,7 +1190,7 @@ function GoaHud:registerWidget(widget_name, category)
 		local status, err = pcall(initialize_func, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 		if (status == false) then
 			onError(widget_name, err)
-			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
+			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)), true)
 
 			-- disable draw calls
 			GoaHud_SetWidgetDraw(widget_table, function() end)
@@ -1220,16 +1208,9 @@ function GoaHud:postInitWidgets()
 	for i, w in pairs(self.registeredWidgets) do
 		widget_table = _G[w.name]
 
-		-- register callback functions for new log messages
-		if (widget_table.onLog ~= nil) then
-			table.insert(self.logObservers, { t = widget_table, name = w.name, func = widget_table.onLog })
-			self.logObserversCount = self.logObserversCount + 1
-		end
-
 		-- register callback functions for addon errors
 		if (widget_table.onError ~= nil) then
 			table.insert(self.errorObservers, { t = widget_table, name = w.name, func = widget_table.onError })
-			self.errorObserversCount = self.errorObserversCount + 1
 		end
 	end
 end
@@ -1563,7 +1544,7 @@ function hooked_first_initialize(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 		if (status == false) then
 			local widget_name = getWidgetName(first_initialize_table)
 			onError(widget_name, err)
-			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
+			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)), true)
 
 			-- disable draw calls in case error occured in the detoured initialize function
 			GoaHud_SetWidgetDraw(first_initialize_table, function() end)
@@ -1585,7 +1566,7 @@ local function GoaHud_Detour(widget_name, func)
 		local status, err = pcall(func(widget), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 		if (status == false) then
 			onError(widget_name, err)
-			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)))
+			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)), true)
 
 			-- disable draw calls
 			GoaHud_SetWidgetDraw(widget, function() end)
@@ -1686,7 +1667,7 @@ function GoaHud_HookErrorFunctions()
 
 					if (status == false) then
 						onError(k.name, err)
-						consolePrint(string.format("lua (%s): %s", k.name, tostring(err)))
+						consolePrint(string.format("lua (%s): %s", k.name, tostring(err)), true)
 
 						-- disable future draw calls
 						GoaHud_SetWidgetDraw(widget_table, function() end)
