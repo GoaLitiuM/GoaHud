@@ -5,6 +5,19 @@
 
 require "base/internal/ui/reflexcore"
 
+-- toggle between modes: ui_goahud_spectator_mode -1 or "toggle"
+local SPECTATE_MODE_DISABLED = 1		-- ui_goahud_spectator_mode 0 or "disabled"
+local SPECTATE_MODE_FOLLOW_KILLER = 2	-- ui_goahud_spectator_mode 1 or "killer"
+local SPECTATE_MODE_FOLLOW_LEADER = 3	-- ui_goahud_spectator_mode 2 or "leader"
+local SPECTATE_MODE_LAST = SPECTATE_MODE_FOLLOW_LEADER
+
+local SPECTATE_MODE_NAMES =
+{
+	"Disabled",
+	"Follow Killer",
+	"Follow Leader",
+}
+
 -- dummy widget
 GoaHud_BetterSpecControls =
 {
@@ -24,7 +37,7 @@ function GoaHud_BetterSpecControls:initialize()
 		GoaHud_BetterSpectator.options.binds = clone(options.binds)
 		if (options.enabled ~= nil) then GoaHud_BetterSpectator.enabled = options.enabled end
 
-		saveUserData({})
+		saveUserData(nil)
 
 		-- save the new widget options
 		GoaHud:invokeSaveLoadOptions(GoaHud_BetterSpectator)
@@ -52,11 +65,22 @@ GoaHud_BetterSpectator =
 			["left"] = "",
 			["right"] = "",
 		},
+
+		autoSpectateMode = SPECTATE_MODE_DISABLED,
+	},
+
+	optionsDisplayOrder =
+	{
+		"binds",
+		"",
+		"autoSpectateMode"
 	},
 
 	lastPlayer = -1,
 	lastFollowedPlayer = -1,
 	lastButtons = {},
+
+	nextPlayer = -1,
 
 	deathTimer = 0,
 };
@@ -70,61 +94,80 @@ function GoaHud_BetterSpectator:init()
 		-- register the old widget as a dummy so we can migrate settings from it to this new widget
 		registerWidget("GoaHud_BetterSpecControls")
 	end
+
+	GoaHud:createConsoleVariable("spectator_mode", "int", 0, true)
 end
 
 local comboBoxData1 = {}
 local comboBoxData2 = {}
 local comboBoxData3 = {}
+local comboBoxData4 = {}
 function GoaHud_BetterSpectator:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "binds") then
-		local offset_y = 150
+		local offset_x = 0
+		local offset_y = 0
 
-		local camera_next = ""
-		local camera_prev = ""
-		local camera_free = ""
+		local camera_next_bind = ""
+		local camera_prev_bind = ""
+		local camera_free_bind = ""
 
 		for i, bind in pairs(self.options.binds) do
-			if (bind == "cl_camera_next_player") then camera_next = i
-			elseif (bind == "cl_camera_prev_player") then camera_prev = i
-			elseif (bind == "cl_camera_freecam") then camera_free = i end
+			if (bind == "cl_camera_next_player") then camera_next_bind = i
+			elseif (bind == "cl_camera_prev_player") then camera_prev_bind = i
+			elseif (bind == "cl_camera_freecam") then camera_free_bind = i end
 		end
+
+		local camera_next = 1
+		local camera_prev = 1
+		local camera_free = 1
 
 		-- bindable values to human readable names
 		for i, value in pairs(BIND_VALUES) do
-			if (camera_next == value) then camera_next = BIND_NAMES[i] end
-			if (camera_prev == value) then camera_prev = BIND_NAMES[i] end
-			if (camera_free == value) then camera_free = BIND_NAMES[i] end
+			if (camera_next_bind == value) then camera_next = i end
+			if (camera_prev_bind == value) then camera_prev = i end
+			if (camera_free_bind == value) then camera_free = i end
 		end
 
-		ui2Label("Hooks actions to camera controls", x, y, optargs)
+		GoaLabel("Hook actions to camera controls:", x + offset_x, y + offset_y, optargs)
+		offset_x = offset_x + GOAHUD_INDENTATION
+		offset_y = offset_y + GOAHUD_SPACING
 
-		ui2Label("Free Camera: ", x, y + offset_y, optargs)
-		camera_free = ui2ComboBox(BIND_NAMES, camera_free, x + 175, y + offset_y, 150, comboBoxData1, optargs)
-		offset_y = offset_y - 50
+		GoaLabel("Camera Next: ", x + offset_x, y + offset_y, optargs)
+		camera_next = GoaComboBoxIndex(BIND_NAMES, camera_next, x + offset_x + 175, y + offset_y, 150, comboBoxData3, optargs)
+		optargs.optionalId = optargs.optionalId + 1
+		offset_y = offset_y + GOAHUD_SPACING
 
-		ui2Label("Camera Previous: ", x, y + offset_y, optargs)
-		camera_prev = ui2ComboBox(BIND_NAMES, camera_prev, x + 175, y + offset_y, 150, comboBoxData2, optargs)
-		offset_y = offset_y - 50
+		GoaLabel("Camera Previous: ", x + offset_x, y + offset_y, optargs)
+		camera_prev = GoaComboBoxIndex(BIND_NAMES, camera_prev, x + offset_x + 175, y + offset_y, 150, comboBoxData2, optargs)
+		optargs.optionalId = optargs.optionalId + 1
+		offset_y = offset_y + GOAHUD_SPACING
 
-		ui2Label("Camera Next: ", x, y + offset_y, optargs)
-		camera_next = ui2ComboBox(BIND_NAMES, camera_next, x + 175, y + offset_y, 150, comboBoxData3, optargs)
+		GoaLabel("Free Camera: ", x + offset_x, y + offset_y, optargs)
+		camera_free = GoaComboBoxIndex(BIND_NAMES, camera_free, x + offset_x + 175, y + offset_y, 150, comboBoxData1, optargs)
+		optargs.optionalId = optargs.optionalId + 1
+		offset_y = offset_y + GOAHUD_SPACING
 
-		for i, name in pairs(BIND_NAMES) do
-			if (camera_next == name) then camera_next = BIND_VALUES[i] end
-			if (camera_prev == name) then camera_prev = BIND_VALUES[i] end
-			if (camera_free == name) then camera_free = BIND_VALUES[i] end
-		end
+		camera_next_bind = BIND_VALUES[camera_next]
+		camera_prev_bind = BIND_VALUES[camera_prev]
+		camera_free_bind = BIND_VALUES[camera_free]
 
 		for k, v in pairs(self.options.binds) do
 			local value = ""
-			if (k == camera_next) then value = "cl_camera_next_player" end
-			if (k == camera_prev) then value = "cl_camera_prev_player" end
-			if (k == camera_free) then value = "cl_camera_freecam" end
+			if (k == camera_next_bind) then value = "cl_camera_next_player" end
+			if (k == camera_prev_bind) then value = "cl_camera_prev_player" end
+			if (k == camera_free_bind) then value = "cl_camera_freecam" end
 
 			self.options.binds[k] = value
 		end
 
-		return 150
+		return offset_y
+	elseif (varname == "autoSpectateMode") then
+		GoaLabel("Hook actions to camera controls:", x, y, optargs)
+
+		GoaLabel("Auto Spectator: ", x, y, optargs)
+		self.options.autoSpectateMode = GoaComboBoxIndex(SPECTATE_MODE_NAMES, self.options.autoSpectateMode, x + 175, y, 250, comboBoxData4, optargs)
+
+		return GOAHUD_SPACING
 	end
 	return nil
 end
@@ -165,12 +208,78 @@ function GoaHud_BetterSpectator:onLog(entry)
 	local local_player = getLocalPlayer()
 	if (local_player == nil) then return end
 
-	if (entry.type == LOG_TYPE_DEATHMESSAGE and entry.deathKilled == local_player.name) then
-		self.deathTimer = 0.75
+	if (entry.type == LOG_TYPE_DEATHMESSAGE) then
+		if (entry.deathKilled == local_player.name) then
+			self.deathTimer = 0.75
+		end
+
+		if (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_KILLER) then
+			local killer_index = -1
+			for i, p in pairs(players) do
+				if (p.name == entry.deathKiller) then
+					killer_index = p.index
+					break
+				end
+			end
+
+			if (killer_index >= 0) then
+				self.deathTimer = 0.75
+				self.nextPlayer = killer_index - 1
+			end
+		elseif (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_LEADER) then
+			-- pass 1: find the highest score
+			local leader_score = -9999
+			for i, p in pairs(players) do
+				if (p.score > leader_score) then
+					leader_score = p.score
+				end
+			end
+
+			-- pass 2: find players with highest score
+			local leader_index = -1
+			for i, p in pairs(players) do
+				if (p.score == leader_score) then
+					if (leader_index == -1) then
+						leader_index = p.index
+					else
+						-- players are tied, give up and leave camera untouched
+						leader_index = -1
+						break
+					end
+				end
+			end
+
+			if (leader_index >= 0) then
+				self.deathTimer = 0.75
+				self.nextPlayer = leader_index - 1
+			end
+		end
 	end
 end
 
+local last_spectator_mode = 0
 function GoaHud_BetterSpectator:draw()
+	if (not isInMenu()) then
+		local new_spectator_mode = GoaHud:getConsoleVariable("spectator_mode")
+		if (new_spectator_mode ~= last_spectator_mode) then
+			local mode = new_spectator_mode
+			if (new_spectator_mode == -1) then
+				self.options.autoSpectateMode = (self.options.autoSpectateMode % SPECTATE_MODE_LAST) + 1
+			elseif (new_spectator_mode == SPECTATE_MODE_DISABLED) then
+				self.options.autoSpectateMode = mode
+			elseif (new_spectator_mode == SPECTATE_MODE_FOLLOW_KILLER) then
+				self.options.autoSpectateMode = mode
+			elseif (new_spectator_mode == SPECTATE_MODE_FOLLOW_LEADER) then
+				self.options.autoSpectateMode = mode
+			end
+
+			GoaHud:setConsoleVariable("spectator_mode", self.options.autoSpectateMode)
+			last_spectator_mode = new_spectator_mode
+
+			self:saveOptions()
+		end
+	end
+
 	local local_player = getLocalPlayer()
 	if (local_player == nil) then return end
 
@@ -197,6 +306,11 @@ function GoaHud_BetterSpectator:draw()
 		end
 		if (buttons.right and self.lastButtons.right ~= buttons.right) then
 			self:command("right", self.options.binds["right"])
+		end
+
+		if (self.nextPlayer ~= -1) then
+			consolePerformCommand("cl_camera_player " .. self.nextPlayer)
+			self.nextPlayer = -1
 		end
 	else
 		self.deathTimer = self.deathTimer - deltaTimeRaw
