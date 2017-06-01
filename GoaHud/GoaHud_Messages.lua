@@ -452,13 +452,18 @@ function GoaHud_Messages:drawControls()
 				follow_text = self.followTextFreecam
 			end
 
-			nvgFontSize(24)
+			local controls_font_size = 24
+			nvgFontSize(controls_font_size)
 			nvgFontFace(GOAHUD_FONT4)
 
-			GoaHud:drawTextShadow(0, 0, follow_text, self.options.shadow)
-
 			nvgFillColor(Color(255,255,255,196))
-			nvgText(0, 0, follow_text)
+
+			GoaHud:drawTextWithShadow(0, 0, follow_text, self.options.shadow, {})
+
+			if (GoaHud:isWidgetEnabled("GoaHud_BetterSpectator")) then
+				local mode = GoaHud_BetterSpectator:getAutoSpectatorModeName()
+				GoaHud:drawTextWithShadow(0, controls_font_size, mode, self.options.shadow, {})
+			end
 		end
 	end
 end

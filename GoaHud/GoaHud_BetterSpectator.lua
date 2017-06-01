@@ -98,6 +98,14 @@ function GoaHud_BetterSpectator:init()
 	GoaHud:createConsoleVariable("spectator_mode", "int", 0, true)
 end
 
+function GoaHud_BetterSpectator:getAutoSpectatorModeName()
+	if (self.options.autoSpectateMode == SPECTATE_MODE_DISABLED) then
+		return nil
+	end
+
+	return SPECTATE_MODE_NAMES[self.options.autoSpectateMode]
+end
+
 local comboBoxData1 = {}
 local comboBoxData2 = {}
 local comboBoxData3 = {}
