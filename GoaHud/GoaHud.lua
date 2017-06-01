@@ -826,6 +826,7 @@ function GoaHud:drawTextHA(x, y, size, color, shadow, value)
 end
 
 function GoaHud:drawTextWithShadow(x, y, value, shadow, optargs)
+	if (value == nil) then return end
 	local shadow = shadow or {}
 
 	nvgSave()
@@ -850,6 +851,7 @@ function GoaHud:drawTextWithShadow(x, y, value, shadow, optargs)
 end
 
 function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
+	if (value == nil) then return end
 	if (shadow == nil or shadow == {}) then return end
 	local optargs = optargs or { }
 	local alpha = optargs.alpha or 255
@@ -891,7 +893,7 @@ end
 
 -- adapted from EmojiChat drawTextWithEmojis with configurable emoji size and proper icon center offset
 function GoaHud:drawTextWithEmojis(x, y, text, emoji_size)
-	if (string.len(text) == 0) then return end
+	if (text == nil or string.len(text) == 0) then return end
 
 	if (not self.colorCodesSupported) then
 		nvgText(x, y, text)
