@@ -247,6 +247,7 @@ function GoaHud_Messages:drawMessages()
 end
 
 function GoaHud_Messages:drawCountdown()
+	if (shouldHide()) then return end
 	local match_countdown = (world.gameState == GAME_STATE_WARMUP or world.gameState == GAME_STATE_ROUNDPREPARE) and world.timerActive
 
 	if (GoaHud.previewMode) then
