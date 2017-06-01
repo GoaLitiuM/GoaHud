@@ -1304,41 +1304,50 @@ function GoaHud:processConVars()
 
 	self.dirtyConvars = false
 	for i, k in ipairs(self.convarQueue) do
-		widgetCreateConsoleVariable(k[1], k[2], k[3])
+		widgetCreateConsoleVariable(k.name, k.type, k.value)
+
+		-- widgetCreateConsoleVariable initializes with the value
+		-- only if user has not set it before, we may need to force
+		-- the value into variable if needed
+		if (k.forced) then
+			widgetSetConsoleVariable(k.name, k.value)
+		end
 	end
 	self.convarQueue = {}
 end
 
-function GoaHud:createConsoleVariable(name, vartype, value)
-	table.insert(self.convarQueue, {name, vartype, value})
+function GoaHud:createConsoleVariable(name, vartype, value, forced)
+	table.insert(self.convarQueue, {name = name, type = vartype, value = value, forced = forced or false})
 	self.dirtyConvars = true
 end
 
 function GoaHud:setConsoleVariable(name, value)
+	local full_cvar = string.format("ui_goahud_%s", name)
 	if (self.dirtyConvars) then
 		-- convar has not been created yet, change initial value instead
-		for i, k in ipairs(self.convarQueue) do
-			if k[1] == name then
-				k[3] = value
+		for i, c in ipairs(self.convarQueue) do
+			if (c.name == name) then
+				c.value = value
+				c.forced = true
 				return
 			end
 		end
 	end
-
-	consolePerformCommand(string.format("ui_goahud_%s", name) .. " " .. value)
+	consolePerformCommand(full_cvar .. " " .. value)
 end
 
 function GoaHud:getConsoleVariable(name)
+	local full_cvar = string.format("ui_goahud_%s", name)
 	if (self.dirtyConvars) then
 		-- try to read the value from convar queue if it hasn't been created yet
-		for i, k in ipairs(self.convarQueue) do
-			if k[1] == name then
-				return k[3]
+		for i, c in ipairs(self.convarQueue) do
+			if (c.name == name) then
+				return c.value
 			end
 		end
 	end
 
-	return consoleGetVariable(string.format("ui_goahud_%s", name))
+	return consoleGetVariable(full_cvar)
 end
 
 --
