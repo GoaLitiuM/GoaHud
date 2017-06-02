@@ -26,8 +26,28 @@ GoaHud_WeaponRack =
 
 		showBackground = true,
 		backgroundColor = Color(0, 0, 0, 64),
+
+		shadow =
+		{
+			shadowEnabled = true,
+			shadowOffset = 2,
+			shadowBlur = 5,
+			shadowColor = Color(0,0,0,255),
+			shadowStrength = 1,
+		},
 	},
-	optionsDisplayOrder = { "hideMelee", "hideBurstGun", "", "hideInRace", "hideInWarmup", "", "coloredAmmo", "textColor", "coloredSelection", "selectedColor", "showBackground", "backgroundColor"},
+	optionsDisplayOrder =
+	{
+		"hideMelee", "hideBurstGun",
+		"",
+		"hideInRace", "hideInWarmup",
+		"",
+		"coloredAmmo", "textColor",
+		"coloredSelection", "selectedColor",
+		"showBackground", "backgroundColor",
+		"",
+		"shadow",
+	},
 
 	showWeapons = {},
 };
@@ -88,7 +108,7 @@ function GoaHud_WeaponRack:draw()
 
 	local player = getPlayer()
 	local weapon = player.weaponIndexweaponChangingTo
-	local offset_x = 0
+	local offset_x
 	local weapons_picked = 0
 	local weapon_count = 0
 	local icon_size = 15
@@ -129,7 +149,7 @@ function GoaHud_WeaponRack:draw()
 		local def = weapon_definitions[i]
 		if (def ~= nil and self.showWeapons[i] and player.weapons[i].pickedup) then
 			local ammo = math.min(player.weapons[i].ammo, 999)
-			local color = Color(def.color.r, def.color.g, def.color.b, def.color.a);
+			local color = clone(def.color)
 
 			-- selected weapon glow
 			if (weapon == i) then
@@ -152,14 +172,15 @@ function GoaHud_WeaponRack:draw()
 			end
 
 			nvgFillColor(color)
-			nvgSvg(weapon_icon, offset_x, 0, icon_size)
+			GoaHud:drawSvgWithShadow(weapon_icon, offset_x, 0, icon_size, 0, self.options.shadow)
 
 			if (not self.options.coloredAmmo) then
-				nvgFillColor(self.options.textColor)
+				color = clone(self.options.textColor)
+				nvgFillColor(color)
 			end
 
 			if (i ~= 1) then
-				nvgText(offset_x + (font_size*3 - border/2)/2, 0, tostring(ammo))
+				GoaHud:drawTextWithShadow(offset_x + (font_size*3 - border/2)/2, 0, tostring(ammo), self.options.shadow, { alpha = color.a })
 			end
 
 			offset_x = offset_x + offset_width
