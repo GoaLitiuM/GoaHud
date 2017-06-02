@@ -3,7 +3,14 @@ GoaHud_BetterGameplay =
 	enabled = false,
 	options =
 	{
-		fastRaceRespawn = true,
+		raceFastRespawn = true,
+	},
+
+	optionsDisplayOrder =
+	{
+		"race",
+		"bindRespawn",
+		"raceFastRespawn",
 	},
 
 	respawning = false,
@@ -17,13 +24,17 @@ function GoaHud_BetterGameplay:init()
 end
 
 function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
-	if (varname == "fastRaceRespawn") then
-		local offset = 0
-
-		ui2Label("Race-only suicide bind:   bind <key> ui_goahud_respawn 1", x, y + offset, optargs)
-		offset = offset + 50
-
-		return offset + GoaHud_DrawOptionsVariable(self.options, varname, x, y + offset, optargs, "Fast Respawn (Race)")
+	if (varname == "race") then
+		GoaLabel("Race:", x, y, optargs)
+		return GOAHUD_SPACING
+	elseif (varname == "bindRespawn") then
+		local offset_x = GOAHUD_INDENTATION
+		GoaLabel("Bind Respawn (Race):", x + offset_x, y, optargs)
+		GoaKeyBind("ui_goahud_respawn 1", x + offset_x + 200, y, 150, "game", optargs)
+		optargs.optionalId = optargs.optionalId + 1
+		return GOAHUD_SPACING
+	elseif (varname == "raceFastRespawn") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fast Respawn")
 	end
 	return nil
 end
@@ -48,7 +59,7 @@ function GoaHud_BetterGameplay:draw()
 	if (isRaceOrTrainingMode()) then
 		local local_player = getLocalPlayer()
 		if (local_player ~= nil) then
-			if (self.options.fastRaceRespawn and local_player.isDead) then
+			if (self.options.raceFastRespawn and local_player.isDead) then
 				consolePerformCommand("+attack")
 				self.respawning = true
 			end
