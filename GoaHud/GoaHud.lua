@@ -1098,6 +1098,12 @@ function GoaHud:registerWidget(widget_name, category)
 
 		local first_time = not GoaHud_HasOptions(widget_table)
 
+		-- initialize defaults from current options
+		if (widget_table.defaults == nil and widget_table.options ~= nil) then
+			widget_table.defaults = clone(widget_table.options)
+			widget_table.defaults.enabled = widget_table.enabled
+		end
+
 		-- load widget options automatically
 		widget_table:loadOptions()
 
@@ -1431,10 +1437,7 @@ end
 function GoaHud_LoadOptions(self)
 	assert(self.options ~= nil, self.widgetName .. ": options is not defined")
 
-	if (self.defaults == nil and self.options ~= nil) then
-		self.defaults = clone(self.options)
-		self.defaults.enabled = self.enabled
-	end
+	self.options.enabled = self.enabled
 
 	local userData = loadUserData()
 	applyValues(self, "options", "table", userData)
