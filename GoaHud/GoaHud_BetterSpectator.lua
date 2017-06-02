@@ -5,10 +5,11 @@
 
 require "base/internal/ui/reflexcore"
 
--- toggle between modes: ui_goahud_spectator_mode -1 or "toggle"
-local SPECTATE_MODE_DISABLED = 1		-- ui_goahud_spectator_mode 0 or "disabled"
-local SPECTATE_MODE_FOLLOW_KILLER = 2	-- ui_goahud_spectator_mode 1 or "killer"
-local SPECTATE_MODE_FOLLOW_LEADER = 3	-- ui_goahud_spectator_mode 2 or "leader"
+-- ui_goahud_spectator_mode
+local SPECTATE_MODE_CYCLE = -1
+local SPECTATE_MODE_DISABLED = 1
+local SPECTATE_MODE_FOLLOW_KILLER = 2
+local SPECTATE_MODE_FOLLOW_LEADER = 3
 local SPECTATE_MODE_LAST = SPECTATE_MODE_FOLLOW_LEADER
 
 local SPECTATE_MODE_NAMES =
@@ -141,17 +142,17 @@ function GoaHud_BetterSpectator:drawOptionsVariable(varname, x, y, optargs)
 		offset_y = offset_y + GOAHUD_SPACING
 
 		GoaLabel("Camera Next: ", x + offset_x, y + offset_y, optargs)
-		camera_next = GoaComboBoxIndex(BIND_NAMES, camera_next, x + offset_x + 175, y + offset_y, 150, comboBoxData3, optargs)
+		camera_next = GoaComboBoxIndex(BIND_NAMES, camera_next, x + offset_x + 200, y + offset_y, 150, comboBoxData3, optargs)
 		optargs.optionalId = optargs.optionalId + 1
 		offset_y = offset_y + GOAHUD_SPACING
 
 		GoaLabel("Camera Previous: ", x + offset_x, y + offset_y, optargs)
-		camera_prev = GoaComboBoxIndex(BIND_NAMES, camera_prev, x + offset_x + 175, y + offset_y, 150, comboBoxData2, optargs)
+		camera_prev = GoaComboBoxIndex(BIND_NAMES, camera_prev, x + offset_x + 200, y + offset_y, 150, comboBoxData2, optargs)
 		optargs.optionalId = optargs.optionalId + 1
 		offset_y = offset_y + GOAHUD_SPACING
 
 		GoaLabel("Free Camera: ", x + offset_x, y + offset_y, optargs)
-		camera_free = GoaComboBoxIndex(BIND_NAMES, camera_free, x + offset_x + 175, y + offset_y, 150, comboBoxData1, optargs)
+		camera_free = GoaComboBoxIndex(BIND_NAMES, camera_free, x + offset_x + 200, y + offset_y, 150, comboBoxData1, optargs)
 		optargs.optionalId = optargs.optionalId + 1
 		offset_y = offset_y + GOAHUD_SPACING
 
@@ -170,12 +171,30 @@ function GoaHud_BetterSpectator:drawOptionsVariable(varname, x, y, optargs)
 
 		return offset_y
 	elseif (varname == "autoSpectateMode") then
-		GoaLabel("Hook actions to camera controls:", x, y, optargs)
+		local offset_x = 0
+		local offset_y = 0
+		GoaLabel("Auto Spectator:", x + offset_x, y + offset_y, optargs)
 
-		GoaLabel("Auto Spectator: ", x, y, optargs)
-		self.options.autoSpectateMode = GoaComboBoxIndex(SPECTATE_MODE_NAMES, self.options.autoSpectateMode, x + 175, y, 250, comboBoxData4, optargs)
+		offset_x = offset_x + GOAHUD_INDENTATION
+		offset_y = offset_y + GOAHUD_SPACING
 
-		return GOAHUD_SPACING
+		GoaLabel("Current Mode:", x + offset_x, y + offset_y, optargs)
+		self.options.autoSpectateMode = GoaComboBoxIndex(SPECTATE_MODE_NAMES, self.options.autoSpectateMode, x + offset_x + 200, y + offset_y, 250, comboBoxData4, optargs)
+		optargs.optionalId = optargs.optionalId + 1
+		offset_y = offset_y + GOAHUD_SPACING
+
+		GoaLabel("Bind Cycle Modes:", x + offset_x, y + offset_y, optargs)
+		GoaKeyBind("ui_goahud_spectator_mode -1", x + offset_x + 200, y + offset_y, 150, "game", optargs)
+		optargs.optionalId = optargs.optionalId + 1
+		offset_y = offset_y + GOAHUD_SPACING
+
+		for i, m in ipairs(SPECTATE_MODE_NAMES) do
+			GoaLabel("Bind " .. m .. ":", x + offset_x, y + offset_y, optargs)
+			GoaKeyBind("ui_goahud_spectator_mode " .. i, x + offset_x + 200, y + offset_y, 150, "game", optargs)
+			optargs.optionalId = optargs.optionalId + 1
+			offset_y = offset_y + GOAHUD_SPACING
+		end
+		return offset_y
 	end
 	return nil
 end
@@ -271,7 +290,7 @@ function GoaHud_BetterSpectator:draw()
 		local new_spectator_mode = GoaHud:getConsoleVariable("spectator_mode")
 		if (new_spectator_mode ~= last_spectator_mode) then
 			local mode = new_spectator_mode
-			if (new_spectator_mode == -1) then
+			if (new_spectator_mode == SPECTATE_MODE_CYCLE) then
 				self.options.autoSpectateMode = (self.options.autoSpectateMode % SPECTATE_MODE_LAST) + 1
 			elseif (new_spectator_mode == SPECTATE_MODE_DISABLED) then
 				self.options.autoSpectateMode = mode
