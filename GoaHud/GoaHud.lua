@@ -721,6 +721,75 @@ function GoaColorPicker(x, y, color, optargs)
 	return color
 end
 
+-- modified version of ui2KeyBind
+function GoaKeyBind(bindCommand, x, y, w, bindState, optargs)
+	local optargs = optargs or {};
+	local optionalId = optargs.optionalId or 0;
+	local enabled = optargs.enabled == nil and true or optargs.enabled;
+	local intensity = optargs.intensity or 1;
+	local h = 35;
+
+	local c = 255;
+	local k = nil;
+	if enabled == false then
+		c = UI_DISABLED_TEXT;
+	else
+		k = inputGrabRegion(x, y, w, h, optionalId);
+	end
+
+	nvgSave();
+
+	local key = bindReverseLookup(bindCommand, bindState);
+	if key == "(unbound)" then
+		c = c / 2;
+	else
+		key = string.upper(key);
+	end
+
+	-- pulse bg when have focus
+	local bgc = ui2FormatColor(UI2_COLTYPE_BACKGROUND, intensity, k.hoverAmount, enabled);
+	if k.focus then
+		local pulseAmount = k.focusAmount;
+
+		-- pulse
+		pulseAmount = intensity * (math.sin(__keybind_pulse) * 0.5 + 0.5);
+		__keybind_pulse = __keybind_pulse + deltaTime * 16;
+
+		bgc.r = lerp(bgc.r, 80, pulseAmount);
+	end
+
+	-- bg
+	nvgBeginPath();
+	nvgRect(x, y, w, h);
+	nvgFillColor(bgc);
+	nvgFill();
+
+	-- scissor
+	ui2FontNormal();
+	local tw = nvgTextWidth(key);
+	if tw >= w - 5 then
+		nvgIntersectScissor(x, y, w - 5, 100);
+	end
+
+	-- text
+	nvgFillColor(ui2FormatColor(UI2_COLTYPE_TEXT, intensity, k.hoverAmount, enabled));
+	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_MIDDLE);
+	nvgText(x+h*0.3, y+h*0.5, key);
+
+	nvgRestore();
+
+	if (bindState == nil) then bindState = "" end
+
+	if k.nameKeyPressed ~= nil then
+		if key ~= "(unbound)" then
+			consolePerformCommand("unbind "..bindState.." "..key);
+		end
+		consolePerformCommand("bind "..bindState.." "..k.nameKeyPressed.." "..bindCommand);
+	end
+
+	return k.nameKeyPressed
+end
+
 --
 -- draw
 --
