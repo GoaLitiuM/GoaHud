@@ -894,9 +894,60 @@ function GoaHud:drawTextHA(x, y, size, color, shadow, value)
 	self:drawText1(x, y, size, color, shadow, value, color_codes)
 end
 
+function GoaHud:drawSvgWithShadow(name, x, y, radius, blur, shadow, optargs)
+	if (name == nil) then return end
+	local blur = blur or 0
+	local shadow = shadow or {}
+	local optargs = optargs or {}
+
+	nvgSave()
+
+	if (shadow.shadowEnabled) then
+		self:drawSvgShadow(name, x, y, radius, blur, shadow, optargs)
+	end
+
+	nvgSvg(name, x, y, radius, blur)
+
+	nvgRestore()
+end
+
+function GoaHud:drawSvgShadow(name, x, y, radius, blur, shadow, optargs)
+	if (name == nil) then return end
+	if (shadow == nil or shadow == {}) then return end
+	local optargs = optargs or {}
+	local alpha = optargs.alpha or 255
+
+	-- HACK: with transparent text, shadows will shine through the text,
+	-- ease in the alpha to make it look more natural
+	alpha = EaseIn(alpha / 255) * 255
+
+	nvgSave()
+
+	local shadow_x = shadow.shadowOffset
+	local shadow_y = shadow.shadowOffset
+	local shadow_blur = blur + shadow.shadowBlur
+	local shadow_color = shadow.shadowColor
+	local shadow_left = shadow.shadowStrength * (alpha / 255)
+
+	while (shadow_left > 0.0) do
+		local shadow_alpha = math.min(1.0, shadow_left)
+		local pass_color = clone(shadow_color)
+		pass_color.a = pass_color.a * shadow_alpha
+
+		nvgFillColor(pass_color)
+
+		nvgSvg(name, x + shadow_x, y + shadow_y, radius, shadow_blur)
+
+		shadow_left = shadow_left - shadow_alpha
+	end
+
+	nvgRestore()
+end
+
 function GoaHud:drawTextWithShadow(x, y, value, shadow, optargs)
 	if (value == nil) then return end
 	local shadow = shadow or {}
+	local optargs = optargs or {}
 
 	nvgSave()
 
@@ -945,8 +996,10 @@ function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
 
 	while (shadow_left > 0.0) do
 		local shadow_alpha = math.min(1.0, shadow_left)
+		local pass_color = clone(shadow_color)
+		pass_color.a = pass_color.a * shadow_alpha
 
-		nvgFillColor(Color(shadow_color.r, shadow_color.g, shadow_color.b, shadow_color.a * shadow_alpha))
+		nvgFillColor(pass_color)
 
 		if (optargs.emoji_size ~= nil) then
 			self:drawTextWithEmojis(x + shadow_x, y + shadow_y, value, optargs.emoji_size)
