@@ -21,13 +21,19 @@ GoaHud_Zoom =
 
 	options =
 	{
+		lastBoundKey = "",
 		zoomFov = 43,
 		smoothZoom = true,
 		zoomTime = 0.075,
 		rescaleSensitivity = true,
 		adjustViewmodel = true,
 	},
-	optionsDisplayOrder = { "zoomFov", "smoothZoom",  "zoomTime",  "rescaleSensitivity",  "adjustViewmodel" },
+	optionsDisplayOrder =
+	{
+		"bindZoom", "lastBoundKey",
+		"",
+		"zoomFov", "smoothZoom", "zoomTime", "rescaleSensitivity", "adjustViewmodel"
+	},
 };
 GoaHud:registerWidget("GoaHud_Zoom", GOAHUD_MODULE);
 
@@ -36,19 +42,31 @@ function GoaHud_Zoom:init()
 end
 
 function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
-	if (varname == "zoomFov") then
-		local offset = GOAHUD_SPACING + 20
+	if (varname == "lastBoundKey") then return 0
+	elseif (varname == "bindZoom") then
+		self.rebindTimer = 0
+		GoaLabel("Bind Zoom:", x, y, optargs)
+		local key = GoaKeyBind("ui_goahud_zoom 2; +showscores", x + 200, y, 150, nil, optargs)
+		if (key ~= nil) then
+			self.options.lastBoundKey = key
+		end
+		if (self.options.lastBoundKey) then
+			GoaLabel("Last bound key: " .. string.upper(self.options.lastBoundKey), x + 200 + 150 + 20, y, optargs)
+		end
+
+		optargs.optionalId = optargs.optionalId + 1
+		return GOAHUD_SPACING
+	elseif (varname == "zoomFov") then
 		local optargs = clone(optargs)
 		optargs.fov = true
-		GoaLabel("Usage:         bind <key> ui_goahud_zoom 1", x, y, optargs)
-		return offset + GoaHud_DrawOptionsVariable(self.options, varname, x, y + offset, optargs, "Zoom FOV")
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Zoom FOV")
 	elseif (varname == "zoomTime") then
 		local optargs = clone(optargs)
 		optargs.enabled = self.options.smoothZoom
 		optargs.milliseconds = true
 		optargs.min_value = 1
 		optargs.max_value = 300
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs)
 	elseif (varname == "smoothZoom") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Enable Animations")
 	end
