@@ -216,7 +216,7 @@ function GoaHud:drawOptions(x, y, intensity)
 	if (quick_enable_pressed) then
 		local non_experimental_widgets = {}
 		for i, w in pairs(self.registeredWidgets) do
-			if (not isExperimental(widget)) then
+			if (not isExperimental(w)) then
 				table.insert(non_experimental_widgets, w)
 			end
 		end
