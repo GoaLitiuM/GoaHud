@@ -46,7 +46,7 @@ function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
 	elseif (varname == "bindZoom") then
 		self.rebindTimer = 0
 		GoaLabel("Bind Zoom:", x, y, optargs)
-		local key = GoaKeyBind("ui_goahud_zoom 2; +showscores", x + 200, y, 150, nil, optargs)
+		local key = GoaKeyBind("ui_goahud_zoom 2; +showscores", x + 200, y, 150, "game", optargs)
 		if (key ~= nil) then
 			self.options.lastBoundKey = key
 		end
