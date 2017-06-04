@@ -64,7 +64,6 @@ GoaHud =
 	registeredWidgets = {},
 
 	showOptions = true, -- debug
-	dirtyConvars = false,
 	convarQueue = {},
 
 	errors = {},
@@ -201,6 +200,8 @@ replacedOfficialWidgets = { "AmmoCount", "ArmorBar", "Crosshairs", "FragNotifier
 function GoaHud:initialize()
 	self.widgetName = "GoaHud"
 	self.draw = self.drawFirst
+
+	self:createConsoleVariable("set", "string", "", true)
 end
 
 function GoaHud:drawOptions(x, y, intensity)
@@ -1432,30 +1433,103 @@ end
 --
 
 function GoaHud:processConVars()
-	if (not self.dirtyConvars) then return end
+	local cvar_set = self:getConsoleVariable("set")
+	if (cvar_set ~= nil and cvar_set ~= "") then
+		local args = {}
+		for i in string.gmatch(cvar_set, "%S+") do args[#args + 1] = i end
+		if (#args >= 2) then
+			local arg_widget = string.lower(args[1])
+			local arg_var = string.lower(args[2])
+			local arg_value = args[3] ~= nil and args[3] or ""
 
-	self.dirtyConvars = false
-	for i, k in ipairs(self.convarQueue) do
-		widgetCreateConsoleVariable(k.name, k.type, k.value)
+			local widget_table
+			for i, w in pairs(self.registeredWidgets) do
+				local name_full = string.lower(w.name)
+				local name = name_full
+				if (string.starts(w.name, "GoaHud_")) then
+					name = string.sub(name, string.len("GoaHud_")+1)
+				end
 
-		-- widgetCreateConsoleVariable initializes with the value
-		-- only if user has not set it before, we may need to force
-		-- the value into variable if needed
-		if (k.forced) then
-			widgetSetConsoleVariable(k.name, k.value)
+				if (name == arg_widget or name_full == arg_widget) then
+					widget_table = _G[w.name]
+					break
+				end
+			end
+
+			if (widget_table ~= nil and widget_table.options ~= nil) then
+				local found_var
+				for var in pairs(widget_table.options) do
+					if (string.lower(var) == arg_var) then
+						found_var = var
+						break
+					end
+				end
+
+				if (found_var ~= nil) then
+					local found_type = type(widget_table.options[found_var])
+					local num_value = tonumber(arg_value)
+					if (found_type == "table") then
+						consolePrint("cannot assign to a table")
+					elseif (found_type == "boolean") then
+						local num_value = tonumber(arg_value)
+						if (num_value ~= nil) then
+							widget_table.options[found_var] = num_value ~= 0
+						elseif (string.lower(arg_value) == "true") then
+							widget_table.options[found_var] = true
+						elseif (string.lower(arg_value) == "false") then
+							widget_table.options[found_var] = false
+						else
+							consolePrint("invalid value for boolean")
+						end
+					elseif (found_type == "number") then
+						if (num_value ~= nil) then
+							widget_table.options[found_var] = num_value
+						else
+							consolePrint("invalid value for number")
+						end
+					elseif (found_type == "string") then
+						widget_table.options[found_var] = arg_value
+					else
+						consolePrint("cannot assign to a type of " .. tostring(found_type))
+					end
+				else
+					consolePrint("invalid variable name")
+				end
+			else
+				consolePrint("invalid widget name")
+			end
+		else
+			consolePrint("usage: ui_goahud_set <widget> <variable> <value>")
 		end
+		
+		widgetSetConsoleVariable("set", "")
 	end
-	self.convarQueue = {}
+
+	if (#self.convarQueue > 0) then
+		for i, k in ipairs(self.convarQueue) do
+			if (k.create) then
+				assert(k.type ~= nil, "failed to create console variable, type is not set")
+				widgetCreateConsoleVariable(k.name, k.type, k.value)
+			end
+
+			-- widgetCreateConsoleVariable initializes with the value
+			-- only if user has not set it before, we may need to force
+			-- the value into variable if needed
+			if (k.forced) then
+				widgetSetConsoleVariable(k.name, k.value)
+			end
+		end
+		self.convarQueue = {}
+	end
 end
 
 function GoaHud:createConsoleVariable(name, vartype, value, forced)
-	table.insert(self.convarQueue, {name = name, type = vartype, value = value, forced = forced or false})
-	self.dirtyConvars = true
+	table.insert(self.convarQueue, {name = name, type = vartype, value = value, create = true, forced = forced or false})
 end
 
 function GoaHud:setConsoleVariable(name, value)
 	local full_cvar = string.format("ui_goahud_%s", name)
-	if (self.dirtyConvars) then
+	if (#self.convarQueue > 0) then
 		-- convar has not been created yet, change initial value instead
 		for i, c in ipairs(self.convarQueue) do
 			if (c.name == name) then
@@ -1465,12 +1539,21 @@ function GoaHud:setConsoleVariable(name, value)
 			end
 		end
 	end
-	consolePerformCommand(full_cvar .. " " .. value)
+
+	-- consolePerformCommand is used so any widget calling this function can
+	-- change the console variables registered by GoaHud instead of registering
+	-- the variable for itself. Unfortunately consolePerformCommand can not be used
+	-- for emptying any cvars so emptying has to be done by GoaHud itself.
+	if (value == "") then
+		table.insert(self.convarQueue, {name = name, value = value, create = false, forced = true})
+	else
+		consolePerformCommand(full_cvar .. " " .. value)
+	end
 end
 
 function GoaHud:getConsoleVariable(name)
 	local full_cvar = string.format("ui_goahud_%s", name)
-	if (self.dirtyConvars) then
+	if (#self.convarQueue > 0) then
 		-- try to read the value from convar queue if it hasn't been created yet
 		for i, c in ipairs(self.convarQueue) do
 			if (c.name == name) then
@@ -1916,6 +1999,10 @@ function table.merge(t, y)
 		n[i] = k
 	end
 	return n
+end
+
+function string.starts(str, start)
+	return string.sub(str, 1, string.len(start)) == start
 end
 
 epochTimeMs = 0
