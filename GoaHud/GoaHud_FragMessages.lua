@@ -161,7 +161,7 @@ function GoaHud_FragMessages:onLog(entry)
 
 		local players_sorted = {}
 		for i, p in ipairs(players) do
-			if (p.connected) then
+			if (p.connected and p.state == PLAYER_STATE_INGAME) then
 				table.insert(players_sorted, p)
 			end
 		end
