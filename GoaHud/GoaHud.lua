@@ -2116,3 +2116,24 @@ function nvgTextWidthEmoji(text, emoji_size)
 
 	return width + nvgTextWidth(text)
 end
+
+-- missing functions in 0.48.3
+
+if (EaseOut == nil) then
+	function EaseInOut(t)
+		if t <= 0.5 then
+			return 2 * t * t;
+		end
+		t = t - 0.5;
+		return 2.0 * t * (1.0 - t) + 0.5;
+	end
+	function Linear(t)
+		return t;
+	end
+	function EaseIn(t)	-- quadratic
+		return t*t;
+	end
+	function EaseOut(t)	-- quadratic
+		return t*(2-t);
+	end
+end
