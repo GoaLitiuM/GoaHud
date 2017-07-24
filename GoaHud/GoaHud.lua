@@ -1501,7 +1501,7 @@ function GoaHud:processConVars()
 		else
 			consolePrint("usage: ui_goahud_set <widget> <variable> <value>")
 		end
-		
+
 		widgetSetConsoleVariable("set", "")
 	end
 
@@ -1945,15 +1945,17 @@ function getWidgetName(widget)
 	return nil
 end
 
-function GoaHud:formatTime(elapsed, wat)
+function GoaHud:formatTime(elapsed, base)
+	local base = base or 60
+	local bb = base * base
 	local seconds_total = math.floor(elapsed)
 	return
 	{
-		hours = seconds_total % (60 * 60),
-		hours_total = math.floor(seconds_total / (60 * 60)),
-		mins = seconds_total % (60 * 60),
-		mins_total = math.floor(seconds_total / 60),
-		secs = seconds_total % 60,
+		hours = seconds_total % bb,
+		hours_total = math.floor(seconds_total / bb),
+		mins = seconds_total % bb,
+		mins_total = math.floor(seconds_total / base),
+		secs = seconds_total % base,
 		secs_total = seconds_total,
 		millis = elapsed % 1000,
 	}

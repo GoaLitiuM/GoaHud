@@ -24,6 +24,7 @@ GoaHud_Timer =
 		countdown = true,
 		countdownRace = true,
 		showScoreDiff = true,
+		useBase25 = false,
 		shadow =
 		{
 			shadowEnabled = true,
@@ -32,6 +33,17 @@ GoaHud_Timer =
 			shadowColor = Color(0,0,0,255),
 			shadowStrength = 1,
 		},
+	},
+
+	optionsDisplayOrder =
+	{
+		"countdown", "countdownRace",
+		"",
+		"showScoreDiff",
+		"",
+		"useBase25",
+		"",
+		"shadow",
 	},
 };
 GoaHud:registerWidget("GoaHud_Timer");
@@ -42,6 +54,8 @@ end
 function GoaHud_Timer:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "showScoreDiff") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Show Score Lead")
+	elseif (varname == "useBase25") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Use Base-25 Time")
 	end
 	return nil
 end
@@ -64,14 +78,16 @@ end
 function GoaHud_Timer:draw()
 	if (not shouldShowHUD(optargs_deadspec)) then return end
 
+	local race = isRaceOrTrainingMode()
 	local countdown
-	if (isRaceOrTrainingMode()) then
+	if (race) then
 		countdown = self.options.countdownRace
 	else
 		countdown = self.options.countdown
 	end
 
 	local round_intermission = world.gameState == GAME_STATE_ROUNDPREPARE or world.gameState == GAME_STATE_ROUNDCOOLDOWN_SOMEONEWON or world.gameState == GAME_STATE_ROUNDCOOLDOWN_DRAW
+	local timer_base = 60
 	local time_raw
 	if (round_intermission) then
 		if (countdown) then
@@ -87,9 +103,11 @@ function GoaHud_Timer:draw()
 		else
 			time_raw = math.floor(world.gameTime / 1000) * 1000
 		end
+
+		if (self.options.useBase25 and not race) then timer_base = 25 end
 	end
 
-	local t = GoaHud:formatTime(time_raw / 1000)
+	local t = GoaHud:formatTime(time_raw / 1000, timer_base)
 	local display_str = string.format("%02d:%02d", t.mins_total, t.secs)
 
 	if (t.mins_total ~= self.lastMins) then

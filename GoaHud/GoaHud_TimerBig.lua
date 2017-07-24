@@ -20,6 +20,8 @@ GoaHud_TimerBig =
 
 	options =
 	{
+		useBase25 = false,
+
 		shadow =
 		{
 			shadowEnabled = true,
@@ -29,11 +31,25 @@ GoaHud_TimerBig =
 			shadowStrength = 1,
 		},
 	},
+
+	optionsDisplayOrder =
+	{
+		"useBase25",
+		"",
+		"shadow",
+	},
 };
 GoaHud:registerWidget("GoaHud_TimerBig", GOAHUD_UI_EXPERIMENTAL);
 
 function GoaHud_TimerBig:init()
 	self.connectedTime = epochTime
+end
+
+function GoaHud_TimerBig:drawOptionsVariable(varname, x, y, optargs)
+	if (varname == "useBase25") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Use Base-25 Time")
+	end
+	return nil
 end
 
 function GoaHud_TimerBig:setupText()
@@ -55,6 +71,9 @@ function GoaHud_TimerBig:draw()
 	if (not shouldShowHUD(optargs_deadspec)) then return end
 	if (not GoaHud.previewMode and isRaceOrTrainingMode()) then return end
 
+	local timer_base = 60
+	if (self.options.useBase25) then timer_base = 25 end
+
 	local time_raw = 0
 	if (world.gameState == GAME_STATE_WARMUP) then
 		time_raw = (epochTime - self.connectedTime) * 1000
@@ -64,7 +83,7 @@ function GoaHud_TimerBig:draw()
 		time_raw = math.floor(world.gameTime / 1000) * 1000
 	end
 
-	local t = GoaHud:formatTime(time_raw / 1000)
+	local t = GoaHud:formatTime(time_raw / 1000, timer_base)
 	local display_str = string.format("%02d:%02d", t.mins_total, t.secs)
 
 	if (t.mins_total ~= self.lastMins) then
