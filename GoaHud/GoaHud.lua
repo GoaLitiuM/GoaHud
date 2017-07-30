@@ -1136,7 +1136,9 @@ function GoaHud:registerWidget(widget_name, category)
 
 			-- handle options invocation here in cases where the widget is invisible
 			-- which leads to draw function not being called during the next frame.
-			widget_table:__goahud_invoked()
+			-- for modules drawOptions is called by another helper widget so this does
+			-- not work for them obviously.
+			if (not isModule) then widget_table:__goahud_invoked() end
 		end
 	end
 
