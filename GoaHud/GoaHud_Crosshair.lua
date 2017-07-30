@@ -524,13 +524,13 @@ function Crosshair:drawCross(shape, color)
 			nvgBeginPath()
 
 			nvgMoveTo(-length, half_offset)
-			nvgLineTo(length, half_offset)
+			nvgLineTo(length + half_offset*2, half_offset)
 
 			nvgMoveTo(half_offset, -length)
 			nvgLineTo(half_offset, -stroke_width/2 + half_offset)
 
 			nvgMoveTo(half_offset, stroke_width/2 + half_offset)
-			nvgLineTo(half_offset, length)
+			nvgLineTo(half_offset, length + half_offset*2)
 
 			nvgStroke()
 		else
@@ -547,13 +547,13 @@ function Crosshair:drawCross(shape, color)
 			nvgLineTo(-math.floor(line_end) - half_offset*2, half_offset)
 
 			nvgMoveTo(math.ceil(line_start), half_offset)
-			nvgLineTo(math.ceil(line_end), half_offset)
+			nvgLineTo(math.ceil(line_end) + half_offset*2, half_offset)
 
 			nvgMoveTo(half_offset, -math.floor(line_start))
 			nvgLineTo(half_offset, -math.floor(line_end) - half_offset*2)
 
 			nvgMoveTo(half_offset, math.ceil(line_start))
-			nvgLineTo(half_offset, math.ceil(line_end))
+			nvgLineTo(half_offset, math.ceil(line_end) + half_offset*2)
 
 			nvgStroke()
 		end
