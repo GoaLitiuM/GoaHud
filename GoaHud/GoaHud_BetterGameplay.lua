@@ -1,13 +1,22 @@
+-- GoaHud_BetterGameplay made by GoaLitiuM
+--
+-- Brings various improvements and miscellaneous stuff to Reflex.
+--
+
 GoaHud_BetterGameplay =
 {
 	enabled = false,
 	options =
 	{
+		hideCasualTimers = false,
 		raceFastRespawn = true,
 	},
 
 	optionsDisplayOrder =
 	{
+		"duel",
+		"hideCasualTimers",
+
 		"race",
 		"bindRespawn",
 		"raceFastRespawn",
@@ -27,6 +36,9 @@ function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "race") then
 		GoaLabel("Race:", x, y, optargs)
 		return GOAHUD_SPACING
+	elseif (varname == "duel") then
+		GoaLabel("Duel:", x, y, optargs)
+		return GOAHUD_SPACING
 	elseif (varname == "bindRespawn") then
 		local offset_x = GOAHUD_INDENTATION
 		GoaLabel("Bind Respawn (Race):", x + offset_x, y, optargs)
@@ -35,10 +47,13 @@ function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
 		return GOAHUD_SPACING
 	elseif (varname == "raceFastRespawn") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fast Respawn")
+	elseif (varname == "hideCasualTimers") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Hide Casual Item Timers")
 	end
 	return nil
 end
 
+local PickupTimers_draw = nil;
 function GoaHud_BetterGameplay:draw()
 	local respawn = GoaHud:getConsoleVariable("respawn")
 	if (respawn ~= 0) then
@@ -56,13 +71,33 @@ function GoaHud_BetterGameplay:draw()
 
 	if (world == nil) then return end
 
+	local local_player = getLocalPlayer()
 	if (isRaceOrTrainingMode()) then
-		local local_player = getLocalPlayer()
 		if (local_player ~= nil) then
 			if (self.options.raceFastRespawn and local_player.isDead) then
 				consolePerformCommand("+attack")
 				self.respawning = true
 			end
 		end
+	elseif (isDuel()) then
+		local spectating = local_player.state == PLAYER_STATE_SPECTATOR
+		if (not spectating and world.ruleset == "casual" and self.options.hideCasualTimers) then
+			if (PickupTimers ~= nil and PickupTimers_draw == nil) then
+				PickupTimers_draw = PickupTimers.draw
+				PickupTimers.draw = function() end
+			end
+		else
+			if (PickupTimers_draw ~= nil) then
+				PickupTimers.draw = PickupTimers_draw
+				PickupTimers_draw = nil
+			end
+		end
 	end
+end
+
+function isDuel()
+	if world == nil then return false end;
+	local gameMode = gamemodes[world.gameModeIndex];
+	if gameMode == nil then return false end;
+	return gameMode.shortName == "1v1";
 end
