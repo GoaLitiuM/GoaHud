@@ -209,6 +209,9 @@ function GoaHud:drawOptions(x, y, intensity)
 	optargs.intensity = intensity
 	optargs.optionalId = 0
 
+	GoaLabel("GoaHud " .. GoaHud_GetVersionPretty(), x, y, optargs)
+	y = y + GOAHUD_SPACING
+
 	local quick_enable_pressed = GoaButton("Quick Enable GoaHud", x, y, 220, 35, optargs)
 	GoaLabel("(Pressing this button hides some of the official widgets)", x + 320, y, optargs)
 	y = y + GOAHUD_SPACING
