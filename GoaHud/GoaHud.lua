@@ -806,10 +806,13 @@ end
 -- draw
 --
 
+local emojiPath = ""
 local first_draw = true
 function GoaHud:drawFirst()
 	self:processConVars()
 	self:postInitWidgets()
+
+	emojiPath = GoaHud_EmojiPath or ""
 
 	self.draw = self.drawReal
 	self:drawReal()
@@ -2069,8 +2072,6 @@ end
 -- emoji helpers
 --
 
-local addonPath = GoaHud_EmojiPath or ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%.lua\"%]:%d+: $")})[1]
-
 function getEmoji(text)
 	local path
 	local svg
@@ -2081,7 +2082,7 @@ function getEmoji(text)
 		svg = string.sub(text, string.len(flag)+1)
 		-- TODO: verify flag svg
 	else
-		path = addonPath .. "/emojis/"
+		path = emojiPath .. "/emojis/"
 		svg = GoaHud_Emojis[text]
 		if (svg == nil) then
 			path = "internal/ui/icons/"
@@ -2096,29 +2097,6 @@ end
 
 function getEmojiColor(text)
 	return GoaHud_EmojisColor[text]
-end
-
-function getEmoji2(text)
-	local path
-	local svg
-	local flag = "flag_"
-	if (string.sub(text, 1, string.len(flag)) == flag) then
-		-- prefer internal flag icons over emoji flags
-		path = "internal/ui/icons/flags/"
-		svg = string.sub(text, string.len(flag)+1)
-		-- TODO: verify flag svg
-	else
-		path = emoji_path
-		svg	= SHORTCODE_REPLACE[text]
-		if (svg == nil) then
-			path = "internal/ui/icons/"
-			svg = ICONS[text]
-		end
-	end
-
-	if (svg == nil) then return nil end
-
-	return path .. svg
 end
 
 function isEmoji(text)
