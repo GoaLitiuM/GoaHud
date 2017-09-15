@@ -1,0 +1,7 @@
+Thread in Reflex Arena forums: http://forums.reflexarena.com/index.php?/topic/4360-goahud-minimal-animated-hud/
+
+Enables Emoji support in [url=http://steamcommunity.com/sharedfiles/filedetails/?id=884406684]GoaHud[/url].
+
+[img]https://i.imgur.com/oMrH77t.png[/img]
+
+GitHub: https://github.com/GoaLitiuM/GoaHud
