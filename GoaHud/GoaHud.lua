@@ -98,6 +98,10 @@ GoaHudOptions =
 	draw = function() end,
 };
 
+local nvgText_real = nvgText
+local nvgTextBounds_real = nvgTextBounds
+local nvgTextWidth_real = nvgTextWidth
+
 GOAHUD_FONT1 = "vipnagorgialla"
 GOAHUD_FONT2 = "Lato-Heavy-Optimized"
 GOAHUD_FONT3 = "Volter__28Goldfish_29"
@@ -1014,30 +1018,28 @@ function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
 	nvgRestore()
 end
 
-
 function nvgTextColor(x, y, text, optargs)
 	if (text == nil or string.len(text) == 0) then return end
-	if (optargs and optargs.ignoreColorCodes) then return nvgText(x, y, text) end
-	if (optargs and optargs.stripColorCodes) then return nvgText(x, y, string.gsub(text, "%^[0-9a-z]", "")) end
+	if (optargs and optargs.ignoreColorCodes) then return nvgText_real(x, y, text) end
+	if (optargs and optargs.stripColorCodes) then return nvgText_real(x, y, string.gsub(text, "%^[0-9a-z]", "")) end
 
 	local match_start, match_end = string.find(string.lower(text), '%^[0-9a-z]')
 	if (match_start == nil) then
-		return nvgText(x, y, text)
+		return nvgText_real(x, y, text)
 	end
 
 	local code = string.lower(string.sub(text, match_start+1, match_end))
 	local color = GoaHud_ColorCodes[code]
 
-
 	local print_text
-	if (optargs.previewColorCodes) then
+	if (optargs and optargs.previewColorCodes) then
 		print_text = string.sub(text, 0, match_start+1)
 	else
 		print_text = string.sub(text, 0, match_start-1)
 	end
 
-	nvgText(x, y, print_text)
-	x = x + nvgTextWidth(print_text)
+	nvgText_real(x, y, print_text)
+	x = x + nvgTextWidth_real(print_text)
 
 	if (color) then
 		nvgSave()
@@ -2128,7 +2130,7 @@ function nvgTextBoundsEmoji(text, optargs)
 		-- find emoji shortcodes
 		local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
 		if (match_start == nil) then
-			local bounds = nvgTextBounds(text)
+			local bounds = nvgTextBounds_real(text)
 			bounds.maxx = bounds.maxx + width
 			return bounds
 		end
@@ -2138,13 +2140,13 @@ function nvgTextBoundsEmoji(text, optargs)
 			text = string.sub(text, 1, match_start-1) .. string.sub(text, match_end+1, #text)
 			width = width + emoji_size
 		else
-			local bounds = nvgTextBounds(text)
+			local bounds = nvgTextBounds_real(text)
 			bounds.maxx = bounds.maxx + width
 			return bounds
 		end
 	end
 
-	local bounds = nvgTextBounds(text)
+	local bounds = nvgTextBounds_real(text)
 	bounds.maxx = bounds.maxx + width
 	return bounds
 end
@@ -2169,7 +2171,7 @@ function nvgTextWidthEmoji(text, optargs)
 		-- find emoji shortcodes
 		local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
 		if (match_start == nil) then
-			return width + nvgTextWidth(text)
+			return width + nvgTextWidth_real(text)
 		end
 
 		-- remove shortcode from text string
@@ -2177,11 +2179,11 @@ function nvgTextWidthEmoji(text, optargs)
 			text = string.sub(text, 1, match_start-1) .. string.sub(text, match_end+1, #text)
 			width = width + emoji_size
 		else
-			return width + nvgTextWidth(text)
+			return width + nvgTextWidth_real(text)
 		end
 	end
 
-	return width + nvgTextWidth(text)
+	return width + nvgTextWidth_real(text)
 end
 
 -- missing functions in 0.48.3
