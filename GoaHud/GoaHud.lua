@@ -1040,10 +1040,15 @@ function nvgTextColor(x, y, text, optargs)
 	x = x + nvgTextWidth(print_text)
 
 	if (color) then
+		nvgSave()
 		nvgFillColor(color)
 	end
 
 	nvgTextColor(x, y, string.sub(text, match_end+1), optargs)
+	
+	if (color) then
+		nvgRestore()
+	end
 end
 
 -- adapted from EmojiChat drawTextWithEmojis with configurable emoji size and proper icon center offset
