@@ -3,6 +3,7 @@ GoaHud_Updater =
 	options =
 	{
 		autoUpdateGoaHud = true,
+		autoUpdateGoaHudAddons = true,
 	},
 
 	shadow =
@@ -20,12 +21,20 @@ GoaHud:registerWidget("GoaHud_Updater", GOAHUD_MODULE)
 function GoaHud_Updater:init()
 	if (self.options.autoUpdateGoaHud) then
 		self:updateAddon("GoaHud")
+
+		if (self.options.autoUpdateGoaHudAddons) then
+			self:updateAddon("GoaHud_EmojiSupport")
+		end
 	end
 end
 
 function GoaHud_Updater:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "autoUpdateGoaHud") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Auto Update GoaHud")
+	elseif (varname == "autoUpdateGoaHudAddons") then
+		local optargs = clone(optargs)
+		optargs.enabled = self.options.autoUpdateGoaHud
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Auto Update GoaHud Addons")
 	end
 	return nil
 end
