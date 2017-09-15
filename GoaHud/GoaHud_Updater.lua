@@ -79,7 +79,12 @@ function GoaHud_Updater:draw()
 
 	nvgFillColor(Color(255, 255, 0, 255))
 	if (self.updatingAddon) then
-		self:drawText(x, y, "Updating: " .. self.updatingAddon.name .. " (" .. (self.updatingAddon.downloadPercent * 100) .. "%)")
+		local status = "Updated " .. self.updatingAddon.name
+		if (self.updatingAddon.isDownloading) then
+			status = "Updating: " .. self.updatingAddon.name .. " (" .. (self.updatingAddon.downloadPercent * 100) .. "%)"
+		end
+
+		self:drawText(x, y, status)
 		y = y + font_size
 
 		if (self.updatingAddon.epochTimeUpdatedOnDisk >= self.updatingAddon.epochTimeUpdatedOnWorkshop) then
