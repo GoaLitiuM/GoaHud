@@ -3,7 +3,7 @@
 -- Tracks changes to GoaHud.
 --
 
-local version = 30
+local version = 31
 
 function GoaHud_GetVersionPretty()
     return "r" .. GoaHud_Version.version
@@ -25,6 +25,12 @@ changelog[30] = "\z
 - Chat: Text is now colored in realtime while typing in chat with color codes\n\z
 - Chat: Added options to disable emojis and colors\n\z
 - Show current version of GoaHud in widget options\n\z
+"
+
+changelog[31] = "\z
+- Moved Emoji support to separate addon (GoaHud_EmojiSupport)\n\z
+- GoaHud addon update progress is now shown in the main menu\n\z
+- Auto updater now automatically updates EmojiSupport too when enabled\n\z
 "
 
 
