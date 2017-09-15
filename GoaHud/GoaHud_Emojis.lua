@@ -1787,3 +1787,6 @@ GoaHud_ColorCodes={
 ['y']=Color(255, 255, 255),
 ['z']=Color(128, 128, 128),
 }
+
+GoaHud_Emojis_Dummy = { isMenu = true, initialize = function() end, draw = function() end }
+registerWidget("GoaHud_Emojis_Dummy");

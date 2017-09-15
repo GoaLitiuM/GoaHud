@@ -2069,9 +2069,7 @@ end
 -- emoji helpers
 --
 
-local addonPath = ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%.lua\"%]:%d+: $")})[1]
-
-
+local addonPath = GoaHud_EmojiPath or ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%.lua\"%]:%d+: $")})[1]
 
 function getEmoji(text)
 	local path
