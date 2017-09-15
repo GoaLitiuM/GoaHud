@@ -2105,11 +2105,16 @@ end
 
 function nvgTextBoundsEmoji(text, optargs)
 	local emoji_size = nil
-	if (optargs) then emoji_size = optargs.emojiSize end
+	local strip_color = nil
+	if (optargs) then
+		emoji_size = optargs.emojiSize
+		strip_color = optargs.stripColorCodes
+	end
 	if (emoji_size == nil) then emoji_size = FONT_SIZE_DEFAULT/2 end
+	if (strip_color == nil) then strip_color = true end -- it's desirable to default to stripping mode when measuring text bounds
 
-	-- strip color codes
-	if (optargs and optargs.stripColorCodes) then
+	-- strip color codes from the text
+	if (strip_color) then
 		text = string.gsub(text, "%^[0-9a-z]", "")
 	end
 
@@ -2141,11 +2146,16 @@ end
 
 function nvgTextWidthEmoji(text, optargs)
 	local emoji_size = nil
-	if (optargs) then emoji_size = optargs.emojiSize end
+	local strip_color = nil
+	if (optargs) then
+		emoji_size = optargs.emojiSize
+		strip_color = optargs.stripColorCodes
+	end
 	if (emoji_size == nil) then emoji_size = FONT_SIZE_DEFAULT/2 end
+	if (strip_color == nil) then strip_color = true end -- it's desirable to default to stripping mode when measuring text bounds
 
 	-- strip color codes from the text
-	if (optargs and optargs.stripColorCodes) then
+	if (strip_color) then
 		text = string.gsub(text, "%^[0-9a-z]", "")
 	end
 
