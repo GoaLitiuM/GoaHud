@@ -71,7 +71,6 @@ GoaHud =
 
 	movables = {},
 
-	colorCodesSupported = false, -- Kimi's EmojiChat
 	previewMode = false, -- Brandon's Hud Editor
 };
 registerWidget("GoaHud")
@@ -202,6 +201,15 @@ function GoaHud:initialize()
 	self.draw = self.drawFirst
 
 	self:createConsoleVariable("set", "string", "", true)
+
+	-- fill GoaHud_EmojisColor weapon colors
+	for i in ipairs(weaponDefinitions) do
+		GoaHud_EmojisColor['weapon' .. i] = weaponDefinitions[i].color
+	end
+
+	-- fix stake color
+	local w9 = GoaHud_EmojisColor['weapon9']
+	if (w9.r == 0 and w9.g == 0 and w9.b == 0) then GoaHud_EmojisColor['weapon9'] = Color(128, 0, 0, 255) end
 end
 
 function GoaHud:drawOptions(x, y, intensity)
@@ -801,9 +809,6 @@ end
 local first_draw = true
 function GoaHud:drawFirst()
 	self:processConVars()
-
-	if (nvgColorText ~= nil) then self.colorCodesSupported = true end
-
 	self:postInitWidgets()
 
 	self.draw = self.drawReal
@@ -885,7 +890,7 @@ function GoaHud:drawText1(x, y, size, color, shadow, value, color_codes)
 
 	self:drawTextStyle1(size)
 	nvgFillColor(color)
-	self:drawTextWithShadow(x, y, value, shadow, { alpha = color.a, color_codes = color_codes })
+	self:drawTextWithShadow(x, y, value, shadow, { alpha = color.a, stripColorCodes = color_codes })
 
 	nvgRestore()
 end
@@ -895,7 +900,7 @@ function GoaHud:drawTextStyleHA(size)
 end
 
 function GoaHud:drawTextHA(x, y, size, color, shadow, value)
-	self:drawText1(x, y, size, color, shadow, value, color_codes)
+	self:drawText1(x, y, size, color, shadow, value)
 end
 
 function GoaHud:drawSvgWithShadow(name, x, y, radius, blur, shadow, optargs)
@@ -909,7 +914,6 @@ function GoaHud:drawSvgWithShadow(name, x, y, radius, blur, shadow, optargs)
 	if (shadow.shadowEnabled) then
 		self:drawSvgShadow(name, x, y, radius, blur, shadow, optargs)
 	end
-
 	nvgSvg(name, x, y, radius, blur)
 
 	nvgRestore()
@@ -951,7 +955,7 @@ end
 function GoaHud:drawTextWithShadow(x, y, value, shadow, optargs)
 	if (value == nil) then return end
 	local shadow = shadow or {}
-	local optargs = optargs or {}
+	local optargs = clone(optargs) or {}
 
 	nvgSave()
 
@@ -960,16 +964,7 @@ function GoaHud:drawTextWithShadow(x, y, value, shadow, optargs)
 	if (shadow.shadowEnabled) then
 		self:drawTextShadow(0, 0, value, shadow, optargs)
 	end
-
-	if (optargs.color_codes or optargs.emoji_size ~= nil) then
-		if (self.colorCodesSupported) then
-			self:drawTextWithEmojis(0, 0, value, optargs.emoji_size)
-		else
-			nvgText(0, 0, string.gsub(value, "%^[0-9]", ""))
-		end
-	else
-		nvgText(0, 0, value)
-	end
+	nvgTextEmoji(0, 0, value, optargs)
 
 	nvgRestore()
 end
@@ -977,17 +972,21 @@ end
 function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
 	if (value == nil) then return end
 	if (shadow == nil or shadow == {}) then return end
-	local optargs = optargs or { }
+	local optargs = clone(optargs) or {}
 	local alpha = optargs.alpha or 255
+
+	if (optargs.stripColorCodes == nil) then
+		optargs.stripColorCodes = true
+	end
+
+	if (optargs.previewColorCodes) then
+		optargs.stripColorCodes = false
+		optargs.ignoreColorCodes = true
+	end
 
 	-- HACK: with transparent text, shadows will shine through the text,
 	-- ease in the alpha to make it look more natural
 	alpha = EaseIn(alpha / 255) * 255
-
-	-- strip color codes from the text, we don't want to color our shadows
-	if (optargs.color_codes or optargs.emoji_size ~= nil) then
-		value = string.gsub(value, "%^[0-9]", "")
-	end
 
 	nvgSave()
 	local shadow_x = shadow.shadowOffset
@@ -1004,12 +1003,7 @@ function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
 		pass_color.a = pass_color.a * shadow_alpha
 
 		nvgFillColor(pass_color)
-
-		if (optargs.emoji_size ~= nil) then
-			self:drawTextWithEmojis(x + shadow_x, y + shadow_y, value, optargs.emoji_size)
-		else
-			nvgText(x + shadow_x, y + shadow_y, value)
-		end
+		nvgTextEmoji(x + shadow_x, y + shadow_y, value, optargs)
 
 		shadow_left = shadow_left - shadow_alpha
 	end
@@ -1017,22 +1011,55 @@ function GoaHud:drawTextShadow(x, y, value, shadow, optargs)
 	nvgRestore()
 end
 
+
+function nvgTextColor(x, y, text, optargs)
+	if (text == nil or string.len(text) == 0) then return end
+	if (optargs and optargs.ignoreColorCodes) then return nvgText(x, y, text) end
+	if (optargs and optargs.stripColorCodes) then return nvgText(x, y, string.gsub(text, "%^[0-9a-z]", "")) end
+
+	local match_start, match_end = string.find(string.lower(text), '%^[0-9a-z]')
+	if (match_start == nil) then
+		return nvgText(x, y, text)
+	end
+
+	local code = string.lower(string.sub(text, match_start+1, match_end))
+	local color = GoaHud_ColorCodes[code]
+
+
+	local print_text
+	if (optargs.previewColorCodes) then
+		print_text = string.sub(text, 0, match_start+1)
+	else
+		print_text = string.sub(text, 0, match_start-1)
+	end
+
+	nvgText(x, y, print_text)
+	x = x + nvgTextWidth(print_text)
+
+	if (color) then
+		nvgFillColor(color)
+	end
+
+	nvgTextColor(x, y, string.sub(text, match_end+1), optargs)
+end
+
 -- adapted from EmojiChat drawTextWithEmojis with configurable emoji size and proper icon center offset
-function GoaHud:drawTextWithEmojis(x, y, text, emoji_size)
+function nvgTextEmoji(x, y, text, optargs)
 	if (text == nil or string.len(text) == 0) then return end
 
-	if (not self.colorCodesSupported) then
-		nvgText(x, y, text)
-		return
-	end
+	local emoji_size = nil
+	if (optargs) then emoji_size = optargs.emojiSize end
+	if (emoji_size == nil) then return nvgTextColor(x, y, text, optargs) end
 
 	local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
 	if (match_start == nil) then
-		nvgColorText(x, y, text)
+		nvgTextColor(x, y, text, optargs)
 		return
 	end
 
-	local svg = getEmoji(string.sub(text, match_start+1, match_end-1))
+	local emoji = string.sub(text, match_start+1, match_end-1)
+	local svg = getEmoji(emoji)
+	local svg_color = getEmojiColor(emoji)
 
 	local print_text
 	if (svg == nil) then
@@ -1042,20 +1069,29 @@ function GoaHud:drawTextWithEmojis(x, y, text, emoji_size)
 	end
 
 	-- draw the text before next emoji if any was found
-	nvgColorText(x, y, print_text)
-	x = x + nvgTextWidthEmoji(print_text, emoji_size)
+	nvgTextColor(x, y, print_text, optargs)
+	x = x + nvgTextWidthEmoji(print_text, optargs)
 
 	-- draw emoji
 	if (svg ~= nil) then
 		local radius = emoji_size/2
-		local bounds = nvgTextBoundsEmoji(print_text, emoji_size)
+		local bounds = nvgTextBoundsEmoji(print_text, optargs)
 		local offset_y = (bounds.miny + bounds.maxy) / 2
+
+		if (svg_color ~= nil) then
+			--nvgSave()
+			--nvgFillColor(svg_color)
+		end
 
 		nvgSvg(svg, x + radius, y + offset_y, radius)
 		x = x + emoji_size
+
+		if (svg_color ~= nil) then
+			--nvgRestore()
+		end
 	end
 
-	self:drawTextWithEmojis(x, y, string.sub(text, match_end+1, -1), emoji_size)
+	nvgTextEmoji(x, y, string.sub(text, match_end+1, -1), optargs)
 end
 
 --
@@ -2033,9 +2069,38 @@ end
 -- emoji helpers
 --
 
-function getEmoji(text)
-	if (not GoaHud.colorCodesSupported) then return nil end
+local addonPath = ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%.lua\"%]:%d+: $")})[1]
 
+
+
+function getEmoji(text)
+	local path
+	local svg
+	local flag = "flag_"
+	if (string.sub(text, 1, string.len(flag)) == flag) then
+		-- prefer internal flag icons over emoji flags
+		path = "internal/ui/icons/flags/"
+		svg = string.sub(text, string.len(flag)+1)
+		-- TODO: verify flag svg
+	else
+		path = addonPath .. "/emojis/"
+		svg = GoaHud_Emojis[text]
+		if (svg == nil) then
+			path = "internal/ui/icons/"
+			svg = GoaHud_EmojisInternal[text]
+		end
+	end
+
+	if (svg == nil) then return nil end
+
+	return path .. svg
+end
+
+function getEmojiColor(text)
+	return GoaHud_EmojisColor[text]
+end
+
+function getEmoji2(text)
 	local path
 	local svg
 	local flag = "flag_"
@@ -2062,13 +2127,15 @@ function isEmoji(text)
 	return getEmoji(text) ~= nil
 end
 
-function nvgTextBoundsEmoji(text, emoji_size)
-	if (not GoaHud.colorCodesSupported) then return nvgTextBounds(text) end
-
-	local emoji_size = emoji_size or FONT_SIZE_DEFAULT/2
+function nvgTextBoundsEmoji(text, optargs)
+	local emoji_size = nil
+	if (optargs) then emoji_size = optargs.emojiSize end
+	if (emoji_size == nil) then emoji_size = FONT_SIZE_DEFAULT/2 end
 
 	-- strip color codes
-	text = string.gsub(text, "%^[0-9]", "")
+	if (optargs and optargs.stripColorCodes) then
+		text = string.gsub(text, "%^[0-9a-z]", "")
+	end
 
 	local width = 0
 	for i=1, 100 do
@@ -2096,13 +2163,15 @@ function nvgTextBoundsEmoji(text, emoji_size)
 	return bounds
 end
 
-function nvgTextWidthEmoji(text, emoji_size)
-	if (not GoaHud.colorCodesSupported) then return nvgTextWidth(text) end
+function nvgTextWidthEmoji(text, optargs)
+	local emoji_size = nil
+	if (optargs) then emoji_size = optargs.emojiSize end
+	if (emoji_size == nil) then emoji_size = FONT_SIZE_DEFAULT/2 end
 
-	local emoji_size = emoji_size or FONT_SIZE_DEFAULT/2
-
-	-- strip color codes
-	text = string.gsub(text, "%^[0-9]", "")
+	-- strip color codes from the text
+	if (optargs and optargs.stripColorCodes) then
+		text = string.gsub(text, "%^[0-9a-z]", "")
+	end
 
 	local width = 0
 	for i=1, 100 do

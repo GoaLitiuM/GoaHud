@@ -230,9 +230,9 @@ function GoaHud_FragMessages:drawFragged(x, y, intensity)
 		nvgSave()
 
 		GoaHud:drawTextStyle1(title_font_size)
-		local frag_width = nvgTextWidthEmoji(string.format("%s %s %s", killer, message, killed), title_font_size)
-		local killer_width = nvgTextWidthEmoji(killer .. " ", title_font_size)
-		local message_width = nvgTextWidthEmoji(message .. " ", title_font_size)
+		local frag_width = nvgTextWidthEmoji(string.format("%s %s %s", killer, message, killed), { emojiSize = title_font_size })
+		local killer_width = nvgTextWidthEmoji(killer .. " ", { emojiSize = title_font_size })
+		local message_width = nvgTextWidthEmoji(message .. " ", { emojiSize = title_font_size })
 
 		nvgRestore()
 

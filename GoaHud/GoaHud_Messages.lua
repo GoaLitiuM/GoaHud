@@ -237,8 +237,8 @@ function GoaHud_Messages:drawMessages()
 
 			nvgFillColor(color)
 
-			local text_width = nvgTextWidthEmoji(message.text, message_font_size)
-			GoaHud:drawTextWithShadow(-text_width/2, 0 - ((i-1) * message_font_size), message.text, self.options.shadow, { alpha = color.a, emoji_size = message_font_size})
+			local text_width = nvgTextWidthEmoji(message.text, { emojiSize = message_font_size })
+			GoaHud:drawTextWithShadow(-text_width/2, 0 - ((i-1) * message_font_size), message.text, self.options.shadow, { alpha = color.a, emojiSize = message_font_size})
 		end
 		if (self.timer >= message_end_time) then
 			table.remove(self.gameMessages, #messages - i)

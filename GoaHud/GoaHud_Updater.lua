@@ -49,8 +49,7 @@ function GoaHud_Updater:updateAddon(addon_name, force)
 end
 
 function GoaHud_Updater:drawText(x, y, value)
-	GoaHud:drawTextShadow(x, y, value, self.shadow)
-	nvgText(x, y, value)
+	GoaHud:drawTextWithShadow(x, y, value, self.shadow)
 end
 
 function GoaHud_Updater:draw()

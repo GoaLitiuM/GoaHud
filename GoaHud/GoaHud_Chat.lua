@@ -59,6 +59,9 @@ GoaHud_Chat =
 		messageTime = 15.0,
 		messageFadeTime = 2.5,
 
+		enableEmojis = true,
+		enableColors = true,
+
 		--showChannelText = true,
 		useTimestamps = true,
 		showSeconds = true,
@@ -93,6 +96,8 @@ GoaHud_Chat =
 		"font", "fontSize", "width", "lineCount", "backgroundAlpha",
 		"",
 		"messageTime", "messageFadeTime",
+		"",
+		"enableEmojis", "enableColors",
 		"",
 		"useTimestamps", "showSeconds", "utcOffset",
 		"",
@@ -472,7 +477,7 @@ function pullWordEmojis(text)
 end
 
 -- modified version of reflexcore SplitTextToMultipleLines to use nvgTextWidthEmoji
-function SplitTextToMultipleLinesEmojis(text, w, emoji_size)
+function SplitTextToMultipleLinesEmojis(text, w, optargs)
 	local lines = {};
 	local lineCount = 0;
 	local newLine = "";
@@ -482,7 +487,7 @@ function SplitTextToMultipleLinesEmojis(text, w, emoji_size)
 		newWord, text = pullWordEmojis(text);
 
 		-- spit out new line
-		if nvgTextWidthEmoji(newLine .. " " .. newWord, emoji_size) > w then
+		if nvgTextWidthEmoji(newLine .. " " .. newWord, optargs) > w then
 			lineCount = lineCount + 1;
 			lines[lineCount] = newLine;
 			newLine = "";
@@ -531,6 +536,10 @@ function GoaHud_Chat:draw()
 	local say_text = say.text
 	local say_background = Color(0, 0, 0, 255)
 	local messages = self.messages
+
+	local optargs_emoji = {}
+	if (self.options.enableEmojis) then optargs_emoji.emojiSize = emoji_size end
+	if (not self.options.enableColors) then optargs_emoji.ignoreColorCodes = true end
 
 	nvgFontFace(self:getFont())
 	nvgFontSize(self.options.fontSize)
@@ -592,10 +601,11 @@ function GoaHud_Chat:draw()
 	end
 
 	-- display current line
-	if (self.options.shadow.shadowEnabled) then
-		GoaHud:drawTextShadow(0, 0, say_text, self.options.shadow)
-	end
-	nvgText(0, 0, say_text)
+	local optargs_emoji_line = {}
+	if (self.options.enableColors) then optargs_emoji_line.previewColorCodes = true
+	else optargs_emoji_line.ignoreColorCodes = true end
+
+	GoaHud:drawTextWithShadow(0, 0, say_text, self.options.shadow, optargs_emoji_line)
 
 	-- caret
 	if (say_active) then
@@ -732,7 +742,7 @@ function GoaHud_Chat:draw()
 				content_offset = content_offset + string.len(timestamp_max)
 			end
 
-			local content_lines, line_count = SplitTextToMultipleLinesEmojis(content, chat_width, emoji_size)
+			local content_lines, line_count = SplitTextToMultipleLinesEmojis(content, chat_width, optargs_emoji)
 
 			local color_background = m.colorBackground or Color(0, 0, 0, self.options.backgroundAlpha)
 			line_y = line_y - (line_height * line_count)
@@ -745,7 +755,7 @@ function GoaHud_Chat:draw()
 						nvgBeginPath()
 						nvgFillColor(color_background)
 
-						local bounds = nvgTextBoundsEmoji(line, emoji_size)
+						local bounds = nvgTextBoundsEmoji(line, optargs_emoji)
 						local width = chat_width
 
 						nvgRect(-padding, line_y + round(bounds.miny), width + padding*2, round(bounds.maxy - bounds.miny))
@@ -763,11 +773,8 @@ function GoaHud_Chat:draw()
 							nvgFillColor(self.textColor)
 							nvgFontFace(self:getFont())
 
-							if (self.options.shadow.shadowEnabled) then
-								GoaHud:drawTextShadow(0, line_y, timestamp, self.options.shadow, { emoji_size = emoji_size })
-							end
-							GoaHud:drawTextWithEmojis(0, line_y, timestamp, emoji_size)
-							content_offset_x = content_offset_x + nvgTextWidthEmoji(timestamp_max, emoji_size)
+							GoaHud:drawTextWithShadow(0, line_y, timestamp, self.options.shadow, optargs_emoji)
+							content_offset_x = content_offset_x + nvgTextWidthEmoji(timestamp_max, optargs_emoji)
 
 							nvgRestore()
 						end
@@ -779,11 +786,8 @@ function GoaHud_Chat:draw()
 							nvgFillColor(self.textColor)
 							nvgFontFace(self:getFont(true))
 
-							if (self.options.shadow.shadowEnabled) then
-								GoaHud:drawTextShadow(content_offset_x, line_y, prefix, self.options.shadow, { emoji_size = emoji_size })
-							end
-							GoaHud:drawTextWithEmojis(content_offset_x, line_y, prefix, emoji_size)
-							content_offset_x = content_offset_x + nvgTextWidthEmoji(prefix, emoji_size)
+							GoaHud:drawTextWithShadow(content_offset_x, line_y, prefix, self.options.shadow, optargs_emoji)
+							content_offset_x = content_offset_x + nvgTextWidthEmoji(prefix, optargs_emoji)
 
 							nvgRestore()
 						end
@@ -791,10 +795,7 @@ function GoaHud_Chat:draw()
 					end
 
 					-- content
-					if (self.options.shadow.shadowEnabled) then
-						GoaHud:drawTextShadow(content_offset_x, line_y, line, self.options.shadow, { emoji_size = emoji_size })
-					end
-					GoaHud:drawTextWithEmojis(content_offset_x, line_y, line, emoji_size)
+					GoaHud:drawTextWithShadow(content_offset_x, line_y, line, self.options.shadow, optargs_emoji)
 				end
 				line_y = line_y + line_height
 			end
