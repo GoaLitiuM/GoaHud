@@ -1023,6 +1023,7 @@ end
 
 function nvgTextColor(x, y, text, optargs)
 	if (text == nil or string.len(text) == 0) then return end
+	local optargs = optargs
 	if (optargs and optargs.ignoreColorCodes) then return nvgText_real(x, y, text) end
 	if (optargs and optargs.stripColorCodes) then return nvgText_real(x, y, string.gsub(text, color_pattern, "")) end
 
@@ -1042,7 +1043,16 @@ function nvgTextColor(x, y, text, optargs)
 	end
 
 	if (optargs and optargs.specialColorCodes and code == "[") then
-		nvgSave()
+		local _m, start_count = string.gsub(text, "%^%[", "")
+		local _m, end_count = string.gsub(text, "%^%]", "")
+
+		if (start_count ~= end_count) then
+			optargs = clone(optargs)
+			optargs.specialColorCode = false
+			consolePrint(string.format("start %d end %d", start_count, end_count))
+		else
+			nvgSave()
+		end
 	end
 
 	nvgText_real(x, y, print_text)
