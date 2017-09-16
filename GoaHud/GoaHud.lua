@@ -1051,7 +1051,6 @@ function nvgTextColor(x, y, text, optargs)
 		if (start_count ~= end_count) then
 			optargs = clone(optargs)
 			optargs.specialColorCode = false
-			consolePrint(string.format("start %d end %d", start_count, end_count))
 		else
 			nvgSave()
 		end
