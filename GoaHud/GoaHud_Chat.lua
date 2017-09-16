@@ -504,14 +504,29 @@ function SplitTextToMultipleLinesEmojis(text, w, optargs)
 	local newLine = "";
 
 	while string.len(text) > 0 do
-		local newWord;
+		local newWord
+		local nextLine = ""
 		newWord, text = pullWordEmojis(text);
 
 		-- spit out new line
 		if nvgTextWidthEmoji(newLine .. " " .. newWord, optargs) > w then
 			lineCount = lineCount + 1;
+
+			--if (optargs and optargs.specialColorCodes) then
+				local _m, start_count = string.gsub(newLine, "%^%[", "")
+				local _m, end_count = string.gsub(newLine, "%^%]", "")
+
+				if (start_count > end_count) then
+					local diff = start_count - end_count
+					for i=1, diff do
+						newLine = newLine .. "^]"
+						nextLine = nextLine .. "^["
+					end
+				end
+			--end
+
 			lines[lineCount] = newLine;
-			newLine = "";
+			newLine = nextLine;
 		end
 
 		-- append new word
