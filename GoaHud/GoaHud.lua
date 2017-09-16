@@ -101,6 +101,8 @@ GoaHudOptions =
 local nvgText_real = nvgText
 local nvgTextBounds_real = nvgTextBounds
 local nvgTextWidth_real = nvgTextWidth
+local nvgFillColor_real = nvgFillColor
+local nvgFillColorCurrent = Color(255, 255, 255)
 
 GOAHUD_FONT1 = "vipnagorgialla"
 GOAHUD_FONT2 = "Lato-Heavy-Optimized"
@@ -1063,6 +1065,10 @@ function nvgTextColor(x, y, text, optargs)
 	end
 
 	if (color) then
+		-- HACK: inherit transparency from current fill color
+		color = clone(color)
+		color.a = nvgFillColorCurrent.a
+
 		nvgSave()
 		nvgFillColor(color)
 	end
@@ -2211,6 +2217,11 @@ function nvgTextWidthEmoji(text, optargs)
 	end
 
 	return width + nvgTextWidth_real(text)
+end
+
+nvgFillColor = function(color)
+	nvgFillColorCurrent = clone(color)
+	return nvgFillColor_real(color)
 end
 
 -- missing functions in 0.48.3
