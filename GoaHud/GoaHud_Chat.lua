@@ -344,21 +344,42 @@ function GoaHud_Chat:onLog(entry)
 
 		local color = self.textColor
 
-		local notification_joined = " has joined the game"
-		local notification_spectating = " is now spectating"
-		local notification_disconnected = " has disconnected"
+		-- reformat notification messages to prevent color codes leaking from player names
+		local content = entry.notification
+		local joined_player, joined_content = string.match(entry.notification, '^(.*) (has joined the game)')
+		local spectating_player, spectating_content = string.match(entry.notification, '^(.*) (is now spectating)')
+		local disconnected_player, disconnected_content = string.match(entry.notification, '^(.*) (has disconnected)')
+		local editor_player, editor_content = string.match(entry.notification, '^(.*) (has become an editor)')
+		local referee_player, referee_content = string.match(entry.notification, '^(.*) (is now a referee)')
+		local unreferee_player, unreferee_content = string.match(entry.notification, '^(.*) (is no longer a referee)')
+		local renamed_player_old, renamed_content, renamed_player_new = string.match(entry.notification, '^player (.*) (renamed to) (.*)')
 
-		if (string.sub(entry.notification, -string.len(notification_joined)) == notification_joined) then
+		if (joined_player and joined_content) then
+			content = string.format("^[%s^] %s", joined_player, joined_content)
 			color = Color(200, 200, 48, 255)
-		elseif (string.sub(entry.notification, -string.len(notification_spectating)) == notification_spectating) then
+		elseif (spectating_player and spectating_content) then
+			content = string.format("^[%s^] %s", spectating_player, spectating_content)
 			color = Color(200, 200, 48, 255)
-		elseif (string.sub(entry.notification, -string.len(notification_disconnected)) == notification_disconnected) then
+		elseif (disconnected_player and disconnected_content) then
+			content = string.format("^[%s^] %s", disconnected_player, disconnected_content)
+			color = Color(200, 200, 48, 255)
+		elseif (editor_player and editor_content) then
+			content = string.format("^[%s^] %s", editor_player, editor_content)
+			color = Color(200, 200, 48, 255)
+		elseif (referee_player and referee_content) then
+			content = string.format("^[%s^] %s", referee_player, referee_content)
+			color = Color(200, 200, 48, 255)
+		elseif (unreferee_player and unreferee_content) then
+			content = string.format("^[%s^] %s", unreferee_player, unreferee_content)
+			color = Color(200, 200, 48, 255)
+		elseif (renamed_player_old and renamed_content and renamed_player_new) then
+			content = string.format("player ^[%s^] %s ^[%s^]", renamed_player_old, renamed_content, renamed_player_new)
 			color = Color(200, 200, 48, 255)
 		end
 
 		msg =
 		{
-			content = entry.notification,
+			content = content,
 			bold = true,
 
 			color = color,
@@ -392,9 +413,9 @@ function GoaHud_Chat:onLog(entry)
 
 		local content
 		if (quantity > 1) then
-			content = string.format("%s received items: %dx %s!", player_name, quantity, item)
+			content = string.format("^[%s^] received items: %dx %s!", player_name, quantity, item)
 		else
-			content = string.format("%s received item: %s!", player_name, item)
+			content = string.format("^[%s^] received item: %s!", player_name, item)
 		end
 
 		msg =
@@ -417,7 +438,7 @@ function GoaHud_Chat:onLog(entry)
 
 			msg =
 			{
-				content = string.format("%s finished race in %s", entry.raceName, FormatTimeToDecimalTime(entry.raceTime)),
+				content = string.format("^[%s^] finished race in %s", entry.raceName, FormatTimeToDecimalTime(entry.raceTime)),
 				bold = true,
 
 				color = color,
@@ -539,7 +560,11 @@ function GoaHud_Chat:draw()
 
 	local optargs_emoji = {}
 	if (self.options.enableEmojis) then optargs_emoji.emojiSize = emoji_size end
-	if (not self.options.enableColors) then optargs_emoji.ignoreColorCodes = true end
+	if (self.options.enableColors) then
+		optargs_emoji.specialColorCodes = true
+	else
+		optargs_emoji.ignoreColorCodes = true
+	end
 
 	nvgFontFace(self:getFont())
 	nvgFontSize(self.options.fontSize)
