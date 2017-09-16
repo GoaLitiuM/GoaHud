@@ -161,6 +161,9 @@ optargs_deadspec =
 	showWhenSpec = true,
 }
 
+local emoji_pattern = ":([-+%w_]+):"
+local color_pattern = "%^[0-9a-z%[%]]"
+
 local Movable_defaults =
 {
 	name = "Generic Movable",
@@ -1021,9 +1024,9 @@ end
 function nvgTextColor(x, y, text, optargs)
 	if (text == nil or string.len(text) == 0) then return end
 	if (optargs and optargs.ignoreColorCodes) then return nvgText_real(x, y, text) end
-	if (optargs and optargs.stripColorCodes) then return nvgText_real(x, y, string.gsub(text, "%^[0-9a-z]", "")) end
+	if (optargs and optargs.stripColorCodes) then return nvgText_real(x, y, string.gsub(text, color_pattern, "")) end
 
-	local match_start, match_end = string.find(string.lower(text), '%^[0-9a-z]')
+	local match_start, match_end = string.find(string.lower(text), color_pattern)
 	if (match_start == nil) then
 		return nvgText_real(x, y, text)
 	end
@@ -1038,8 +1041,16 @@ function nvgTextColor(x, y, text, optargs)
 		print_text = string.sub(text, 0, match_start-1)
 	end
 
+	if (optargs and optargs.specialColorCodes and code == "[") then
+		nvgSave()
+	end
+
 	nvgText_real(x, y, print_text)
 	x = x + nvgTextWidth_real(print_text)
+
+	if (optargs and optargs.specialColorCodes and code == "]") then
+		nvgRestore()
+	end
 
 	if (color) then
 		nvgSave()
@@ -1047,7 +1058,7 @@ function nvgTextColor(x, y, text, optargs)
 	end
 
 	nvgTextColor(x, y, string.sub(text, match_end+1), optargs)
-	
+
 	if (color) then
 		nvgRestore()
 	end
@@ -1061,7 +1072,7 @@ function nvgTextEmoji(x, y, text, optargs)
 	if (optargs) then emoji_size = optargs.emojiSize end
 	if (emoji_size == nil) then return nvgTextColor(x, y, text, optargs) end
 
-	local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
+	local match_start, match_end = string.find(string.lower(text), emoji_pattern)
 	if (match_start == nil) then
 		nvgTextColor(x, y, text, optargs)
 		return
@@ -2125,13 +2136,13 @@ function nvgTextBoundsEmoji(text, optargs)
 
 	-- strip color codes from the text
 	if (strip_color) then
-		text = string.gsub(text, "%^[0-9a-z]", "")
+		text = string.gsub(text, color_pattern, "")
 	end
 
 	local width = 0
 	for i=1, 100 do
 		-- find emoji shortcodes
-		local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
+		local match_start, match_end = string.find(string.lower(text), emoji_pattern)
 		if (match_start == nil) then
 			local bounds = nvgTextBounds_real(text)
 			bounds.maxx = bounds.maxx + width
@@ -2169,13 +2180,13 @@ function nvgTextWidthEmoji(text, optargs)
 
 	-- strip color codes from the text
 	if (strip_color) then
-		text = string.gsub(text, "%^[0-9a-z]", "")
+		text = string.gsub(text, color_pattern, "")
 	end
 
 	local width = 0
 	for i=1, 100 do
 		-- find emoji shortcodes
-		local match_start, match_end = string.find(string.lower(text), ':([-+%w_]+):')
+		local match_start, match_end = string.find(string.lower(text), emoji_pattern)
 		if (match_start == nil) then
 			return width + nvgTextWidth_real(text)
 		end
