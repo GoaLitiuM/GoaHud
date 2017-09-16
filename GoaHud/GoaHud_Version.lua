@@ -3,7 +3,7 @@
 -- Tracks changes to GoaHud.
 --
 
-local version = 31
+local version = 32
 
 function GoaHud_GetVersionPretty()
     return "r" .. GoaHud_Version.version
@@ -33,6 +33,12 @@ changelog[31] = "\z
 - Auto updater now automatically updates EmojiSupport too when enabled\n\z
 "
 
+changelog[32] = "\z
+- BetterGameplay: Added experimental option to enable color code support globally\n\z
+- Chat: Fixed color codes leaking from player names\n\z
+- Fix colored names not working in FragMessages anymore\n\z
+- Fix text transparency with color codes\n\z
+"
 
 
 
