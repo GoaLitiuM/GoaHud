@@ -900,7 +900,7 @@ function GoaHud:drawText1(x, y, size, color, shadow, value, color_codes)
 
 	self:drawTextStyle1(size)
 	nvgFillColor(color)
-	self:drawTextWithShadow(x, y, value, shadow, { alpha = color.a, stripColorCodes = color_codes })
+	self:drawTextWithShadow(x, y, value, shadow, { alpha = color.a, stripColorCodes = not color_codes or nil })
 
 	nvgRestore()
 end
