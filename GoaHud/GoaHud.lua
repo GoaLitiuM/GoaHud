@@ -2114,6 +2114,9 @@ function nvgTextBoundsEmoji(text, optargs)
 	local emoji_size = nil
 	local strip_color = nil
 	if (optargs) then
+		if (optargs.previewColorCodes) then
+			return nvgTextBounds_real(text)
+		end
 		emoji_size = optargs.emojiSize
 		strip_color = optargs.stripColorCodes
 	end
@@ -2155,6 +2158,9 @@ function nvgTextWidthEmoji(text, optargs)
 	local emoji_size = nil
 	local strip_color = nil
 	if (optargs) then
+		if (optargs.previewColorCodes) then
+			return nvgTextWidth_real(text)
+		end
 		emoji_size = optargs.emojiSize
 		strip_color = optargs.stripColorCodes
 	end

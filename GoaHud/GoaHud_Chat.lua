@@ -601,11 +601,11 @@ function GoaHud_Chat:draw()
 	end
 
 	-- display current line
-	local optargs_emoji_line = {}
-	if (self.options.enableColors) then optargs_emoji_line.previewColorCodes = true
-	else optargs_emoji_line.ignoreColorCodes = true end
+	local optargs_emoji_preview = {}
+	if (self.options.enableColors) then optargs_emoji_preview.previewColorCodes = true
+	else optargs_emoji_preview.ignoreColorCodes = true end
 
-	GoaHud:drawTextWithShadow(0, 0, say_text, self.options.shadow, optargs_emoji_line)
+	GoaHud:drawTextWithShadow(0, 0, say_text, self.options.shadow, optargs_emoji_preview)
 
 	-- caret
 	if (say_active) then
@@ -626,8 +626,8 @@ function GoaHud_Chat:draw()
 			end
 		end
 
-		local prefix_width = nvgTextWidth(say_prefix)
-		local caret_x = prefix_width + nvgTextWidth(string.sub(say.text, 0, say.cursor))
+		local prefix_width = nvgTextWidthEmoji(say_prefix, optargs_emoji_preview)
+		local caret_x = prefix_width + nvgTextWidthEmoji(string.sub(say.text, 0, say.cursor), optargs_emoji_preview)
 
 		if (self.options.caretType == CARET_TYPE_VERTICAL) then
 			local letter_width = 2
@@ -642,9 +642,9 @@ function GoaHud_Chat:draw()
 			nvgFill()
 			nvgRestore()
 		elseif (self.options.caretType == CARET_TYPE_UNDERSCORE) then
-			local letter_width = nvgTextWidth(string.sub(say.text, say.cursor+1, say.cursor+1))
+			local letter_width = nvgTextWidthEmoji(string.sub(say.text, say.cursor+1, say.cursor+1), optargs_emoji_preview)
 			if (say.cursor == #say.text) then
-				letter_width = nvgTextWidth("_")
+				letter_width = nvgTextWidthEmoji("_", optargs_emoji_preview)
 			end
 
 			nvgSave()
@@ -659,8 +659,8 @@ function GoaHud_Chat:draw()
 
 		-- cursor selection
 		if (say.cursor ~= say.cursorStart) then
-			local selection_start_x = nvgTextWidth(string.sub(say.text, 0, say.cursorStart))
-			local letter_width = nvgTextWidth(string.sub(say.text, 0, say.cursor))
+			local selection_start_x = nvgTextWidthEmoji(string.sub(say.text, 0, say.cursorStart), optargs_emoji_preview)
+			local letter_width = nvgTextWidthEmoji(string.sub(say.text, 0, say.cursor), optargs_emoji_preview)
 
 			nvgSave()
 			nvgBeginPath()
