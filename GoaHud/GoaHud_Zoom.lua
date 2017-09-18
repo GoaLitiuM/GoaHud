@@ -5,6 +5,17 @@
 
 require "base/internal/ui/reflexcore"
 
+SENSITIVITY_DISABLED = 1
+SENSITIVITY_MONITOR_DISTANCE = 2
+SENSITIVITY_VIEWSPEED = 3
+
+local SENSITIVITY_NAMES =
+{
+	"Disabled (360 Distance)",
+	"Monitor Distance",
+	"Viewspeed",
+}
+
 GoaHud_Zoom =
 {
 	enabled = true,
@@ -25,7 +36,7 @@ GoaHud_Zoom =
 		zoomFov = 43,
 		smoothZoom = true,
 		zoomTime = 0.075,
-		rescaleSensitivity = true,
+		rescaleSensitivity = SENSITIVITY_MONITOR_DISTANCE,
 		adjustViewmodel = true,
 	},
 	optionsDisplayOrder =
@@ -38,9 +49,32 @@ GoaHud_Zoom =
 GoaHud:registerWidget("GoaHud_Zoom", GOAHUD_MODULE);
 
 function GoaHud_Zoom:init()
+	-- convert old boolean value to combobox index value
+	if (tostring(self.options.rescaleSensitivity) == "true") then
+		self.options.rescaleSensitivity = SENSITIVITY_MONITOR_DISTANCE
+		self:saveOptions()
+	elseif (tostring(self.options.rescaleSensitivity) == "false") then
+		self.options.rescaleSensitivity = SENSITIVITY_DISABLED
+		self:saveOptions()
+	end
+
 	GoaHud:createConsoleVariable("zoom", "int", 0, false)
 end
 
+function math.csc(x)
+	return 1.0 / math.sin(x)
+end
+
+local deg2rad = function(deg)
+	return (math.pi / 180.0) * deg
+end
+
+local getVerticalFov = function(f)
+	local aspect = 3.0/4.0
+	return 2.0 * math.atan(aspect * math.tan(deg2rad(f) / 2.0))
+end
+
+local comboBoxData1 = {}
 function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "lastBoundKey") then return 0
 	elseif (varname == "bindZoom") then
@@ -69,6 +103,12 @@ function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
 		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs)
 	elseif (varname == "smoothZoom") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Enable Animations")
+	elseif (varname == "rescaleSensitivity") then
+		GoaLabel("Rescale Sensitivity: ", x, y, optargs)
+		self.options.rescaleSensitivity = GoaComboBoxIndex(SENSITIVITY_NAMES, self.options.rescaleSensitivity, x + 225, y, 250, comboBoxData1,
+			table.merge(optargs, { enabled = self.options.showFraggedMessage }))
+
+		return GOAHUD_SPACING
 	end
 	return nil
 end
@@ -140,8 +180,14 @@ function GoaHud_Zoom:draw()
 		local newFov = lerp(self.oldFov, self.options.zoomFov, progress)
 		consolePerformCommand("r_fov " .. tostring(newFov))
 
-		if (self.options.rescaleSensitivity) then
-			local ratio = math.atan((4.0/3.0) * math.tan(newFov * math.pi/360.0)) / math.atan((4.0/3.0) * math.tan(self.oldFov * math.pi/360.0))
+		if (self.options.rescaleSensitivity == SENSITIVITY_MONITOR_DISTANCE) then
+			local ratio = math.atan((4.0/3.0) * math.tan(deg2rad(newFov)/2.0)) / math.atan((4.0/3.0) * math.tan(deg2rad(self.oldFov)/2.0))
+			local newSensitivity = self.oldSensitivity * ratio
+			consolePerformCommand("m_speed " .. tostring(newSensitivity))
+		elseif (self.options.rescaleSensitivity == SENSITIVITY_VIEWSPEED) then
+			local oldFovVertical = getVerticalFov(self.oldFov)
+			local newFovVertical = getVerticalFov(newFov)
+			local ratio = (math.csc(oldFovVertical/2.0)/math.sqrt(2.0)) / (math.csc(newFovVertical/2.0)/math.sqrt(2.0))
 			local newSensitivity = self.oldSensitivity * ratio
 			consolePerformCommand("m_speed " .. tostring(newSensitivity))
 		end
