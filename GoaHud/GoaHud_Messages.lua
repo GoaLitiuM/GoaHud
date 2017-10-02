@@ -363,16 +363,14 @@ function GoaHud_Messages:drawFollowText()
 		local_player.state == PLAYER_STATE_QUEUED or
 		playerIndexCameraAttachedTo ~= playerIndexLocalPlayer) then
 
-		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
-
 		local name_font_size = 40
-		if (not freecam) then
-			local offset_x = 0
+		GoaHud:drawTextStyle1(name_font_size)
+		
+		if (not freecam) then	
+			local name_width = nvgTextWidthEmoji(player.name, { emojiSize = name_font_size })
+			local offset_x = -name_width / 2
 			if (self.options.showCountry and isValidCountry(player.country)) then
 				nvgSave()
-
-				GoaHud:drawTextStyle1(name_font_size)
-				local name_width = nvgTextWidth(player.name)
 
 				local flag_svg = "internal/ui/icons/flags/" .. player.country
 				local flag_size = name_font_size * 0.5
