@@ -240,7 +240,7 @@ function GoaHud_BetterSpectator:onLog(entry)
 			self.deathTimer = 0.75
 		end
 
-		if (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_KILLER) then
+		if (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_KILLER and string.len(entry.deathKiller) > 0) then
 			local killer_index = -1
 			for i, p in pairs(players) do
 				if (p.name == entry.deathKiller) then
