@@ -190,7 +190,7 @@ end
 
 function GoaHud_FragMessages:draw()
 	if (world == nil) then return end
-	self.timer = self.timer + deltaTimeRaw
+	self.timer = self.timer + deltaTime
 
 	if (not shouldShowHUD(optargs_deadspec)) then return end
 
