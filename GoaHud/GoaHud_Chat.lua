@@ -747,7 +747,7 @@ function GoaHud_Chat:draw()
 			end
 
 			if (m.source) then
-				if (self.options.shortenLongNames and m.source ~= "DEBUG" and string.len(m.source) > self.shortenNameLength) then
+				if (self.options.shortenLongNames and m.source ~= "DEBUG" and string.lenColor(m.source) > self.shortenNameLength) then
 					local break_pos
 					-- break at last possible word before hitting the length limit
 					for index = self.shortenNameLength, 0, -1 do

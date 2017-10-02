@@ -2225,6 +2225,10 @@ function nvgTextWidthEmoji(text, optargs)
 	return width + nvgTextWidth_real(text)
 end
 
+function string.lenColor(text)
+	return string.len(string.gsub(text, color_pattern, ""))
+end
+
 nvgFillColor = function(color)
 	nvgFillColorCurrent = clone(color)
 	return nvgFillColor_real(color)
