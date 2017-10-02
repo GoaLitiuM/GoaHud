@@ -210,6 +210,8 @@ function GoaHud:initialize()
 	self.draw = self.drawFirst
 
 	self:createConsoleVariable("set", "string", "", true)
+	
+	self:updateEpochTimeMs()
 
 	-- fill GoaHud_EmojisColor weapon colors
 	for i in ipairs(weaponDefinitions) do
@@ -1267,6 +1269,11 @@ function GoaHud:registerWidget(widget_name, category)
 	-- hook initialize function
 	local initialize_func = function()
 		GoaHud_HookErrorFunctions() -- in case one of my widgets happens to be called before others
+		
+		-- update accurate epoch time now if main module didn't get to it first
+		if (epochTimeMs == 0) then
+			self:updateEpochTimeMs()
+		end
 
 		if (widget_table.init == nil) then
 			consolePrint(widget_name .. " does not have init() function")
