@@ -240,45 +240,47 @@ function GoaHud_BetterSpectator:onLog(entry)
 			self.deathTimer = 0.75
 		end
 
-		if (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_KILLER and string.len(entry.deathKiller) > 0) then
-			local killer_index = -1
-			for i, p in pairs(players) do
-				if (p.name == entry.deathKiller) then
-					killer_index = p.index
-					break
-				end
-			end
-
-			if (killer_index >= 0) then
-				self.deathTimer = 0.75
-				self.nextPlayer = killer_index - 1
-			end
-		elseif (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_LEADER) then
-			-- pass 1: find the highest score
-			local leader_score = -9999
-			for i, p in pairs(players) do
-				if (p.score > leader_score) then
-					leader_score = p.score
-				end
-			end
-
-			-- pass 2: find players with highest score
-			local leader_index = -1
-			for i, p in pairs(players) do
-				if (p.score == leader_score) then
-					if (leader_index == -1) then
-						leader_index = p.index
-					else
-						-- players are tied, give up and leave camera untouched
-						leader_index = -1
+		if (not isRaceOrTrainingMode()) then
+			if (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_KILLER and string.len(entry.deathKiller) > 0) then
+				local killer_index = -1
+				for i, p in pairs(players) do
+					if (p.name == entry.deathKiller) then
+						killer_index = p.index
 						break
 					end
 				end
-			end
 
-			if (leader_index >= 0) then
-				self.deathTimer = 0.75
-				self.nextPlayer = leader_index - 1
+				if (killer_index >= 0) then
+					self.deathTimer = 0.75
+					self.nextPlayer = killer_index - 1
+				end
+			elseif (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_LEADER) then
+				-- pass 1: find the highest score
+				local leader_score = -9999
+				for i, p in pairs(players) do
+					if (p.score > leader_score) then
+						leader_score = p.score
+					end
+				end
+
+				-- pass 2: find players with highest score
+				local leader_index = -1
+				for i, p in pairs(players) do
+					if (p.score == leader_score) then
+						if (leader_index == -1) then
+							leader_index = p.index
+						else
+							-- players are tied, give up and leave camera untouched
+							leader_index = -1
+							break
+						end
+					end
+				end
+
+				if (leader_index >= 0) then
+					self.deathTimer = 0.75
+					self.nextPlayer = leader_index - 1
+				end
 			end
 		end
 	end
