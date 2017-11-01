@@ -358,7 +358,7 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 	end
 	offset_y = offset_y + GOAHUD_SPACING*1.5
 	
-	if (not self.enabled) then
+	if (self.__goahud_module and not self.enabled) then
 		GoaLabel("Module is not enabled, enable this module from GoaHud widget options.", x + offset_x, y + offset_y, optargs)
 	else
 		optargs.optionalId = optargs.optionalId + 1
@@ -1182,6 +1182,9 @@ function GoaHud:registerWidget(widget_name, category)
 	local isModule = isModule(widget_info)
 
 	-- define missing variables
+	widget_table.__goahud_module = isModule
+	widget_table.__goahud_experimental = isExperimental
+	
 	if (isModule) then
 		widget_table.canHide = false
 		widget_table.isMenu = true
