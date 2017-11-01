@@ -181,7 +181,7 @@ optargs_deadspec =
 }
 
 local emoji_pattern = ":([-+%w_]+):"
-local color_pattern = "%^[0-9a-z%[%]]"
+local color_pattern = "%^[0-9a-zA-Z%[%]]"
 
 local Movable_defaults =
 {
