@@ -113,6 +113,23 @@ GOAHUD_FONT5_BOLD = "forgotten futurist bd"
 GOAHUD_FONT5_ITALIC = "forgotten futurist rg it"
 GOAHUD_FONT5_BOLD_ITALIC = "forgotten futurist bd it"
 
+GOAHUD_FONTS =
+{
+	{ regular = GOAHUD_FONT5, bold = GOAHUD_FONT5_BOLD, italic = GOAHUD_FONT5_ITALIC, bold_italic = GOAHUD_FONT5_BOLD_ITALIC },
+	{ regular = FONT_TEXT, bold = FONT_TEXT_BOLD, italic = FONT_TEXT, bold_italic = FONT_TEXT_BOLD },
+	{ regular = FONT_TEXT2, bold = FONT_TEXT2_BOLD, italic = FONT_TEXT2, bold_italic = FONT_TEXT2_BOLD },
+	{ regular = GOAHUD_FONT1 },
+	{ regular = GOAHUD_FONT3 },
+}
+GOAHUD_FONTS_NAMES =
+{
+	"forgotten futurist",
+	"roboto",
+	"titilliumWeb",
+	"vipnagorgialla",
+	"Volter__28Goldfish_29",
+}
+
 AMMO_STATE_SWITCHING = 0
 AMMO_STATE_SHOWING = 1
 AMMO_STATE_HIDING = 2

@@ -5,23 +5,6 @@
 
 require "base/internal/ui/reflexcore"
 
-GOAHUD_CHAT_FONTS =
-{
-	{ regular = GOAHUD_FONT5, bold = GOAHUD_FONT5_BOLD, italic = GOAHUD_FONT5_ITALIC, bold_italic = GOAHUD_FONT5_BOLD_ITALIC },
-	{ regular = FONT_TEXT, bold = FONT_TEXT_BOLD, italic = FONT_TEXT, bold_italic = FONT_TEXT_BOLD },
-	{ regular = FONT_TEXT2, bold = FONT_TEXT2_BOLD, italic = FONT_TEXT2, bold_italic = FONT_TEXT2_BOLD },
-	{ regular = GOAHUD_FONT1 },
-	{ regular = GOAHUD_FONT3 },
-}
-GOAHUD_CHAT_FONTS_NAMES =
-{
-	"forgotten futurist",
-	"roboto",
-	"titilliumWeb",
-	"vipnagorgialla",
-	"Volter__28Goldfish_29",
-}
-
 CARET_TYPE_VERTICAL = 1
 CARET_TYPE_UNDERSCORE = 2
 
@@ -165,7 +148,7 @@ local comboBoxData6 = {}
 function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "font") then
 		GoaLabel("Font: ", x, y, optargs)
-		self.options.font = GoaComboBoxIndex(GOAHUD_CHAT_FONTS_NAMES, self.options.font, x + 225, y, 250, comboBoxData1, optargs)
+		self.options.font = GoaComboBoxIndex(GOAHUD_FONTS_NAMES, self.options.font, x + 225, y, 250, comboBoxData1, optargs)
 
 		return GOAHUD_SPACING
 	elseif (varname == "fontSize") then
@@ -461,7 +444,7 @@ function GoaHud_Chat:newMessage(msg)
 end
 
 function GoaHud_Chat:getFont(bold, italics)
-	local font = GOAHUD_CHAT_FONTS[self.options.font]
+	local font = GOAHUD_FONTS[self.options.font]
 	local face
 	if (not bold and not italics) then
 		face = font.regular
