@@ -1044,8 +1044,8 @@ function nvgTextColor(x, y, text, optargs)
 	end
 
 	if (optargs and optargs.specialColorCodes and code == "[") then
-		local _m, start_count = string.gsub(text, "%^%[", "")
-		local _m, end_count = string.gsub(text, "%^%]", "")
+		local _m, start_count = string.gsub(print_text, "%^%[", "")
+		local _m, end_count = string.gsub(print_text, "%^%]", "")
 
 		if (start_count ~= end_count) then
 			optargs = clone(optargs)
