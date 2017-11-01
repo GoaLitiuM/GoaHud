@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   width="110"
+   height="110"
+   id="svg2"
+   sodipodi:docname="Mensa_logo.svg"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)">
+  <metadata
+     id="metadata3729">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1027"
+     id="namedview3727"
+     showgrid="false"
+     inkscape:zoom="7.8181818"
+     inkscape:cx="55"
+     inkscape:cy="65.232558"
+     inkscape:window-x="-8"
+     inkscape:window-y="64"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <defs
+     id="defs4" />
+  <rect
+     width="106.17499"
+     height="108.29496"
+     rx="40.279369"
+     ry="40.279366"
+     x="1.7419885"
+     y="0.84196091"
+     id="rect2398"
+     style="fill:#ffffff;fill-rule:nonzero;stroke:#2c2e6a;stroke-width:1.4839766;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4" />
+  <rect
+     width="96.635147"
+     height="99.031128"
+     rx="36.569427"
+     ry="35.509438"
+     x="6.51191"
+     y="5.4242363"
+     id="rect3170"
+     style="fill:#2f2e6a;fill-rule:nonzero;stroke:none;stroke-width:6;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4" />
+  <path
+     d="M 18.328123,34.93813 L 18.328123,76.63079 L 26.14074,81.36269 L 33.95336,76.63079 L 33.953362,59.67109 L 47.385989,67.42639 L 47.385989,93.41389 L 54.866678,97.84709 L 62.347367,93.64239 L 62.347374,67.42639 L 76.214149,59.67109 L 76.214149,76.63079 L 83.772492,81.36269 L 91.330832,76.63079 L 91.330839,34.93813 L 54.866678,54.38547 L 18.328123,34.93813 z"
+     id="path3172"
+     style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter" />
+  <g
+     transform="matrix(0.2473294,0,0,0.2473294,-23.344282,-33.6617)"
+     id="g3203">
+    <path
+       d="M 396.42856,250.75504 C 396.42856,290.10533 364.52885,322.00504 325.17856,322.00504 C 285.82827,322.00504 253.92856,290.10533 253.92856,250.75504 C 253.92856,211.40475 285.82827,179.50504 325.17856,179.50504 C 364.52885,179.50504 396.42856,211.40475 396.42856,250.75504 z"
+       transform="matrix(0.8621554,0,0,0.8546366,35.716969,40.37918)"
+       id="path3174"
+       style="fill:none;fill-rule:nonzero;stroke:#ffffff;stroke-width:18.63959503;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4" />
+    <path
+       d="M 316.53125,193.79076 L 316.53125,315.57647"
+       id="path3178"
+       style="fill:none;fill-rule:evenodd;stroke:#ffffff;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none" />
+    <path
+       d="M 318.53125,196.65625 C 310.62873,199.43912 303.80821,205.19183 298.53125,212.71875 C 290.96673,223.5086 286.375,238.1914 286.375,254.40625 C 286.37499,270.6211 290.96672,285.33515 298.53125,296.125 C 303.80822,303.65192 310.62873,309.40463 318.53125,312.1875 L 318.53125,308.28125 C 312.68773,305.67595 307.28272,301.03246 302.8125,294.65625 C 295.6708,284.46949 291.15625,270.17783 291.15625,254.40625 C 291.15626,238.63467 295.67077,224.37425 302.8125,214.1875 C 307.28282,207.81117 312.68761,203.13652 318.53125,200.53125 L 318.53125,196.65625 z"
+       id="path3184"
+       style="fill:#ffffff;fill-rule:nonzero;stroke:none;stroke-width:3.3440125;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dashoffset:0" />
+    <use
+       transform="matrix(-1,0,0,1,633.0625,0)"
+       id="use3199"
+       xlink:href="#path3184" />
+    <use
+       transform="matrix(0,1,-1,0,570.75503,-61.847639)"
+       id="use3201"
+       x="0"
+       y="0"
+       width="744.09448"
+       height="1052.3622"
+       xlink:href="#path3178" />
+  </g>
+</svg>

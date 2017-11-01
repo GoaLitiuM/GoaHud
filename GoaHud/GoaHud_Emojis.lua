@@ -1,6 +1,12 @@
 GoaHud_EmojisCustom={
 ['locktarparse']='locktarparse',
 ['beatoff']='beatoff',
+['hostilethinking']='hostilethinking',
+['mensa']='mensa',
+['owlhat']='owlhat',
+['Q1thinking']='Q1thinking',
+['q1thinking']='Q1thinking',
+['reflexpicardia']='reflexpicardia',
 }
 
 GoaHud_Emojis={
