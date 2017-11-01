@@ -1,3 +1,8 @@
+GoaHud_EmojisCustom={
+['locktarparse']='locktarparse',
+['beatoff']='beatoff',
+}
+
 GoaHud_Emojis={
 ['+1']='1F44D',
 ['-1']='1F44E',
@@ -1631,8 +1636,6 @@ GoaHud_Emojis={
 ['zipper_mouth']='1F910',
 ['zombie']='1F9DF',
 ['zzz']='1F4A4',
-['locktarparse']='locktarparse',
-['beatoff']='beatoff',
 }
 
 GoaHud_EmojisInternal={

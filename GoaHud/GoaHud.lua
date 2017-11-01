@@ -817,13 +817,10 @@ end
 -- draw
 --
 
-local emojiPath = ""
 local first_draw = true
 function GoaHud:drawFirst()
 	self:processConVars()
 	self:postInitWidgets()
-
-	emojiPath = GoaHud_EmojiPath or ""
 
 	self.draw = self.drawReal
 	self:drawReal()
@@ -2112,6 +2109,9 @@ end
 -- emoji helpers
 --
 
+-- the path could be too long so the error message's filepath might not have .lua in the end
+GoaHud_MainEmojiPath = ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%.lua\"%]:%d+: $")})[1] or ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%...\"%]:%d+: $")})[1]
+
 function getEmoji(text)
 	local path
 	local svg
@@ -2122,11 +2122,17 @@ function getEmoji(text)
 		svg = string.sub(text, string.len(flag)+1)
 		-- TODO: verify flag svg
 	else
-		path = emojiPath .. "/emojis/"
-		svg = GoaHud_Emojis[text]
+		path = GoaHud_MainEmojiPath .. "/emojis/"
+		svg = GoaHud_EmojisCustom[text]
 		if (svg == nil) then
-			path = "internal/ui/icons/"
-			svg = GoaHud_EmojisInternal[text]
+			if (GoaHud_EmojiPath) then
+				path = GoaHud_EmojiPath .. "/emojis/"
+				svg = GoaHud_Emojis[text]
+			end
+			if (svg == nil) then
+				path = "internal/ui/icons/"
+				svg = GoaHud_EmojisInternal[text]
+			end
 		end
 	end
 
