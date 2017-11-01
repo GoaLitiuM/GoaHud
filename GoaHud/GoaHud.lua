@@ -357,78 +357,82 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 		GoaHud_ResetOptions(self)
 	end
 	offset_y = offset_y + GOAHUD_SPACING*1.5
+	
+	if (not self.enabled) then
+		GoaLabel("Module is not enabled, enable this module from GoaHud widget options.", x + offset_x, y + offset_y, optargs)
+	else
+		optargs.optionalId = optargs.optionalId + 1
+		firstWidgetOptionalId = optargs.optionalId
 
-	optargs.optionalId = optargs.optionalId + 1
-	firstWidgetOptionalId = optargs.optionalId
+		-- we try to iterate names over defaults table because the order of keys in options table may not remain the same
+		local options_keys = self.defaults
+		local pairs_func = pairs
+		local name_func = function(key) return key end
 
-	-- we try to iterate names over defaults table because the order of keys in options table may not remain the same
-	local options_keys = self.defaults
-	local pairs_func = pairs
-	local name_func = function(key) return key end
+		-- ...unless addon wants to display it in different order
+		if (self.optionsDisplayOrder ~= nil) then
+			options_keys = self.optionsDisplayOrder
+			pairs_func = ipairs
+			name_func = function(key) return options_keys[key] end
 
-	-- ...unless addon wants to display it in different order
-	if (self.optionsDisplayOrder ~= nil) then
-		options_keys = self.optionsDisplayOrder
-		pairs_func = ipairs
-		name_func = function(key) return options_keys[key] end
+			for i in pairs_func(options_keys) do
+				local name = name_func(i)
+				if (name == "preview") then draw_preview_first = false; break; end
+			end
+		end
+
+		-- draw preview first
+		if (draw_preview_first and not popupActive) then
+			if (self.drawPreview ~= nil) then
+				offset_y = offset_y + self:drawPreview(x, y + offset_y, intensity)
+			end
+		end
 
 		for i in pairs_func(options_keys) do
 			local name = name_func(i)
-			if (name == "preview") then draw_preview_first = false; break; end
-		end
-	end
+			if (name == "") then
+				offset_y = offset_y + GOAHUD_SPACING/2
+			elseif (name == "preview") then
+				if (not popupActive and self.drawPreview ~= nil) then
+					offset_y = offset_y + self:drawPreview(x, y + offset_y, intensity)
+				end
+			elseif (name ~= "enabled" and name ~= "shadow") then
+				local custom_draw = false
+				local variable_offset = 0
 
-	-- draw preview first
-	if (draw_preview_first and not popupActive) then
-		if (self.drawPreview ~= nil) then
-			offset_y = offset_y + self:drawPreview(x, y + offset_y, intensity)
-		end
-	end
+				-- call custom drawing function for variable if possible
+				if (self.drawOptionsVariable ~= nil) then
+					variable_offset = self:drawOptionsVariable(name, x + offset_x, y + offset_y, optargs)
+					if (variable_offset ~= nil and variable_offset >= 0) then custom_draw = true end
+				end
 
-	for i in pairs_func(options_keys) do
-		local name = name_func(i)
-		if (name == "") then
-			offset_y = offset_y + GOAHUD_SPACING/2
-		elseif (name == "preview") then
-			if (not popupActive and self.drawPreview ~= nil) then
-				offset_y = offset_y + self:drawPreview(x, y + offset_y, intensity)
+				if (not custom_draw) then
+					variable_offset = GoaHud_DrawOptionsVariable(self.options, name, x + offset_x, y + offset_y, optargs)
+				end
+
+				offset_y = offset_y + variable_offset
+
+				optargs.optionalId = optargs.optionalId + 1
 			end
-		elseif (name ~= "enabled" and name ~= "shadow") then
-			local custom_draw = false
-			local variable_offset = 0
-
-			-- call custom drawing function for variable if possible
-			if (self.drawOptionsVariable ~= nil) then
-				variable_offset = self:drawOptionsVariable(name, x + offset_x, y + offset_y, optargs)
-				if (variable_offset ~= nil and variable_offset >= 0) then custom_draw = true end
-			end
-
-			if (not custom_draw) then
-				variable_offset = GoaHud_DrawOptionsVariable(self.options, name, x + offset_x, y + offset_y, optargs)
-			end
-
-			offset_y = offset_y + variable_offset
-
-			optargs.optionalId = optargs.optionalId + 1
 		end
-	end
 
-	-- draw shadow options last
-	if (self.defaults.shadow ~= nil) then
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowEnabled", x + offset_x, y + offset_y, optargs, "Enable Shadows")
+		-- draw shadow options last
+		if (self.defaults.shadow ~= nil) then
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowEnabled", x + offset_x, y + offset_y, optargs, "Enable Shadows")
 
-		offset_x = offset_x + GOAHUD_INDENTATION
+			offset_x = offset_x + GOAHUD_INDENTATION
 
-		local optargs_shadows = clone(optargs)
-		optargs_shadows.enabled = self.options.shadow.shadowEnabled
+			local optargs_shadows = clone(optargs)
+			optargs_shadows.enabled = self.options.shadow.shadowEnabled
 
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowOffset", x + offset_x, y + offset_y, optargs_shadows, "Offset")
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowBlur", x + offset_x, y + offset_y, optargs_shadows, "Blur")
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowStrength", x + offset_x, y + offset_y, optargs_shadows, "Strength")
-		offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowColor", x + offset_x, y + offset_y, optargs_shadows, "Color")
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowOffset", x + offset_x, y + offset_y, optargs_shadows, "Offset")
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowBlur", x + offset_x, y + offset_y, optargs_shadows, "Blur")
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowStrength", x + offset_x, y + offset_y, optargs_shadows, "Strength")
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowColor", x + offset_x, y + offset_y, optargs_shadows, "Color")
 
-		offset_x = offset_x - GOAHUD_INDENTATION
-		optargs.optionalId = optargs_shadows.optionalId
+			offset_x = offset_x - GOAHUD_INDENTATION
+			optargs.optionalId = optargs_shadows.optionalId
+		end
 	end
 
 	if (comboBoxesCount > 0) then
