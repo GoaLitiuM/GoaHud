@@ -112,6 +112,10 @@ GOAHUD_FONT5 = "forgotten futurist rg"
 GOAHUD_FONT5_BOLD = "forgotten futurist bd"
 GOAHUD_FONT5_ITALIC = "forgotten futurist rg it"
 GOAHUD_FONT5_BOLD_ITALIC = "forgotten futurist bd it"
+GOAHUD_FONT6 = "Oswald-Regular"
+GOAHUD_FONT6_BOLD = "Oswald-Bold"
+GOAHUD_FONT6_ITALIC = "Oswald-RegularItalic"
+GOAHUD_FONT6_BOLD_ITALIC = "Oswald-BoldItalic"
 
 GOAHUD_FONTS =
 {
@@ -120,6 +124,7 @@ GOAHUD_FONTS =
 	{ regular = FONT_TEXT2, bold = FONT_TEXT2_BOLD, italic = FONT_TEXT2, bold_italic = FONT_TEXT2_BOLD },
 	{ regular = GOAHUD_FONT1 },
 	{ regular = GOAHUD_FONT3 },
+	{ regular = GOAHUD_FONT6, bold = GOAHUD_FONT6_BOLD, italic = GOAHUD_FONT6_ITALIC, bold_italic = GOAHUD_FONT6_BOLD_ITALIC },
 }
 GOAHUD_FONTS_NAMES =
 {
@@ -128,6 +133,7 @@ GOAHUD_FONTS_NAMES =
 	"titilliumWeb",
 	"vipnagorgialla",
 	"Volter__28Goldfish_29",
+	"Oswald",
 }
 
 AMMO_STATE_SWITCHING = 0
