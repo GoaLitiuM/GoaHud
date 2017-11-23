@@ -29,6 +29,7 @@ local CrosshairShape =
 	dot = false,
 
 	mode = CROSSHAIR_MODE_NORMAL,
+	modeShowTime = 0,
 	modeFadeTime = 0.5,
 
 	useShadow = true,
@@ -236,6 +237,7 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 		values_changed = values_changed + shape.type
 		values_changed = values_changed + shape.size
 		values_changed = values_changed + shape.strokeWidth
+		values_changed = values_changed + shape.modeShowTime
 		values_changed = values_changed + shape.modeFadeTime
 		values_changed = values_changed + shape.holeSize
 
@@ -278,8 +280,11 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 			offset_y = offset_y + GOAHUD_SPACING
 
 			offset_x = offset_x + GOAHUD_INDENTATION
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "modeShowTime", x + offset_x, y + offset_y,
+				table.merge(optargs, { enabled = mode_enabled and shape.mode ~= CROSSHAIR_MODE_NORMAL, milliseconds = true, min_value = 0, max_value = 1000 }), "Show Time")
+			optargs.optionalId = optargs.optionalId + 1
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "modeFadeTime", x + offset_x, y + offset_y,
-				table.merge(optargs, { enabled = mode_enabled and shape.mode ~= CROSSHAIR_MODE_NORMAL, milliseconds = true, min_value = 1, max_value = 1000 }), "Fade Time")
+				table.merge(optargs, { enabled = mode_enabled and shape.mode ~= CROSSHAIR_MODE_NORMAL, milliseconds = true, min_value = 0, max_value = 1000 }), "Fade Time")
 			optargs.optionalId = optargs.optionalId + 1
 			offset_x = offset_x - GOAHUD_INDENTATION
 
@@ -437,12 +442,22 @@ function GoaHud_Crosshair:drawCrosshair(weapon, x, y, intensity)
 			local shape_scale = 1.0 - intensity
 			local final_color = clone(shape.color)
 			final_color.a = final_color.a * (1.0 - intensity)
-
-			local mode_intensity = 1.0
+			
+			local lastTriggerTime = 0.0
 			if (shape.mode == CROSSHAIR_MODE_DAMAGE) then
-				mode_intensity = 1.0 - math.max(math.min((epochTimeMs - self.lastDamageTime) / shape.modeFadeTime, 1.0), 0.0)
+				lastTriggerTime = self.lastDamageTime
 			elseif (shape.mode == CROSSHAIR_MODE_DAMAGETAKEN) then
-				mode_intensity = 1.0 - math.max(math.min((epochTimeMs - self.lastDamageTakenTime) / shape.modeFadeTime, 1.0), 0.0)
+				lastTriggerTime = self.lastDamageTakenTime
+			end
+			
+			local triggerTimer = epochTimeMs - lastTriggerTime
+			local mode_intensity = 1.0
+			if (shape.mode == CROSSHAIR_MODE_DAMAGE or shape.mode == CROSSHAIR_MODE_DAMAGETAKEN) then
+				if (shape.modeFadeTime <= 0.0) then
+					if (triggerTimer >= shape.modeShowTime) then mode_intensity = 0.0 end
+				else
+					mode_intensity = 1.0 - math.max(math.min(math.max(triggerTimer - shape.modeShowTime, 0.0) / shape.modeFadeTime, 1.0), 0.0)
+				end
 			end
 
 			final_color.a = final_color.a * EaseIn(mode_intensity)
