@@ -233,7 +233,7 @@ function GoaHud:initialize()
 	self.draw = self.drawFirst
 
 	self:createConsoleVariable("set", "string", "", true)
-	
+
 	self:updateEpochTimeMs()
 
 	-- fill GoaHud_EmojisColor weapon colors
@@ -357,7 +357,7 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 		GoaHud_ResetOptions(self)
 	end
 	offset_y = offset_y + GOAHUD_SPACING*1.5
-	
+
 	if (self.__goahud_module and not self.enabled) then
 		GoaLabel("Module is not enabled, enable this module from GoaHud widget options.", x + offset_x, y + offset_y, optargs)
 	else
@@ -607,7 +607,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		end
 
 		if (units ~= nil) then
-			GoaLabel(tostring(units), x + offset_x + slider_offset + slider_width + editbox_width + 30, y + offset_y, optargs)
+			GoaLabel(tostring(units), x + offset_x + slider_offset + slider_width + editbox_width + 25, y + offset_y, optargs)
 		end
 
 		options[name] = new_value
@@ -1184,7 +1184,7 @@ function GoaHud:registerWidget(widget_name, category)
 	-- define missing variables
 	widget_table.__goahud_module = isModule
 	widget_table.__goahud_experimental = isExperimental
-	
+
 	if (isModule) then
 		widget_table.canHide = false
 		widget_table.isMenu = true
@@ -1296,7 +1296,7 @@ function GoaHud:registerWidget(widget_name, category)
 	-- hook initialize function
 	local initialize_func = function()
 		GoaHud_HookErrorFunctions() -- in case one of my widgets happens to be called before others
-		
+
 		-- update accurate epoch time now if main module didn't get to it first
 		if (epochTimeMs == 0) then
 			self:updateEpochTimeMs()
