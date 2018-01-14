@@ -98,11 +98,15 @@ GoaHudOptions =
 	draw = function() end,
 };
 
+local emojiSizeMultiplier = 0.75
+
 local nvgText_real = nvgText
 local nvgTextBounds_real = nvgTextBounds
 local nvgTextWidth_real = nvgTextWidth
 local nvgFillColor_real = nvgFillColor
 local nvgFillColorCurrent = Color(255, 255, 255)
+local nvgFontSize_real = nvgFontSize
+local nvgFontSizeCurrent = 24
 
 GOAHUD_FONT1 = "vipnagorgialla"
 GOAHUD_FONT2 = "Lato-Heavy-Optimized"
@@ -1111,7 +1115,7 @@ function nvgTextEmoji(x, y, text, optargs)
 
 	local emoji_size = nil
 	if (optargs) then emoji_size = optargs.emojiSize end
-	if (emoji_size == nil) then return nvgTextColor(x, y, text, optargs) end
+	if (emoji_size == nil) then emoji_size = nvgFontSizeCurrent * emojiSizeMultiplier end
 
 	local match_start, match_end = string.find(string.lower(text), emoji_pattern)
 	if (match_start == nil) then
@@ -2192,7 +2196,7 @@ function nvgTextBoundsEmoji(text, optargs)
 		emoji_size = optargs.emojiSize
 		strip_color = optargs.stripColorCodes
 	end
-	if (emoji_size == nil) then emoji_size = FONT_SIZE_DEFAULT/2 end
+	if (emoji_size == nil) then emoji_size = nvgFontSizeCurrent * emojiSizeMultiplier end
 	if (strip_color == nil) then strip_color = true end -- it's desirable to default to stripping mode when measuring text bounds
 
 	-- strip color codes from the text
@@ -2240,7 +2244,7 @@ function nvgTextWidthEmoji(text, optargs)
 		emoji_size = optargs.emojiSize
 		strip_color = optargs.stripColorCodes
 	end
-	if (emoji_size == nil) then emoji_size = FONT_SIZE_DEFAULT/2 end
+	if (emoji_size == nil) then emoji_size = nvgFontSizeCurrent * emojiSizeMultiplier end
 	if (strip_color == nil) then strip_color = true end -- it's desirable to default to stripping mode when measuring text bounds
 
 	-- strip color codes from the text
@@ -2279,6 +2283,11 @@ end
 nvgFillColor = function(color)
 	nvgFillColorCurrent = clone(color)
 	return nvgFillColor_real(color)
+end
+
+nvgFontSize = function(size)
+	nvgFontSizeCurrent = clone(size)
+	return nvgFontSize_real(size)
 end
 
 -- missing functions in 0.48.3
