@@ -37,6 +37,7 @@ GoaHud_Chat =
 
 		width = 675,
 		lineCount = 8,
+		lineCountActive = 16,
 		backgroundAlpha = 96,
 
 		messageTime = 15.0,
@@ -77,7 +78,7 @@ GoaHud_Chat =
 	optionsDisplayOrder =
 	{
 		"preview",
-		"font", "fontSize", "width", "lineCount", "backgroundAlpha",
+		"font", "fontSize", "width", "lineCount", "lineCountActive", "backgroundAlpha",
 		"",
 		"messageTime", "messageFadeTime",
 		"",
@@ -104,6 +105,7 @@ GoaHud_Chat =
 
 	messages = {},
 	messagesPreview = {},
+	messagePosition = 0,
 }
 GoaHud:registerWidget("GoaHud_Chat")
 
@@ -179,6 +181,13 @@ function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 		optargs.tick = 1
 		optargs.units = "lines"
 		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Height")
+	elseif (varname == "lineCountActive") then
+		local optargs = clone(optargs)
+		optargs.min_value = 1
+		optargs.max_value = 100
+		optargs.tick = 1
+		optargs.units = "lines"
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Height (Active)")
 	elseif (varname == "backgroundAlpha") then
 		local optargs = clone(optargs)
 		optargs.min_value = 0
@@ -449,6 +458,9 @@ end
 function GoaHud_Chat:newMessage(msg)
 	table.insert(self.messages, 1, msg)
 	debugLastMsg = {}
+
+	-- keep the currently scrolled message position
+	if (self.messagePosition ~= 1) then self.messagePosition = self.messagePosition + 1 end
 end
 
 function GoaHud_Chat:getFont(bold, italics)
@@ -559,7 +571,7 @@ function GoaHud_Chat:drawPreview(x, y, intensity)
 
 	nvgTranslate(x + 10, y + lineheight)
 	self:drawCurrentLine(say)
-	self:drawMessages(say, self.messagesPreview, linecount-1)
+	self:drawMessages(say, self.messagesPreview, 0, linecount-1)
 
 	nvgRestore()
 
@@ -588,19 +600,38 @@ function GoaHud_Chat:draw()
 		messages = self.messagesPreview
 	end
 
-	-- show mouse when chat is active
-	--[[]
+	-- chat scrolling
 	if (say.hover ~= last_hover) then
 		if (say.hover) then
-			consolePerformCommand("m_enabled 1")
+			if (say.mouseWheel > 0) then
+				self.messagePosition = self.messagePosition + 1
+			elseif (say.mouseWheel < 0) then
+				self.messagePosition = self.messagePosition - 1
+			end
+
+			local messagecount = 0
+			for i in ipairs(messages) do
+				messagecount = messagecount + 1
+			end
+
+			local linecount
+			if (say.hover) then
+				linecount = self.options.lineCountActive
+			else
+				linecount = self.options.lineCount
+			end
+
+			self.messagePosition = math.min(self.messagePosition, messagecount-linecount+1)
+			self.messagePosition = math.max(self.messagePosition, 1)
+			--consolePerformCommand("m_enabled 1")
 		else
-			consolePerformCommand("m_enabled 0")
+			self.messagePosition = 0
+			--consolePerformCommand("m_enabled 0")
 		end
 	end
-	--]]
 
 	self:drawCurrentLine(say)
-	self:drawMessages(say, messages)
+	self:drawMessages(say, messages, self.messagePosition)
 end
 
 local last_cursor = -1
@@ -723,12 +754,18 @@ function GoaHud_Chat:drawCurrentLine(say)
 	end
 end
 
-function GoaHud_Chat:drawMessages(say, messages, linecount)
+function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 	local line_height = self.options.fontSize
 	local emoji_size = self.options.fontSize*0.9
 	local line_y = 0
 
-	local linecount = linecount or self.options.lineCount
+	local linecount = linecount
+	if (say.hover) then
+		linecount = linecount or self.options.lineCountActive
+	else
+		linecount = linecount or self.options.lineCount
+	end
+
 	local height = (linecount+1) * line_height
 	local padding = round(self.options.fontSize * 0.14)
 
@@ -747,130 +784,132 @@ function GoaHud_Chat:drawMessages(say, messages, linecount)
 	for i, m in ipairs(messages) do
 		if (line_y <= -height) then break end
 
-		local age = epochTimeMs - m.timestamp
+		if (i >= messagepos) then
+			local age = epochTimeMs - m.timestamp
 
-		-- always show messages while typing
-		if (say.hover) then age = 0.0 end
+			-- always show messages while typing
+			if (say.hover) then age = 0.0 end
 
-		if (line_y > -height and age < self.options.messageTime + self.options.messageFadeTime) then
-			nvgSave()
+			if (line_y > -height and age < self.options.messageTime + self.options.messageFadeTime) then
+				nvgSave()
 
-			-- fade out alpha
-			if (age >= self.options.messageTime) then
-				local alpha = 1.0 - ((age - self.options.messageTime) / self.options.messageFadeTime)
-				nvgGlobalAlpha(EaseOut(alpha))
-			end
-
-			local line_y_start = line_y
-			local content = m.content
-			local content_offset = 0
-			local prefix
-			local bold = m.bold or false
-			local italic = m.italic or false
-			local timestamp, timestamp_max
-
-			nvgFontFace(self:getFont(bold, italic))
-			nvgFillColor(m.color or self.textColor)
-
-			-- repeated count for debug messages
-			if (m.debugRepeat ~= nil and m.debugRepeat > 1) then
-				content = string.format("[%d] %s", m.debugRepeat, content)
-			end
-
-			if (m.source) then
-				if (self.options.shortenLongNames and m.source ~= "DEBUG" and string.lenColor(m.source) > self.shortenNameLength) then
-					local break_pos
-					-- break at last possible word before hitting the length limit
-					for index = self.shortenNameLength, 0, -1 do
-						break_pos = string.find(m.source, "[ _.-:]", index)
-						if (break_pos ~= nil and break_pos <= self.shortenNameLength+1) then break end
-					end
-
-					-- fallback to character length
-					if (break_pos == nil) then break_pos = self.shortenNameLength+1 end
-
-					prefix = string.sub(m.source, 0, break_pos-1) .. "...: "
-				else
-					prefix = m.source .. ": "
-				end
-				content = prefix .. content
-				content_offset = content_offset + string.len(prefix)
-			end
-
-			if (self.options.useTimestamps) then
-				local t = GoaHud:formatTime(m.timestamp + (self.options.utcOffset * 60 * 60))
-
-				local format_str
-				if (self.options.showSeconds) then
-					format_str = "%02d:%02d:%02d "
-				else
-					format_str = "%02d:%02d "
+				-- fade out alpha
+				if (age >= self.options.messageTime) then
+					local alpha = 1.0 - ((age - self.options.messageTime) / self.options.messageFadeTime)
+					nvgGlobalAlpha(EaseOut(alpha))
 				end
 
-				timestamp = string.format(format_str, t.hours_total % 24, t.mins_total % 60, t.secs_total % 60)
-				timestamp_max = string.format(format_str, 88, 88, 88)
-				content = timestamp_max .. content
-				content_offset = content_offset + string.len(timestamp_max)
-			end
+				local line_y_start = line_y
+				local content = m.content
+				local content_offset = 0
+				local prefix
+				local bold = m.bold or false
+				local italic = m.italic or false
+				local timestamp, timestamp_max
 
-			local content_lines, line_count = SplitTextToMultipleLinesEmojis(content, self.options.width, optargs_emoji)
+				nvgFontFace(self:getFont(bold, italic))
+				nvgFillColor(m.color or self.textColor)
 
-			local color_background = m.colorBackground or Color(0, 0, 0, self.options.backgroundAlpha)
-			line_y = line_y - (line_height * line_count)
+				-- repeated count for debug messages
+				if (m.debugRepeat ~= nil and m.debugRepeat > 1) then
+					content = string.format("[%d] %s", m.debugRepeat, content)
+				end
 
-			for j, line in ipairs(content_lines) do
-				if (line_y > -height) then
-					-- line background
-					if (color_background ~= nil) then
-						nvgSave()
-						nvgBeginPath()
-						nvgFillColor(color_background)
+				if (m.source) then
+					if (self.options.shortenLongNames and m.source ~= "DEBUG" and string.lenColor(m.source) > self.shortenNameLength) then
+						local break_pos
+						-- break at last possible word before hitting the length limit
+						for index = self.shortenNameLength, 0, -1 do
+							break_pos = string.find(m.source, "[ _.-:]", index)
+							if (break_pos ~= nil and break_pos <= self.shortenNameLength+1) then break end
+						end
 
-						local bounds = nvgTextBoundsEmoji(line, optargs_emoji)
-						nvgRect(-padding, line_y + round(bounds.miny), self.options.width + padding*2, round(bounds.maxy - bounds.miny))
+						-- fallback to character length
+						if (break_pos == nil) then break_pos = self.shortenNameLength+1 end
 
-						nvgFill()
-						nvgRestore()
+						prefix = string.sub(m.source, 0, break_pos-1) .. "...: "
+					else
+						prefix = m.source .. ": "
+					end
+					content = prefix .. content
+					content_offset = content_offset + string.len(prefix)
+				end
+
+				if (self.options.useTimestamps) then
+					local t = GoaHud:formatTime(m.timestamp + (self.options.utcOffset * 60 * 60))
+
+					local format_str
+					if (self.options.showSeconds) then
+						format_str = "%02d:%02d:%02d "
+					else
+						format_str = "%02d:%02d "
 					end
 
-					local content_offset_x = 0
-					if (j == 1) then -- first line
-						-- timestamps
-						if (timestamp ~= nil) then
+					timestamp = string.format(format_str, t.hours_total % 24, t.mins_total % 60, t.secs_total % 60)
+					timestamp_max = string.format(format_str, 88, 88, 88)
+					content = timestamp_max .. content
+					content_offset = content_offset + string.len(timestamp_max)
+				end
+
+				local content_lines, line_count = SplitTextToMultipleLinesEmojis(content, self.options.width, optargs_emoji)
+
+				local color_background = m.colorBackground or Color(0, 0, 0, self.options.backgroundAlpha)
+				line_y = line_y - (line_height * line_count)
+
+				for j, line in ipairs(content_lines) do
+					if (line_y > -height) then
+						-- line background
+						if (color_background ~= nil) then
 							nvgSave()
+							nvgBeginPath()
+							nvgFillColor(color_background)
 
-							nvgFillColor(self.textColor)
-							nvgFontFace(self:getFont())
+							local bounds = nvgTextBoundsEmoji(line, optargs_emoji)
+							nvgRect(-padding, line_y + round(bounds.miny), self.options.width + padding*2, round(bounds.maxy - bounds.miny))
 
-							GoaHud:drawTextWithShadow(0, line_y, timestamp, self.options.shadow, optargs_emoji)
-							content_offset_x = content_offset_x + nvgTextWidthEmoji(timestamp_max, optargs_emoji)
-
+							nvgFill()
 							nvgRestore()
 						end
 
-						-- source (player name)
-						if (prefix ~= nil) then
-							nvgSave()
+						local content_offset_x = 0
+						if (j == 1) then -- first line
+							-- timestamps
+							if (timestamp ~= nil) then
+								nvgSave()
 
-							nvgFillColor(self.textColor)
-							nvgFontFace(self:getFont(true))
+								nvgFillColor(self.textColor)
+								nvgFontFace(self:getFont())
 
-							GoaHud:drawTextWithShadow(content_offset_x, line_y, prefix, self.options.shadow, optargs_emoji)
-							content_offset_x = content_offset_x + nvgTextWidthEmoji(prefix, optargs_emoji)
+								GoaHud:drawTextWithShadow(0, line_y, timestamp, self.options.shadow, optargs_emoji)
+								content_offset_x = content_offset_x + nvgTextWidthEmoji(timestamp_max, optargs_emoji)
 
-							nvgRestore()
+								nvgRestore()
+							end
+
+							-- source (player name)
+							if (prefix ~= nil) then
+								nvgSave()
+
+								nvgFillColor(self.textColor)
+								nvgFontFace(self:getFont(true))
+
+								GoaHud:drawTextWithShadow(content_offset_x, line_y, prefix, self.options.shadow, optargs_emoji)
+								content_offset_x = content_offset_x + nvgTextWidthEmoji(prefix, optargs_emoji)
+
+								nvgRestore()
+							end
+							line = string.sub(line, content_offset+1)
 						end
-						line = string.sub(line, content_offset+1)
+
+						-- content
+						GoaHud:drawTextWithShadow(content_offset_x, line_y, line, self.options.shadow, optargs_emoji)
 					end
-
-					-- content
-					GoaHud:drawTextWithShadow(content_offset_x, line_y, line, self.options.shadow, optargs_emoji)
+					line_y = line_y + line_height
 				end
-				line_y = line_y + line_height
-			end
 
-			line_y = line_y_start - (line_height * line_count)
-			nvgRestore()
+				line_y = line_y_start - (line_height * line_count)
+				nvgRestore()
+			end
 		end
 	end
 end
