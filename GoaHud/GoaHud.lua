@@ -1156,6 +1156,9 @@ function nvgTextEmoji(x, y, text, optargs)
 	nvgTextEmoji(x, y, string.sub(text, match_end+1, -1), optargs)
 end
 
+function nvgTextStrip(x, y, text, optargs)
+	return nvgText_real(x, y, string.gsub(text, color_pattern, ""), optargs)
+end
 --
 -- widget helpers
 --
@@ -2223,6 +2226,10 @@ function nvgTextBoundsEmoji(text, optargs)
 	return bounds
 end
 
+function nvgTextBoundsStrip(text, optargs)
+	return nvgTextBounds_real(string.gsub(text, color_pattern, ""), optargs)
+end
+
 function nvgTextWidthEmoji(text, optargs)
 	local emoji_size = nil
 	local strip_color = nil
@@ -2259,6 +2266,10 @@ function nvgTextWidthEmoji(text, optargs)
 	end
 
 	return width + nvgTextWidth_real(text)
+end
+
+function nvgTextWidthStrip(text, optargs)
+	return nvgTextWidth_real(string.gsub(text, color_pattern, ""), optargs)
 end
 
 function string.lenColor(text)
