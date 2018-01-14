@@ -76,6 +76,7 @@ GoaHud_Chat =
 
 	optionsDisplayOrder =
 	{
+		"preview",
 		"font", "fontSize", "width", "lineCount", "backgroundAlpha",
 		"",
 		"messageTime", "messageFadeTime",
@@ -146,7 +147,9 @@ local comboBoxData4 = {}
 local comboBoxData5 = {}
 local comboBoxData6 = {}
 function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
-	if (varname == "font") then
+	if (varname == "preview") then
+		return self:drawPreview(x, y, 1.0)
+	elseif (varname == "font") then
 		GoaLabel("Font: ", x, y, optargs)
 		self.options.font = GoaComboBoxIndex(GOAHUD_FONTS_NAMES, self.options.font, x + 225, y, 250, comboBoxData1, optargs)
 
@@ -163,20 +166,25 @@ function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 		optargs.max_value = 1920
 		optargs.tick = 1
 		optargs.units = "px"
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Width")
+
+		y = y + GOAHUD_SPACING
+		GoaLabel("Line: ", x, y, optargs)
+		y = y + GOAHUD_SPACING
+
+		return 2*GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Width")
 	elseif (varname == "lineCount") then
 		local optargs = clone(optargs)
 		optargs.min_value = 1
 		optargs.max_value = 100
 		optargs.tick = 1
 		optargs.units = "lines"
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Height")
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Height")
 	elseif (varname == "backgroundAlpha") then
 		local optargs = clone(optargs)
 		optargs.min_value = 0
 		optargs.max_value = 255
 		optargs.tick = 1
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Transparency")
+		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Transparency")
 	elseif (varname == "messageTime") then
 		local optargs = clone(optargs)
 		optargs.min_value = 1
@@ -529,7 +537,35 @@ function SplitTextToMultipleLinesEmojis(text, w, optargs)
 	return lines, lineCount;
 end
 
-local last_cursor = -1
+function GoaHud_Chat:drawPreview(x, y, intensity)
+	local linecount = 3
+	local lineheight = self.options.fontSize*linecount
+	nvgSave()
+
+	nvgSave()
+	local width = 550
+	local height = lineheight + 11
+	nvgBeginPath()
+	nvgFillLinearGradient(x, y, x + width, y + height, Color(0,0,0,0), Color(255,255,255,255))
+	nvgRect(x, y, width, height)
+	nvgFill()
+	nvgRestore()
+
+	local say = {}
+	say.text = "gg"
+	say.hover = true
+	say.cursor = #say.text
+	say.cursorStart = say.cursor
+
+	nvgTranslate(x + 10, y + lineheight)
+	self:drawCurrentLine(say)
+	self:drawMessages(say, self.messagesPreview, linecount-1)
+
+	nvgRestore()
+
+	return height + 10
+end
+
 function GoaHud_Chat:draw()
 	local chat_debug = widgetGetConsoleVariable("debug")
 	if (chat_debug ~= last_chat_debug) then
@@ -542,41 +578,43 @@ function GoaHud_Chat:draw()
 		if (replayName == "menu" or getLocalPlayer() == nil or isInMenu()) then return end
 	end
 
-	local line_height = self.options.fontSize
-	local emoji_size = self.options.fontSize*0.9
-	local line_y = 0
-
-	local chat_width = self.options.width
-	local height = (self.options.lineCount+1) * line_height
-	local padding = round(self.options.fontSize * 0.14)
-
 	local say = sayRegion()
-	local say_active = say.hover
-	local say_text = say.text
-	local say_background = Color(0, 0, 0, 255)
 	local messages = self.messages
 
-	local optargs_emoji = {}
-	if (self.options.enableEmojis) then optargs_emoji.emojiSize = emoji_size end
-	if (self.options.enableColors) then
-		optargs_emoji.specialColorCodes = true
-	else
-		optargs_emoji.ignoreColorCodes = true
+	-- mock preview
+	if (GoaHud.previewMode) then
+		say.text = "> gg"
+		say.hover = true
+		messages = self.messagesPreview
 	end
 
+	-- show mouse when chat is active
+	--[[]
+	if (say.hover ~= last_hover) then
+		if (say.hover) then
+			consolePerformCommand("m_enabled 1")
+		else
+			consolePerformCommand("m_enabled 0")
+		end
+	end
+	--]]
+
+	self:drawCurrentLine(say)
+	self:drawMessages(say, messages)
+end
+
+local last_cursor = -1
+function GoaHud_Chat:drawCurrentLine(say)
 	nvgFontFace(self:getFont())
 	nvgFontSize(self.options.fontSize)
 	nvgFillColor(self.textColor)
 
-	-- preview
-	if (GoaHud.previewMode) then
-		say_text = "> gg"
-		say_active = true
-		messages = self.messagesPreview
-	end
-
+	local padding = round(self.options.fontSize * 0.14)
+	local say_background = Color(0, 0, 0, 255)
 	local say_prefix = ""
-	if (say_active) then
+	local say_line = ""
+
+	if (say.hover) then
 		if (say.sayTeam) then
 			say_background = clone(self.options.colorTeam)
 		elseif (say.saySpec) then
@@ -593,31 +631,19 @@ function GoaHud_Chat:draw()
 			elseif (say.sayParty) then say_prefix = "party " end
 		--end
 		say_prefix = say_prefix .. "> "
-		say_text = say_prefix .. say_text
+		say_line = say_prefix .. say.text
 	end
 	say_background.a = math.min(say_background.a * (self.options.backgroundAlpha/255), 255)
 
-	-- show mouse when chat is active
-	--[[]
-	if (say.hover ~= last_hover) then
-		if (say.hover) then
-			consolePerformCommand("m_enabled 1")
-		else
-			consolePerformCommand("m_enabled 0")
-		end
-	end
-	--]]
-
 	-- background
 	local say_bounds
-	if (say_active) then
+	if (say.hover) then
 		nvgSave()
 		nvgBeginPath()
 		nvgFillColor(say_background)
 
-		say_bounds = nvgTextBounds(say_text)
-		local say_width = chat_width
-		nvgRect(-padding, round(say_bounds.miny), say_width + padding*2, round(say_bounds.maxy - say_bounds.miny))
+		say_bounds = nvgTextBounds(say_line)
+		nvgRect(-padding, round(say_bounds.miny), self.options.width + padding*2, round(say_bounds.maxy - say_bounds.miny))
 
 		nvgFill()
 		nvgRestore()
@@ -628,10 +654,10 @@ function GoaHud_Chat:draw()
 	if (self.options.enableColors) then optargs_emoji_preview.previewColorCodes = true
 	else optargs_emoji_preview.ignoreColorCodes = true end
 
-	GoaHud:drawTextWithShadow(0, 0, say_text, self.options.shadow, optargs_emoji_preview)
+	GoaHud:drawTextWithShadow(0, 0, say_line, self.options.shadow, optargs_emoji_preview)
 
 	-- caret
-	if (say_active) then
+	if (say.hover) then
 		local caret_alpha = 196
 
 		-- reset blinking after cursor moved
@@ -695,6 +721,28 @@ function GoaHud_Chat:draw()
 			nvgRestore()
 		end
 	end
+end
+
+function GoaHud_Chat:drawMessages(say, messages, linecount)
+	local line_height = self.options.fontSize
+	local emoji_size = self.options.fontSize*0.9
+	local line_y = 0
+
+	local linecount = linecount or self.options.lineCount
+	local height = (linecount+1) * line_height
+	local padding = round(self.options.fontSize * 0.14)
+
+	local optargs_emoji = {}
+	if (self.options.enableEmojis) then optargs_emoji.emojiSize = emoji_size end
+	if (self.options.enableColors) then
+		optargs_emoji.specialColorCodes = true
+	else
+		optargs_emoji.ignoreColorCodes = true
+	end
+
+	nvgFontFace(self:getFont())
+	nvgFontSize(self.options.fontSize)
+	nvgFillColor(self.textColor)
 
 	for i, m in ipairs(messages) do
 		if (line_y <= -height) then break end
@@ -702,7 +750,7 @@ function GoaHud_Chat:draw()
 		local age = epochTimeMs - m.timestamp
 
 		-- always show messages while typing
-		if (say_active) then age = 0.0 end
+		if (say.hover) then age = 0.0 end
 
 		if (line_y > -height and age < self.options.messageTime + self.options.messageFadeTime) then
 			nvgSave()
@@ -765,7 +813,7 @@ function GoaHud_Chat:draw()
 				content_offset = content_offset + string.len(timestamp_max)
 			end
 
-			local content_lines, line_count = SplitTextToMultipleLinesEmojis(content, chat_width, optargs_emoji)
+			local content_lines, line_count = SplitTextToMultipleLinesEmojis(content, self.options.width, optargs_emoji)
 
 			local color_background = m.colorBackground or Color(0, 0, 0, self.options.backgroundAlpha)
 			line_y = line_y - (line_height * line_count)
@@ -779,9 +827,7 @@ function GoaHud_Chat:draw()
 						nvgFillColor(color_background)
 
 						local bounds = nvgTextBoundsEmoji(line, optargs_emoji)
-						local width = chat_width
-
-						nvgRect(-padding, line_y + round(bounds.miny), width + padding*2, round(bounds.maxy - bounds.miny))
+						nvgRect(-padding, line_y + round(bounds.miny), self.options.width + padding*2, round(bounds.maxy - bounds.miny))
 
 						nvgFill()
 						nvgRestore()
