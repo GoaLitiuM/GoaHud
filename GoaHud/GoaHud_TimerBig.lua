@@ -21,6 +21,7 @@ GoaHud_TimerBig =
 	options =
 	{
 		useBase25 = false,
+		hideWhileSpectating = true,
 
 		shadow =
 		{
@@ -35,6 +36,7 @@ GoaHud_TimerBig =
 	optionsDisplayOrder =
 	{
 		"useBase25",
+		"hideWhileSpectating",
 		"",
 		"shadow",
 	},
@@ -67,9 +69,15 @@ function GoaHud_TimerBig:drawText(x, y, color, value)
 	nvgText(x, y, value)
 end
 
+function GoaHud_TimerBig:shouldShow()
+	local show = shouldShowHUD(optargs_deadspec) and (GoaHud.previewMode or not isRaceOrTrainingMode())
+	local local_player = getLocalPlayer()
+	if (self.options.hideWhileSpectating and local_player ~= nil and local_player.state == PLAYER_STATE_SPECTATOR) then show = false end
+	return show
+end
+
 function GoaHud_TimerBig:draw()
-	if (not shouldShowHUD(optargs_deadspec)) then return end
-	if (not GoaHud.previewMode and isRaceOrTrainingMode()) then return end
+	if (not self:shouldShow()) then return end
 
 	local timer_base = 60
 	if (self.options.useBase25) then timer_base = 25 end
