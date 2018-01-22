@@ -1425,7 +1425,6 @@ GoaHud_Emojis={
 ['sun']='2600',
 ['sun_face']='1F31E',
 ['sunflower']='1F33B',
-['sunglasses']='1F576',
 ['sunrise']='1F305',
 ['sunrise_over_mountains']='1F304',
 ['sunset']='1F307',
@@ -1642,6 +1641,10 @@ GoaHud_Emojis={
 ['zipper_mouth']='1F910',
 ['zombie']='1F9DF',
 ['zzz']='1F4A4',
+
+-- fixes applied to the table
+['dark_sunglasses']='1F576',
+['sunglasses']='1F60E',
 }
 
 GoaHud_EmojisInternal={
