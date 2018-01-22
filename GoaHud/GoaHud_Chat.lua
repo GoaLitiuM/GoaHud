@@ -61,6 +61,8 @@ GoaHud_Chat =
 
 		shortenLongNames = false,
 
+		showReadyPlayers = true,
+
 		colorTeam = Color(32, 32, 196, 255),
 		colorSpectator = Color(196, 196, 32, 255),
 		colorParty = Color(32, 196, 32, 255),
@@ -91,6 +93,8 @@ GoaHud_Chat =
 		"caretType", "caretBlinking",
 		"",
 		"shortenLongNames",
+		"",
+		"showReadyPlayers",
 		"",
 		"colorTeam", "colorSpectator", "colorParty",
 		"shadow",
@@ -578,6 +582,49 @@ function GoaHud_Chat:drawPreview(x, y, intensity)
 	return height + 10
 end
 
+local readyPlayers = {}
+function GoaHud_Chat:handleEvents()
+	if (self.options.showReadyPlayers) then
+		local ready_players = {}
+
+		-- detect ready players
+		for i, p in pairs(players) do
+			if (p.connected and p.state == PLAYER_STATE_INGAME) then
+				table.insert(ready_players, { index = p.index, name = p.name, ready = p.ready })
+			end
+		end
+
+		for i, p in pairs(ready_players) do
+			for j, r in pairs(readyPlayers) do
+				if (r.index == p.index) then
+					if (p.ready ~= r.ready) then
+						local color_background = Color(64, 64, 16, 255)
+						color_background.a = math.min(color_background.a * (self.options.backgroundAlpha/255), 255)
+						local ready_text = "ready"
+						if (not p.ready) then ready_text = "no longer ready" end
+
+						msg =
+						{
+							content = string.format("^[%s^] is %s", p.name, ready_text),
+							bold = true,
+
+							color = Color(255, 255, 255, 255),
+							colorBackground = color_background,
+						}
+
+						msg.timestamp = epochTimeMs
+						msg.timestampHide = epochTimeMs + self.options.messageTime
+
+						self:newMessage(msg)
+					end
+				end
+			end
+		end
+
+		readyPlayers = ready_players
+	end
+end
+
 function GoaHud_Chat:draw()
 	local chat_debug = widgetGetConsoleVariable("debug")
 	if (chat_debug ~= last_chat_debug) then
@@ -589,6 +636,8 @@ function GoaHud_Chat:draw()
 	if (not GoaHud.previewMode) then
 		if (replayName == "menu" or getLocalPlayer() == nil or isInMenu()) then return end
 	end
+
+	self:handleEvents()
 
 	local say = sayRegion()
 	local messages = self.messages
