@@ -202,6 +202,7 @@ local function shouldHide()
 	if (GoaHud.previewMode) then hide = false end
 
 	if (not shouldShowHUD(optargs_deadspec)) then hide = true end
+	if (not shouldShowStatus()) then hide = true end
 	if (world == nil) then hide = true end
 
 	return hide
@@ -365,8 +366,8 @@ function GoaHud_Messages:drawFollowText()
 
 		local name_font_size = 40
 		GoaHud:drawTextStyle1(name_font_size)
-		
-		if (not freecam) then	
+
+		if (not freecam) then
 			local name_width = nvgTextWidthEmoji(player.name, { emojiSize = name_font_size })
 			local offset_x = -name_width / 2
 			if (self.options.showCountry and isValidCountry(player.country)) then
