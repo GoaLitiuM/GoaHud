@@ -7,7 +7,7 @@ require "base/internal/ui/reflexcore"
 
 GoaHud_Timer =
 {
-	offset = { x = 10, y = 0 },
+	offset = { x = 0, y = 60 },
 	anchor = { x = 0, y = -1 },
 
 	recalculateBounds = true,
