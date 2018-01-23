@@ -286,9 +286,25 @@ function GoaHud_Messages:drawGameModeText()
 		if (world.isMatchmakingLobby) then
 			game_mode_text = "LOBBY"
 		else
+			-- use simple heuristics to detect the ruleset
 			game_mode_text = game_mode.name
+			local ruleset_text = world.ruleset
 			if (world.ruleset ~= "competitive") then
-				game_mode_text = string.format("%s (%s)", game_mode_text, string.upper(world.ruleset))
+				if (world.ruleset == "experimental_plus") then
+					if (weaponDefinitions[2].reloadTime == 450) then
+						ruleset_text = "RMC competitive"
+					elseif (weaponDefinitions[2].reloadTime < 450) then
+						ruleset_text = "sushi competitive"
+					end
+				end
+			else
+				ruleset_text = nil
+				if (weaponDefinitions[2].reloadTime ~= 450) then
+					ruleset_text = "Legacy competitive"
+				end
+			end
+			if (ruleset_text ~= nil) then
+				game_mode_text = string.format("%s (%s)", game_mode_text, string.upper(ruleset_text))
 			end
 		end
 
