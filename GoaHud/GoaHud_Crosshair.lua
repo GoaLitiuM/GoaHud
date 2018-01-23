@@ -208,7 +208,6 @@ function GoaHud_Crosshair:drawOptionsVariable(varname, x, y, optargs)
 	return nil
 end
 
-local comboBoxDataShapes1 = {}
 local values_changed_last = -1
 function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 	local offset_y = 0
@@ -271,10 +270,8 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 				table.merge(optargs, { enabled = shape_enabled and shape.type == 3 }))
 			optargs.optionalId = optargs.optionalId + 1
 
-			if (comboBoxDataShapes1[i] == nil) then comboBoxDataShapes1[i] = {} end
-
 			local mode_enabled = shape_enabled and i > 1
-			shape.mode = GoaComboBoxIndex(CROSSHAIR_MODE_NAMES, shape.mode, x + offset_x, y + offset_y, 250, comboBoxDataShapes1[i],
+			shape.mode = GoaComboBoxIndex(CROSSHAIR_MODE_NAMES, shape.mode, x + offset_x, y + offset_y, 250, "crosshairmodenames" .. i,
 				table.merge(optargs, { enabled = mode_enabled }))
 			optargs.optionalId = optargs.optionalId + 1
 			offset_y = offset_y + GOAHUD_SPACING
@@ -442,14 +439,14 @@ function GoaHud_Crosshair:drawCrosshair(weapon, x, y, intensity)
 			local shape_scale = 1.0 - intensity
 			local final_color = clone(shape.color)
 			final_color.a = final_color.a * (1.0 - intensity)
-			
+
 			local lastTriggerTime = 0.0
 			if (shape.mode == CROSSHAIR_MODE_DAMAGE) then
 				lastTriggerTime = self.lastDamageTime
 			elseif (shape.mode == CROSSHAIR_MODE_DAMAGETAKEN) then
 				lastTriggerTime = self.lastDamageTakenTime
 			end
-			
+
 			local triggerTimer = epochTimeMs - lastTriggerTime
 			local mode_intensity = 1.0
 			if (shape.mode == CROSSHAIR_MODE_DAMAGE or shape.mode == CROSSHAIR_MODE_DAMAGETAKEN) then
