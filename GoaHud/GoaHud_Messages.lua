@@ -298,8 +298,13 @@ function GoaHud_Messages:drawGameModeText()
 					end
 				end
 			else
+				-- HACK: detect actual values from RL ammo
+				local rl_ammo = 0
+				local player = getPlayer()
+				if (player) then rl_ammo = player.weapons[6].ammo end
+
 				ruleset_text = nil
-				if (weaponDefinitions[2].reloadTime ~= 450) then
+				if (weaponDefinitions[1].reloadTime == 1000 or rl_ammo == 25) then
 					ruleset_text = "Legacy competitive"
 				end
 			end
