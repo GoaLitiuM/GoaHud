@@ -474,6 +474,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	local name_readable = name_readable or toReadable(name)
 	local draw_label = vartype ~= "boolean"
 	local is_color = optargs.color or (vartype == "table" and string.find(name_readable, "Color"))
+	local indent = optargs.indent or 0
 
 	if (optargs.optionalId < lastWidgetOptionalId) then
 		optargs.optionalId = lastWidgetOptionalId
@@ -488,14 +489,17 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	local label_offset = 0
 	local label_width = name_length + 35
 
+	local indent_offset = indent * GOAHUD_INDENTATION
+	offset_x = offset_x + indent_offset
+
 	if (draw_label) then
-		if ((is_color and name_length >= 275) or (not is_color and name_length >= 145)) then
+		if ((is_color and name_length >= 275) or (not is_color and name_length >= 175)) then
 			offset_y = offset_y + GOAHUD_SPACING*0.85
 			label_offset = -GOAHUD_SPACING*0.85
 			label_width = 90
 		end
 
-		GoaLabel(name_readable .. ":", x + offset_x, y + offset_y + label_offset, optargs)
+		GoaLabel(name_readable .. ":", x + offset_x + (indent * GOAHUD_INDENTATION), y + offset_y + label_offset, optargs)
 	end
 
 	local checkbox_width = math.max(-75-x, label_width)
@@ -511,7 +515,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		offset_y = offset_y + GOAHUD_SPACING
 	elseif (vartype == "boolean") then
 		local checked = value
-		checked = GoaRowCheckbox(x + offset_x, y + offset_y, checkbox_width, name_readable .. ":", checked, optargs)
+		checked = GoaRowCheckbox(x + offset_x, y + offset_y, checkbox_width - indent_offset, name_readable .. ":", checked, optargs)
 		options[name] = checked
 
 		offset_y = offset_y + GOAHUD_SPACING
