@@ -536,6 +536,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		if (optargs.milliseconds ~= nil or optargs.seconds ~= nil) then
 			if (optargs.milliseconds ~= nil) then milliseconds = optargs.milliseconds end
 			if (optargs.seconds ~= nil) then seconds = optargs.seconds end
+		elseif (optargs.units ~= nil) then -- do nothing
 		elseif (string.find(name_readable, "Time")) then
 			seconds = true
 		elseif (string.find(name_readable, "Interval")) then
