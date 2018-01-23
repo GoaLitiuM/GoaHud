@@ -123,6 +123,7 @@ GOAHUD_FONT6_BOLD_ITALIC = "Oswald-BoldItalic"
 
 GOAHUD_FONTS =
 {
+	{},
 	{ regular = GOAHUD_FONT5, bold = GOAHUD_FONT5_BOLD, italic = GOAHUD_FONT5_ITALIC, bold_italic = GOAHUD_FONT5_BOLD_ITALIC },
 	{ regular = FONT_TEXT, bold = FONT_TEXT_BOLD, italic = FONT_TEXT, bold_italic = FONT_TEXT_BOLD },
 	{ regular = FONT_TEXT2, bold = FONT_TEXT2_BOLD, italic = FONT_TEXT2, bold_italic = FONT_TEXT2_BOLD },
@@ -132,6 +133,7 @@ GOAHUD_FONTS =
 }
 GOAHUD_FONTS_NAMES =
 {
+	"Custom Font...",
 	"forgotten futurist",
 	"roboto",
 	"titilliumWeb",
@@ -214,6 +216,7 @@ end
 
 local popupActive = false
 local comboBoxes = {}
+local comboBoxIDs = {}
 local comboBoxValues = {}
 local comboBoxesCount = 0
 
@@ -472,6 +475,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	local name_readable = name_readable or toReadable(name)
 	local draw_label = vartype ~= "boolean"
 	local is_color = optargs.color or (vartype == "table" and string.find(name_readable, "Color"))
+	local is_font = optargs.font or false
 	local indent = optargs.indent or 0
 
 	if (optargs.optionalId < lastWidgetOptionalId) then
@@ -508,6 +512,24 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		local color = GoaColorPicker(x + offset_x + color_width - indent_offset, y + offset_y, value, optargs)
 		if (color.r ~= nil and color.g ~= nil and color.b ~= nil and color.a ~= nil) then
 			options[name] = color
+		end
+
+		offset_y = offset_y + GOAHUD_SPACING
+	elseif (is_font) then
+		local combobox_id = tostring(options) .. name
+		if (comboBoxIDs[combobox_id] == nil) then comboBoxIDs[combobox_id] = {} end
+
+		local index = value.index
+
+		if (index ~= 1 or comboBoxIDs[combobox_id].opened) then
+			index = GoaComboBoxIndex(GOAHUD_FONTS_NAMES, index, x + checkbox_width, y, 250, combobox_id, optargs)
+			options[name].index = index
+			comboBoxIDs[combobox_id].lastFocus = true
+		elseif (index == 1) then -- custom font
+			index = GoaComboBoxIndex(GOAHUD_FONTS_NAMES, index, x + checkbox_width + 220, y, 30, combobox_id, optargs)
+			options[name].index = index
+			options[name].face = GoaEditBox(options[name].face, x + offset_x + checkbox_width, y + offset_y, 220, table.merge(optargs, {giveFocus = comboBoxIDs[combobox_id].lastFocus}))
+			comboBoxIDs[combobox_id].lastFocus = false
 		end
 
 		offset_y = offset_y + GOAHUD_SPACING
@@ -655,6 +677,11 @@ function GoaButton(text, x, y, w, h, optargs)
 	return ui2Button(text, x, y, w, h, optargs)
 end
 
+function GoaEditBox(text, x, y, w, optargs)
+	if (popupActive) then return text end
+	return ui2EditBox(text, x, y, w, optargs)
+end
+
 function GoaEditBox0Decimals(value, x, y, w, optargs)
 	if (popupActive) then return value end
 	return ui2EditBox0Decimals(value, x, y, w, optargs)
@@ -683,10 +710,13 @@ end
 function GoaComboBox(options, selection, x, y, w, comboBoxData, optargs)
 	if (popupActive) then return selection end
 
+	local combobox_id = tostring(comboBoxData)
+	if (comboBoxIDs[combobox_id] == nil) then comboBoxIDs[combobox_id] = {} end
+
 	-- draw combobox later
-	table.insert(comboBoxes, { comboBoxData, {options, comboBoxValues[comboBoxData] or selection, x, y, w, comboBoxData, clone(optargs)} })
-	if (comboBoxValues[comboBoxData] == nil) then comboBoxesCount = comboBoxesCount + 1 end
-	return comboBoxValues[comboBoxData] or selection
+	table.insert(comboBoxes, { comboBoxIDs[combobox_id], {options, comboBoxValues[comboBoxIDs[combobox_id]] or selection, x, y, w, comboBoxIDs[combobox_id], clone(optargs)} })
+	if (comboBoxValues[comboBoxIDs[combobox_id]] == nil) then comboBoxesCount = comboBoxesCount + 1 end
+	return comboBoxValues[comboBoxIDs[combobox_id]] or selection
 end
 
 -- returns index of the selected option
@@ -2170,6 +2200,39 @@ end
 
 function isValidCountry(country)
 	return country ~= nil and country ~= "" and country ~= "eu"
+end
+
+function GoaHud:getFont(font, bold, italics)
+	local index
+	local face
+
+	if (type(font) == "table") then
+		index = font.index
+		face = font.face
+		if (index <= 1 and (face == "" or face == nil)) then
+			-- invalid font
+			index = 2
+		end
+	else
+		index = font
+	end
+
+	if (index > 1) then
+		local font = GOAHUD_FONTS[index]
+		if (not bold and not italics) then
+			face = font.regular
+		elseif (bold and not italics) then
+			face = font.bold
+		elseif (not bold and italics) then
+			face = font.italic
+		else
+			face = font.bold_italic
+		end
+
+		if (face == nil) then face = font.regular end
+	end
+
+	return face
 end
 
 --

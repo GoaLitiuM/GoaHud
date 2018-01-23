@@ -32,7 +32,7 @@ GoaHud_Chat =
 
 	options =
 	{
-		font = 1,
+		font = { index = 2, face = "" },
 		fontSize = 25,
 
 		width = 675,
@@ -130,6 +130,15 @@ local function unhookConsolePrint()
 end
 
 function GoaHud_Chat:init()
+	if (self.options ~= nil) then
+		-- migrate old font index
+		if (self.options.font ~= nil and type(self.options.font) == "number") then
+			self.options.font = { index = 1 + self.options.font, face = "" }
+			self:saveOptions()
+			self:loadOptions()
+		end
+	end
+
 	consolePrint_real = consolePrint
 	widgetCreateConsoleVariable("debug", "int", 0)
 
@@ -156,10 +165,7 @@ function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "preview") then
 		return self:drawPreview(x, y, 1.0)
 	elseif (varname == "font") then
-		GoaLabel("Font: ", x, y, optargs)
-		self.options.font = GoaComboBoxIndex(GOAHUD_FONTS_NAMES, self.options.font, x + 225, y, 250, comboBoxData1, optargs)
-
-		return GOAHUD_SPACING
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, table.merge(optargs, { font = true }), "Font")
 	elseif (varname == "fontSize") then
 		local optargs = clone(optargs)
 		optargs.min_value = 10
@@ -467,23 +473,6 @@ function GoaHud_Chat:newMessage(msg)
 	if (self.messagePosition ~= 1) then self.messagePosition = self.messagePosition + 1 end
 end
 
-function GoaHud_Chat:getFont(bold, italics)
-	local font = GOAHUD_FONTS[self.options.font]
-	local face
-	if (not bold and not italics) then
-		face = font.regular
-	elseif (bold and not italics) then
-		face = font.bold
-	elseif (not bold and italics) then
-		face = font.italic
-	else
-		face = font.bold_italic
-	end
-
-	if (face == nil) then face = font.regular end
-	return face
-end
-
 -- modified version of pullWord but also pulls valid emojis
 function pullWordEmojis(text)
 	local space = string.find(text, "%s");
@@ -685,7 +674,7 @@ end
 
 local last_cursor = -1
 function GoaHud_Chat:drawCurrentLine(say)
-	nvgFontFace(self:getFont())
+	nvgFontFace(GoaHud:getFont(self.options.font))
 	nvgFontSize(self.options.fontSize)
 	nvgFillColor(self.textColor)
 
@@ -826,7 +815,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 		optargs_emoji.ignoreColorCodes = true
 	end
 
-	nvgFontFace(self:getFont())
+	nvgFontFace(GoaHud:getFont(self.options.font))
 	nvgFontSize(self.options.fontSize)
 	nvgFillColor(self.textColor)
 
@@ -856,7 +845,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 				local italic = m.italic or false
 				local timestamp, timestamp_max
 
-				nvgFontFace(self:getFont(bold, italic))
+				nvgFontFace(GoaHud:getFont(self.options.font, bold, italic))
 				nvgFillColor(m.color or self.textColor)
 
 				-- repeated count for debug messages
@@ -927,7 +916,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 								nvgSave()
 
 								nvgFillColor(self.textColor)
-								nvgFontFace(self:getFont())
+								nvgFontFace(GoaHud:getFont(self.options.font))
 
 								GoaHud:drawTextWithShadow(0, line_y, timestamp, self.options.shadow, optargs_emoji)
 								content_offset_x = content_offset_x + nvgTextWidthEmoji(timestamp_max, optargs_emoji)
@@ -940,7 +929,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 								nvgSave()
 
 								nvgFillColor(self.textColor)
-								nvgFontFace(self:getFont(true))
+								nvgFontFace(GoaHud:getFont(self.options.font, true))
 
 								GoaHud:drawTextWithShadow(content_offset_x, line_y, prefix, self.options.shadow, optargs_emoji)
 								content_offset_x = content_offset_x + nvgTextWidthEmoji(prefix, optargs_emoji)
