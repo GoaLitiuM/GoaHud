@@ -1260,9 +1260,9 @@ function GoaHud:registerWidget(widget_name, category)
 
 	-- movable registration
 	local my_movables = {}
-	function widget_table:addMovableElement(movable, movable_draw)
-
-		local movable_info = { movable = movable, draw = movable_draw, widget = widget_table }
+	function widget_table:addMovableElement(movable, movable_draw, movable_options)
+		local movable_options = movable_options or widget_table.drawOptions
+		local movable_info = { movable = movable, draw = movable_draw, drawOptions = movable_options, widget = widget_table }
 		if (GoaHud:addMovableElement(movable_info)) then
 			table.insert(my_movables, movable_info)
 		end
@@ -1952,7 +1952,7 @@ function GoaHud_HookErrorFunctions()
 						return m.widget.widgetName .. "_" .. m.movable.name
 					end
 
-
+					-- hide modules from editor view
 					for i, w in pairs(widgets) do
 						for j, r in pairs(GoaHud.registeredWidgets) do
 							if (w.name == r.name and isModule(r)) then
@@ -1962,13 +1962,38 @@ function GoaHud_HookErrorFunctions()
 						end
 					end
 
+					-- inject movables into global and widget table
 					for i, m in pairs(GoaHud.movables) do
 						local w = clone(m.movable)
 						w.name = getMovableName(m)
 						table.insert(widgets, w)
-						_G[getMovableName(m)] = {}
+						_G[getMovableName(m)] = { drawOptions = m.drawOptions }
 					end
 
+					-- detour callWidget* functions so the movable's drawOptions function is called when the Options-button is clicked
+					local old_callWidgetGetOptionsHeight = callWidgetGetOptionsHeight
+					callWidgetGetOptionsHeight = function(widget, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+						for i, m in pairs(GoaHud.movables) do
+							if (getMovableName(m) == widget) then
+								widget = m.widget.widgetName
+								break
+							end
+						end
+						return old_callWidgetGetOptionsHeight(widget, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+					end
+
+					local old_callWidgetDrawOptions = callWidgetDrawOptions
+					callWidgetDrawOptions = function(widget, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+						for i, m in pairs(GoaHud.movables) do
+							if (getMovableName(m) == widget) then
+								widget = m.widget.widgetName
+								break
+							end
+						end
+						return old_callWidgetDrawOptions(widget, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+					end
+
+					-- detour consolePerformCommand function, and translate ui_ commands to adjust movable settings
 					local old_consolePerformCommand = consolePerformCommand
 					consolePerformCommand = function(str, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 						local args = {}
@@ -2008,6 +2033,8 @@ function GoaHud_HookErrorFunctions()
 					local status, err = pcall(GoaHud_GetWidgetOriginalDraw(widget_table), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 
 					consolePerformCommand = old_consolePerformCommand
+					callWidgetDrawOptions = old_callWidgetDrawOptions
+					callWidgetGetOptionsHeight = old_callWidgetGetOptionsHeight
 
 					if (status == false) then
 						onError(k.name, err)
