@@ -45,13 +45,13 @@ GoaHud_Messages =
 		movableGameMode = Movable.new
 		{
 			name = "GameMode",
-			offset = { x = 0, y = 120 },
+			offset = { x = 0, y = 160 },
 			anchor = { x = 0, y = -1 },
 		},
 		movableWarmup = Movable.new
 		{
 			name = "Warmup",
-			offset = { x = 0, y = 150 },
+			offset = { x = 0, y = 190 },
 			anchor = { x = 0, y = -1 },
 		},
 		movableFollowText = Movable.new
