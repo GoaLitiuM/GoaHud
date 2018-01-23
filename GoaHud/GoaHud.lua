@@ -497,7 +497,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 			label_width = 90
 		end
 
-		GoaLabel(name_readable .. ":", x + offset_x + (indent * GOAHUD_INDENTATION), y + offset_y + label_offset, optargs)
+		GoaLabel(name_readable .. ":", x + offset_x + indent_offset, y + offset_y + label_offset, optargs)
 	end
 
 	local checkbox_width = math.max(-75-x, label_width)
@@ -505,7 +505,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	local slider_offset = math.max(-75-x, label_width)
 
 	if (is_color) then
-		local color = GoaColorPicker(x + offset_x + color_width, y + offset_y, value, optargs)
+		local color = GoaColorPicker(x + offset_x + color_width - indent_offset, y + offset_y, value, optargs)
 		if (color.r ~= nil and color.g ~= nil and color.b ~= nil and color.a ~= nil) then
 			options[name] = color
 		end
@@ -584,7 +584,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		end
 
 		-- slider
-		new_value = GoaSlider(x + offset_x + slider_offset, y + offset_y, slider_width, min_value, max_value, new_value, optargs)
+		new_value = GoaSlider(x + offset_x + slider_offset - indent_offset, y + offset_y, slider_width, min_value, max_value, new_value, optargs)
 
 		local show_editbox = optargs.show_editbox or true
 		if (show_editbox) then
@@ -592,9 +592,9 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 			new_value = enforceFunc(new_value)
 
 			optargs.optionalId = optargs.optionalId + 1
-			new_value = GoaEditBox2Decimals(new_value, x + offset_x + slider_offset + slider_width + 20, y + offset_y, editbox_width, optargs)
+			new_value = GoaEditBox2Decimals(new_value, x + offset_x + slider_offset + slider_width + 20 - indent_offset, y + offset_y, editbox_width, optargs)
 		else
-			GoaLabel(new_value, x + offset_x + slider_offset + slider_width + 20, y + offset_y, optargs)
+			GoaLabel(new_value, x + offset_x + slider_offset + slider_width + 20 - indent_offset, y + offset_y, optargs)
 		end
 
 		new_value = enforceFunc(new_value)
@@ -614,7 +614,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		end
 
 		if (units ~= nil) then
-			GoaLabel(tostring(units), x + offset_x + slider_offset + slider_width + editbox_width + 25, y + offset_y, optargs)
+			GoaLabel(tostring(units), x + offset_x + slider_offset + slider_width + editbox_width + 25 - indent_offset, y + offset_y, optargs)
 		end
 
 		options[name] = new_value
