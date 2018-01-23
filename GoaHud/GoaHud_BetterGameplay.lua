@@ -81,7 +81,9 @@ function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
 		optargs.optionalId = optargs.optionalId + 1
 		return GOAHUD_SPACING
 	elseif (varname == "raceFastRespawn") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fast Respawn")
+		local optargs = clone(optargs)
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Fast Respawn")
 	elseif (varname == "hideCasualTimers") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Hide Casual Item Timers")
 	elseif (varname == "globalColors") then
