@@ -362,6 +362,11 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 	local reset_pressed, hover = GoaButton("Reset Settings", x + offset_x, y + offset_y, 150, 35, optargs)
 	if (reset_pressed) then
 		GoaHud_ResetOptions(self)
+		comboBoxIDs = {}
+		comboBoxes = {}
+		comboBoxValues = {}
+		comboBoxesCount = 0
+		return
 	end
 	offset_y = offset_y + GOAHUD_SPACING*1.5
 
