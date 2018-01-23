@@ -424,17 +424,15 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 		if (self.defaults.shadow ~= nil) then
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowEnabled", x + offset_x, y + offset_y, optargs, "Enable Shadows")
 
-			offset_x = offset_x + GOAHUD_INDENTATION
-
 			local optargs_shadows = clone(optargs)
 			optargs_shadows.enabled = self.options.shadow.shadowEnabled
+			optargs_shadows.indent = 1
 
-			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowOffset", x + offset_x, y + offset_y, optargs_shadows, "Offset")
-			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowBlur", x + offset_x, y + offset_y, optargs_shadows, "Blur")
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowOffset", x + offset_x, y + offset_y, table.merge(optargs_shadows, {tick = 2, min_value = -6, max_value = 6}), "Offset")
+			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowBlur", x + offset_x, y + offset_y, table.merge(optargs_shadows, {tick = 1, min_value = 0, max_value = 6}), "Blur")
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowStrength", x + offset_x, y + offset_y, optargs_shadows, "Strength")
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(self.options.shadow, "shadowColor", x + offset_x, y + offset_y, optargs_shadows, "Color")
 
-			offset_x = offset_x - GOAHUD_INDENTATION
 			optargs.optionalId = optargs_shadows.optionalId
 		end
 	end
