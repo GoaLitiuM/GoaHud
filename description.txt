@@ -7,7 +7,7 @@ Some highlighted features:
 - Q3 style fragged messages
 - Improved spectator controls (attack and jump switches player, crouch toggles freecam)
 - Custom WeaponRack, Timer and RaceTimer
-- Customizable Chat, supports color codes and emojis (Requires [url=http://steamcommunity.com/sharedfiles/filedetails/?id=1135362632]GoaHud_EmojiSupport[/url])
+- Customizable Chat, supports color codes and emojis
 - NEW: scoreboard for duel spectators and team modes
 
 Experimental addons not enabled by default:
