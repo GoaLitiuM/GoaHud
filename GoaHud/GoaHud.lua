@@ -1769,6 +1769,8 @@ function applyDefaults(container, varname, vartype, defaults)
 				applyDefaults(container[varname], i, type(v), v)
 			end
 		end
+	elseif (type(container) ~= "table") then
+		-- do not override variables with tables
 	elseif (type(container[varname]) ~= vartype) then
 		container[varname] = defaults
 	end
