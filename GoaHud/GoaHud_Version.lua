@@ -3,7 +3,7 @@
 -- Tracks changes to GoaHud.
 --
 
-local version = 37
+local version = 38
 
 function GoaHud_GetVersionPretty()
     return "r" .. GoaHud_Version.version
@@ -65,7 +65,7 @@ changelog[36] = "\z
 - Crosshair: added option to specify minimum time for mode shapes to show up\n\z
 "
 
-changelog[35] = "\z
+changelog[37] = "\z
 - Added new Scores widget for spectators, works in duels and team modes (experimental, disabled by default)\n\z
 + Very simple and minimalistic looking score widget, will be expanded in future updates\n\z
 + Customizable health/armor bar animation speed (disable by setting the Tick Speed to 0)\n\z
@@ -85,6 +85,9 @@ changelog[35] = "\z
 - Fixed reset settings not working with some options\n\z
 "
 
+changelog[38] = "\z
+- Fixed error caused by old Chat font not getting applied correctly\n\z
+"
 
 
 
