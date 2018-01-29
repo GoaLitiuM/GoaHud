@@ -20,7 +20,6 @@ GoaHud_TimerBig =
 
 	options =
 	{
-		useBase25 = false,
 		hideWhileSpectating = true,
 
 		shadow =
@@ -35,7 +34,6 @@ GoaHud_TimerBig =
 
 	optionsDisplayOrder =
 	{
-		"useBase25",
 		"hideWhileSpectating",
 		"",
 		"shadow",
@@ -48,9 +46,6 @@ function GoaHud_TimerBig:init()
 end
 
 function GoaHud_TimerBig:drawOptionsVariable(varname, x, y, optargs)
-	if (varname == "useBase25") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Use Base-25 Time")
-	end
 	return nil
 end
 
@@ -80,8 +75,6 @@ function GoaHud_TimerBig:draw()
 	if (not self:shouldShow()) then return end
 
 	local timer_base = 60
-	if (self.options.useBase25) then timer_base = 25 end
-
 	local time_raw = 0
 	if (world.gameState == GAME_STATE_WARMUP) then
 		time_raw = (epochTime - self.connectedTime) * 1000

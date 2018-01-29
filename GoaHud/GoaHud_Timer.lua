@@ -24,7 +24,6 @@ GoaHud_Timer =
 		countdown = true,
 		countdownRace = true,
 		showScoreDiff = true,
-		useBase25 = false,
 		shadow =
 		{
 			shadowEnabled = true,
@@ -41,8 +40,6 @@ GoaHud_Timer =
 		"",
 		"showScoreDiff",
 		"",
-		"useBase25",
-		"",
 		"shadow",
 	},
 };
@@ -54,8 +51,6 @@ end
 function GoaHud_Timer:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "showScoreDiff") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Show Score Lead")
-	elseif (varname == "useBase25") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Use Base-25 Time")
 	end
 	return nil
 end
@@ -103,8 +98,6 @@ function GoaHud_Timer:draw()
 		else
 			time_raw = math.floor(world.gameTime / 1000) * 1000
 		end
-
-		if (self.options.useBase25 and not race) then timer_base = 25 end
 	end
 
 	local t = GoaHud:formatTime(time_raw / 1000, timer_base)
