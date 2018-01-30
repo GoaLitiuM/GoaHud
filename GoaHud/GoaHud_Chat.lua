@@ -871,9 +871,9 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 						-- fallback to character length
 						if (break_pos == nil) then break_pos = self.shortenNameLength+1 end
 
-						prefix = string.sub(m.source, 0, break_pos-1) .. "...: "
+						prefix = "^[" .. string.sub(m.source, 0, break_pos-1) .. "^]...: "
 					else
-						prefix = m.source .. ": "
+						prefix = "^[" .. m.source .. "^]: "
 					end
 					content = prefix .. content
 					content_offset = content_offset + string.len(prefix)
