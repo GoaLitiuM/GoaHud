@@ -21,9 +21,14 @@ GoaHud_Timer =
 
 	options =
 	{
+		font = { index = 8, face = "" },
+		fontSize = 80,
+
 		countdown = true,
 		countdownRace = true,
+
 		showScoreDiff = true,
+
 		shadow =
 		{
 			shadowEnabled = true,
@@ -36,6 +41,8 @@ GoaHud_Timer =
 
 	optionsDisplayOrder =
 	{
+		"font", "fontSize",
+		"",
 		"countdown", "countdownRace",
 		"",
 		"showScoreDiff",
@@ -58,8 +65,8 @@ end
 function GoaHud_Timer:setupText()
 	nvgTextLetterSpacing(-1)
 
-	nvgFontFace(GOAHUD_FONT2)
-	nvgFontSize(80)
+	nvgFontFace(GoaHud:getFont(self.options.font))
+	nvgFontSize(self.options.fontSize)
 end
 
 function GoaHud_Timer:drawText(x, y, color, value)

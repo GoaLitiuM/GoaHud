@@ -20,6 +20,9 @@ GoaHud_TimerBig =
 
 	options =
 	{
+		font = { index = 8, face = "" },
+		fontSize = 120,
+
 		hideWhileSpectating = true,
 
 		shadow =
@@ -34,6 +37,8 @@ GoaHud_TimerBig =
 
 	optionsDisplayOrder =
 	{
+		"font", "fontSize",
+		"",
 		"hideWhileSpectating",
 		"",
 		"shadow",
@@ -52,8 +57,8 @@ end
 function GoaHud_TimerBig:setupText()
 	nvgTextLetterSpacing(-1)
 
-	nvgFontFace(GOAHUD_FONT2)
-	nvgFontSize(120)
+	nvgFontFace(GoaHud:getFont(self.options.font))
+	nvgFontSize(self.options.fontSize)
 end
 
 function GoaHud_TimerBig:drawText(x, y, color, value)
