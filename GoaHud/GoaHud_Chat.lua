@@ -45,6 +45,7 @@ GoaHud_Chat =
 
 		enableEmojis = true,
 		enableColors = true,
+		emojiSize = 0.9,
 
 		--showChannelText = true,
 		useTimestamps = true,
@@ -84,7 +85,7 @@ GoaHud_Chat =
 		"",
 		"messageTime", "messageFadeTime",
 		"",
-		"enableEmojis", "enableColors",
+		"enableEmojis", "enableColors", "emojiSize",
 		"",
 		"useTimestamps", "showSeconds", "utcOffset",
 		"",
@@ -172,6 +173,13 @@ function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 		optargs.max_value = 170
 		optargs.tick = 1
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Font Size")
+	elseif (varname == "emojiSize") then
+		local optargs = clone(optargs)
+		optargs.min_value = 0.1
+		optargs.max_value = 3.0
+		optargs.tick = 100
+		optargs.units = "x"
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Emoji Size")
 	elseif (varname == "width") then
 		local optargs = clone(optargs)
 		optargs.min_value = 175
@@ -720,6 +728,7 @@ function GoaHud_Chat:drawCurrentLine(say)
 
 	-- display current line
 	local optargs_emoji_preview = {}
+	if (self.options.enableEmojis) then optargs_emoji_preview.emojiSize = self.options.fontSize*self.options.emojiSize end
 	if (self.options.enableColors) then optargs_emoji_preview.previewColorCodes = true
 	else optargs_emoji_preview.ignoreColorCodes = true end
 
@@ -794,7 +803,6 @@ end
 
 function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 	local line_height = self.options.fontSize
-	local emoji_size = self.options.fontSize*0.9
 	local line_y = 0
 
 	local linecount = linecount
@@ -808,7 +816,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 	local padding = round(self.options.fontSize * 0.14)
 
 	local optargs_emoji = {}
-	if (self.options.enableEmojis) then optargs_emoji.emojiSize = emoji_size end
+	if (self.options.enableEmojis) then optargs_emoji.emojiSize = self.options.fontSize*self.options.emojiSize end
 	if (self.options.enableColors) then
 		optargs_emoji.specialColorCodes = true
 	else
