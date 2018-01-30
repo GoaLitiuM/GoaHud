@@ -2350,7 +2350,9 @@ function nvgTextBoundsEmoji(text, optargs)
 		end
 	end
 	if (emoji_size == nil) then emoji_size = nvgFontSizeCurrent * emojiSizeMultiplier end
-	if (strip_color == nil) then strip_color = true end -- it's desirable to default to stripping mode when measuring text bounds
+
+	-- it's desirable to default to stripping mode when measuring text bounds
+	if (strip_color == nil and (optargs and optargs.ignoreColorCodes == nil)) then strip_color = true end
 
 	-- strip color codes from the text
 	if (strip_color) then
@@ -2398,7 +2400,9 @@ function nvgTextWidthEmoji(text, optargs)
 		end
 	end
 	if (emoji_size == nil) then emoji_size = nvgFontSizeCurrent * emojiSizeMultiplier end
-	if (strip_color == nil) then strip_color = true end -- it's desirable to default to stripping mode when measuring text bounds
+
+	-- it's desirable to default to stripping mode when measuring text bounds
+	if (strip_color == nil and (optargs and optargs.ignoreColorCodes == nil)) then strip_color = true end
 
 	-- strip color codes from the text
 	if (strip_color) then
