@@ -130,6 +130,8 @@ GOAHUD_FONTS =
 	{ regular = GOAHUD_FONT1 },
 	{ regular = GOAHUD_FONT3 },
 	{ regular = GOAHUD_FONT6, bold = GOAHUD_FONT6_BOLD, italic = GOAHUD_FONT6_ITALIC, bold_italic = GOAHUD_FONT6_BOLD_ITALIC },
+	{ regular = GOAHUD_FONT2 },
+	{ regular = GOAHUD_FONT4 },
 }
 GOAHUD_FONTS_NAMES =
 {
@@ -140,6 +142,8 @@ GOAHUD_FONTS_NAMES =
 	"vipnagorgialla",
 	"Volter__28Goldfish_29",
 	"Oswald",
+	"Lato Heavy (Optimized)",
+	"Open Sans Condensed",
 }
 
 AMMO_STATE_SWITCHING = 0
