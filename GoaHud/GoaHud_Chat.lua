@@ -817,10 +817,8 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 
 	local optargs_emoji = {}
 	if (self.options.enableEmojis) then optargs_emoji.emojiSize = self.options.fontSize*self.options.emojiSize end
-	if (self.options.enableColors) then
-		optargs_emoji.specialColorCodes = true
-	else
-		optargs_emoji.ignoreColorCodes = true
+	if (self.options.enableColors) then optargs_emoji.specialColorCodes = true
+	else optargs_emoji.stripColorCodes = true
 	end
 
 	nvgFontFace(GoaHud:getFont(self.options.font))
