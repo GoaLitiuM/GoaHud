@@ -25,6 +25,17 @@ CHAT_BEEP_NAMES =
 	"Disabled",
 }
 
+CHAT_TYPE_DEBUG = 1
+CHAT_TYPE_ERROR = 2
+CHAT_TYPE_REGULAR = 3
+CHAT_TYPE_TEAM = 4
+CHAT_TYPE_SPECTATOR = 5
+CHAT_TYPE_PARTY = 6
+CHAT_TYPE_NOTIFICATION = 7
+CHAT_TYPE_LOOT = 8
+CHAT_TYPE_RACE = 9
+CHAT_TYPE_READY = 10
+
 GoaHud_Chat =
 {
 	offset = { x = 10, y = -180 },
@@ -38,7 +49,7 @@ GoaHud_Chat =
 		width = 675,
 		lineCount = 8,
 		lineCountActive = 16,
-		backgroundAlpha = 96,
+
 
 		messageTime = 15.0,
 		messageFadeTime = 2.5,
@@ -64,6 +75,10 @@ GoaHud_Chat =
 
 		showReadyPlayers = true,
 
+		overrideInputColor = false,
+		backgroundAlpha = 96,
+		colorRegular = Color(0, 0, 0, 255),
+		colorInput = Color(0, 0, 0, 150),
 		colorTeam = Color(32, 32, 196, 255),
 		colorSpectator = Color(196, 196, 32, 255),
 		colorParty = Color(32, 196, 32, 255),
@@ -97,7 +112,10 @@ GoaHud_Chat =
 		"",
 		"showReadyPlayers",
 		"",
+		"overrideInputColor", "colorRegular", "colorInput",
 		"colorTeam", "colorSpectator", "colorParty",
+		"preview",
+		"",
 		"shadow",
 	},
 
@@ -201,12 +219,19 @@ function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 		optargs.units = "lines"
 		optargs.indent = 1
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Height (Active)")
+	elseif (varname == "overrideInputColor") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+	elseif (varname == "colorInput") then
+		local optargs = clone(optargs)
+		optargs.enabled = self.options.overrideInputColor
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
 	elseif (varname == "backgroundAlpha") then
 		local optargs = clone(optargs)
 		optargs.min_value = 0
 		optargs.max_value = 255
 		optargs.tick = 1
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Global Background Transparency")
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Transparency")
 	elseif (varname == "messageTime") then
 		local optargs = clone(optargs)
 		optargs.min_value = 1
@@ -268,7 +293,7 @@ function GoaHud_Chat:onError(widget, err)
 
 		source = "LUA ERROR",
 		content = string.format("%s: %s", widget, err),
-		colorBackground = Color(255, 0, 0, math.min((self.options.backgroundAlpha/255)*2, 1.0)*255),
+		messageType = CHAT_TYPE_ERROR,
 	}
 	self:newMessage(msg)
 end
@@ -290,7 +315,7 @@ function GoaHud_Chat:onDebug(text)
 		content = text,
 
 		bold = true,
-		colorBackground = Color(255, 255, 0, math.min((self.options.backgroundAlpha/255), 1.0)*255),
+		messageType = CHAT_TYPE_DEBUG,
 
 		debugRepeat = 1,
 	}
@@ -301,20 +326,18 @@ end
 function GoaHud_Chat:onLog(entry)
 	local msg = nil
 	local timestamp_real = epochTimeMs - entry.age
+	local msg_type = CHAT_TYPE_REGULAR
 	if (entry.type == LOG_TYPE_CHATMESSAGE) then
-		local color = Color(0, 0, 0, 255)
 		local prefix = ""
 		local source = entry.chatPlayer
 
 		if (entry.chatType == LOG_CHATTYPE_TEAM) then
-			color = clone(self.options.colorTeam)
+			msg_type = CHAT_TYPE_TEAM
 		elseif (entry.chatType == LOG_CHATTYPE_SPECTATOR) then
-			color = clone(self.options.colorSpectator)
+			msg_type = CHAT_TYPE_SPECTATOR
 		elseif (entry.chatType == LOG_CHATTYPE_PARTY) then
-			color = clone(self.options.colorParty)
+			msg_type = CHAT_TYPE_PARTY
 		end
-
-		color.a = math.min(color.a * (self.options.backgroundAlpha/255), 255)
 
 		--if (self.options.showChannelText) then
 			if (entry.chatType == LOG_CHATTYPE_TEAM) then prefix = "(team) "
@@ -348,13 +371,9 @@ function GoaHud_Chat:onLog(entry)
 			source = prefix .. source,
 			content = clone(entry.chatMessage),
 			chatType = entry.chatType,
-
-			colorBackground = color,
 		}
 	elseif (entry.type == LOG_TYPE_NOTIFICATION) then
-		local color_background = Color(64, 64, 16, 255)
-		color_background.a = math.min(color_background.a * (self.options.backgroundAlpha/255), 255)
-
+		msg_type = CHAT_TYPE_NOTIFICATION
 		local color = self.textColor
 
 		-- reformat notification messages to prevent color codes leaking from player names
@@ -396,12 +415,12 @@ function GoaHud_Chat:onLog(entry)
 			bold = true,
 
 			color = color,
-			colorBackground = color_background,
 		}
 
 		-- hide join messages triggered by menu replay
 		if (replayName == "menu") then msg = nil end
 	elseif (entry.type == LOG_TYPE_DROP or entry.type == LOG_TYPE_RECEIVED) then
+		msg_type = CHAT_TYPE_LOOT
 		local player_name = entry.dropPlayerName
 		if (entry.type == LOG_TYPE_RECEIVED) then player_name = entry.receivedPlayerName end
 
@@ -410,8 +429,6 @@ function GoaHud_Chat:onLog(entry)
 		end
 
 		local color = Color(128, 255, 128, 255)
-		local color_background = Color(16, 64, 16, 255)
-		color_background.a = math.min(color_background.a * (self.options.backgroundAlpha/255), 255)
 
 		local def_id = entry.dropItemDefId
 		local quantity = 1
@@ -437,17 +454,14 @@ function GoaHud_Chat:onLog(entry)
 			bold = true,
 
 			color = color,
-			colorBackground = color_background,
 		}
 	elseif (entry.type == LOG_TYPE_RACEEVENT) then
+		msg_type = CHAT_TYPE_RACE
 		if (entry.raceEvent == RACE_EVENT_FINISH or entry.raceEvent == RACE_EVENT_FINISHANDWASRECORD) then
 			local color = Color(255, 255, 96, 255)
-			local color_background = Color(0, 64, 64, 255)
 			if (entry.raceEvent == RACE_EVENT_FINISHANDWASRECORD) then
 				color = Color(96, 255, 96, 255)
 			end
-
-			color_background.a = math.min(color_background.a * (self.options.backgroundAlpha/255), 255)
 
 			msg =
 			{
@@ -455,7 +469,6 @@ function GoaHud_Chat:onLog(entry)
 				bold = true,
 
 				color = color,
-				colorBackground = color_background,
 			}
 		end
 	end
@@ -463,6 +476,7 @@ function GoaHud_Chat:onLog(entry)
 	if (msg ~= nil) then
 		msg.timestamp = timestamp_real
 		msg.timestampHide = timestamp_real + self.options.messageTime
+		msg.messageType = msg_type
 
 		self:newMessage(msg)
 	end
@@ -474,6 +488,25 @@ function GoaHud_Chat:newMessage(msg)
 
 	-- keep the currently scrolled message position
 	if (self.messagePosition ~= 1) then self.messagePosition = self.messagePosition + 1 end
+end
+
+function GoaHud_Chat:getMessageBackgroundColor(type)
+	local color = clone(self.options.colorRegular)
+	if (type == CHAT_TYPE_ERROR) then color = Color(255, 0, 0, 255)
+	elseif (type == CHAT_TYPE_DEBUG) then color = Color(255, 255, 0, 255)
+	elseif (type == CHAT_TYPE_TEAM) then color = clone(self.options.colorTeam)
+	elseif (type == CHAT_TYPE_SPECTATOR) then color = clone(self.options.colorSpectator)
+	elseif (type == CHAT_TYPE_PARTY) then color = clone(self.options.colorParty)
+	elseif (type == CHAT_TYPE_NOTIFICATION) then color = Color(64, 64, 16, 255)
+	elseif (type == CHAT_TYPE_LOOT) then color = Color(16, 64, 16, 255)
+	elseif (type == CHAT_TYPE_RACE) then color = Color(0, 64, 64, 255)
+	elseif (type == CHAT_TYPE_READY) then color = Color(64, 64, 16, 255)
+	end
+
+	if (color.a == 255) then
+		color.a = math.min((self.options.backgroundAlpha/255), 1.0)*255
+	end
+	return color
 end
 
 -- modified version of pullWord but also pulls valid emojis
@@ -590,8 +623,6 @@ function GoaHud_Chat:handleEvents()
 			for j, r in pairs(readyPlayers) do
 				if (r.index == p.index) then
 					if (p.ready ~= r.ready) then
-						local color_background = Color(64, 64, 16, 255)
-						color_background.a = math.min(color_background.a * (self.options.backgroundAlpha/255), 255)
 						local ready_text = "ready"
 						if (not p.ready) then ready_text = "no longer ready" end
 
@@ -601,7 +632,7 @@ function GoaHud_Chat:handleEvents()
 							bold = true,
 
 							color = Color(255, 255, 255, 255),
-							colorBackground = color_background,
+							messageType = CHAT_TYPE_READY
 						}
 
 						msg.timestamp = epochTimeMs
@@ -687,14 +718,16 @@ function GoaHud_Chat:drawCurrentLine(say)
 	local say_line = ""
 
 	if (say.hover) then
-		if (say.sayTeam) then
+		if (self.options.overrideInputColor) then
+			say_background = clone(self.options.colorInput)
+		elseif (say.sayTeam) then
 			say_background = clone(self.options.colorTeam)
 		elseif (say.saySpec) then
 			say_background = clone(self.options.colorSpectator)
 		elseif (say.sayParty) then
 			say_background = clone(self.options.colorParty)
 		else
-			say_background = Color(0, 0, 0, 255)
+			say_background = clone(self.options.colorRegular)
 		end
 
 		--if (self.options.showChannelText) then
@@ -705,7 +738,10 @@ function GoaHud_Chat:drawCurrentLine(say)
 		say_prefix = say_prefix .. "> "
 		say_line = say_prefix .. say.text
 	end
-	say_background.a = math.min(say_background.a * (self.options.backgroundAlpha/255), 255)
+
+	if (not self.options.overrideInputColor) then
+		say_background.a = math.min(say_background.a * (self.options.backgroundAlpha/255), 255)
+	end
 
 	-- background
 	local say_bounds
@@ -892,7 +928,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 
 				local content_lines, line_count = SplitTextToMultipleLinesEmojis(content, self.options.width, optargs_emoji)
 
-				local color_background = m.colorBackground or Color(0, 0, 0, self.options.backgroundAlpha)
+				local color_background = self:getMessageBackgroundColor(m.messageType)--m.colorBackground or Color(0, 0, 0, self.options.backgroundAlpha)
 				line_y = line_y - (line_height * line_count)
 
 				for j, line in ipairs(content_lines) do
