@@ -52,19 +52,6 @@ function GoaHud_PerfMeter:init()
 	for i=1, self.deltaCount do table.insert(self.deltaTimes, 0.0) end
 end
 
-function GoaHud_PerfMeter:drawOptionsVariable(varname, x, y, optargs)
-	if (varname == "font") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, table.merge(optargs, { font = true }), "Font")
-	elseif (varname == "fontSize") then
-		local optargs = clone(optargs)
-		optargs.min_value = 10
-		optargs.max_value = 170
-		optargs.tick = 1
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Font Size")
-	end
-	return nil
-end
-
 function GoaHud_PerfMeter:draw()
 	if (not self.options.showAlways and consoleGetVariable("cl_show_hud") == 0) then return end
 

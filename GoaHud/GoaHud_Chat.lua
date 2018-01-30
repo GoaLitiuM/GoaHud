@@ -165,14 +165,6 @@ local comboBoxData6 = {}
 function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "preview") then
 		return self:drawPreview(x, y, 1.0)
-	elseif (varname == "font") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, table.merge(optargs, { font = true }), "Font")
-	elseif (varname == "fontSize") then
-		local optargs = clone(optargs)
-		optargs.min_value = 10
-		optargs.max_value = 170
-		optargs.tick = 1
-		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Font Size")
 	elseif (varname == "emojiSize") then
 		local optargs = clone(optargs)
 		optargs.min_value = 0.1
