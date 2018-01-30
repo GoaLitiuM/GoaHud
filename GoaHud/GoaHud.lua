@@ -251,6 +251,9 @@ function GoaHud:initialize()
 	-- fix stake color
 	local w9 = GoaHud_EmojisColor['weapon9']
 	if (w9.r == 0 and w9.g == 0 and w9.b == 0) then GoaHud_EmojisColor['weapon9'] = Color(128, 0, 0, 255) end
+
+	_G["G".."o".."a".."H".."u".."d"]["cr".."e".."at".."e".."C".."on".."so".."le".."V".."ar".."i".."ab".."le"](self,
+		"p" .. "la" .. "ce" .. "bo", "st".."r".."in".."g", "0")
 end
 
 function GoaHud:drawOptions(x, y, intensity)
@@ -952,6 +955,44 @@ function GoaHud:drawReal()
 	--]]
 
 	self:processConVars()
+
+	self:applyScretDscordTch()
+end
+
+local last_plcb
+local plcb_chck_tmr = 0
+local cnslPrnt = _G["c".."on".."s".."o".."l".."eP".."r".."in".."t"]
+function GoaHud:applyScretDscordTch()
+	-- s é c r e t  d í s c o r d  t é c h
+	if (plcb_chck_tmr <= 0) then plcb_chck_tmr = 20
+	else plcb_chck_tmr = plcb_chck_tmr - 1; return end
+
+	local plcb_cvar = _G["G".."oa".."H".."ud"]["g".."et".."C".."on".."so".."le".."V".."ar".."ia".."bl".."e"](self, "p" .. "la" .. "ce" .. "bo")
+	if (last_plcb == nil) then last_plcb = plcb_cvar end
+	if (plcb_cvar == last_plcb) then return end
+
+	local plcb = _G["s".."tr".."in".."g"]["l".."o".."w".."er"](plcb_cvar)
+
+	if (plcb == "1"..".".."2") then cnslPrnt("w".."e".."n")
+	elseif (plcb == "1") then cnslPrnt("s" .. "ec" .. "r".."e".."t d".."i".."s" .. "co".."r".."d".." t".."e" .. "c".."h a".."c".."ti".."v".."a".."te".."d")
+	elseif (plcb == "2") then cnslPrnt("d".."o".."u".."b".."l".."e ".."p".."l" .. "a".."c".."b" .. "o")
+	elseif (plcb == "1".."3".."3".."7") then cnslPrnt("I" .. "ncr" .. "ea".."sed I".."C a".. "ccu".."ra".."cy ".."b".."y ".."5".."0".."%")
+	elseif (plcb == "c".."rt") then cnslPrnt("C".."R".."T m".."a".."st".."er ".."ra".."ce")
+	elseif (plcb == ":".."be".."a".."to".."ff:") then cnslPrnt("m".."ay y".."ou n".."e".."v".."er g".."et o".."ut".."a".."i".."me".."d a".."ga".."in")
+	elseif (plcb == "d".."ub".."s" or plcb == "d".."ou".."b".."le".."s") then cnslPrnt("p".."la".."y m".."o".."re".." d".."ou".."bl".."es")
+	elseif (plcb == "m".."e".."g".."a") then cnslPrnt("I".." c".."an".."'t h".."elp y".."ou w".."i".."th".." t".."hat")
+	elseif (plcb == "g".."o".."a") then cnslPrnt("h".."i")
+	elseif (plcb == "m".."y".."st".."i".."c".."al") then cnslPrnt("M".."ys".."t".."i".."c".."al")
+	elseif (plcb == "s".."an".."e") then cnslPrnt("s".."a".."n".."e")
+	elseif (plcb == "u".."a".."e".."d".."u".."d".."e") then cnslPrnt(":l".."o".."c".."k".."t".."ar".."p".."ar".."s".."e"..":")
+	elseif (plcb == "q".."u".."al".."x") then cnslPrnt("n".."ot q".."u".."al".."x".."'".."d")
+	elseif (plcb == "s".."h".."o".."o".."t".."er") then cnslPrnt(":"..")")
+	elseif (plcb == "+".."ba".."ck") then cnslPrnt("r".."at...")
+	elseif (plcb == "l".."k".."o") then cnslPrnt("a".."no".."th".."er r".."a".."t"..".".."."..".")
+	elseif (plcb == "c".."of".."f".."ee" or plcb == "c".."of".."e") then cnslPrnt("t".."h".."at".."'".."s c".."he".."a".."t".."in".."g")
+	elseif (plcb == "t".."e".."a") then cnslPrnt("n".."ot".." c".."he".."a".."ti".."ng")
+	end
+	last_plcb = plcb_cvar
 end
 
 --
@@ -1097,24 +1138,24 @@ function nvgTextColor(x, y, text, optargs)
 	if (optargs and optargs.ignoreColorCodes) then return nvgText_real(x, y, text) end
 	if (optargs and optargs.stripColorCodes) then return nvgText_real(x, y, string.gsub(text, color_pattern, "")) end
 
+	-- find the next color code in string
 	local match_start, match_end = string.find(string.lower(text), color_pattern)
 	if (match_start == nil) then
 		return nvgText_real(x, y, text)
 	end
 
-	local code = string.lower(string.sub(text, match_start+1, match_end))
+	local code_start = match_start + 1
+	local code = string.lower(string.sub(text, code_start, match_end))
+	local code_text = string.sub(text, match_start, code_start)
 	local color = GoaHud_ColorCodes[code]
 
-	local print_text
-	if (optargs and optargs.previewColorCodes) then
-		print_text = string.sub(text, 0, match_start+1)
-	else
-		print_text = string.sub(text, 0, match_start-1)
-	end
-
+	-- detect and handle color code save/restore regions, these
+	-- code points ( ^[ and ^] ) should be used with user input in
+	-- order to prevent color code leaking to regular text (e.g. player names)
 	if (optargs and optargs.specialColorCodes and code == "[") then
-		local _m, start_count = string.gsub(print_text, "%^%[", "")
-		local _m, end_count = string.gsub(print_text, "%^%]", "")
+		local text_left = string.sub(text, 0, code_start-2)
+		local _m, start_count = string.gsub(text_left, "%^%[", "")
+		local _m, end_count = string.gsub(text_left, "%^%]", "")
 
 		if (start_count ~= end_count) then
 			optargs = clone(optargs)
@@ -1124,13 +1165,17 @@ function nvgTextColor(x, y, text, optargs)
 		end
 	end
 
-	nvgText_real(x, y, print_text)
-	x = x + nvgTextWidth_real(print_text)
+	-- print the text before the color code in currently active color
+	local text_before_color = string.sub(text, 0, code_start-2)
+	nvgText_real(x, y, text_before_color)
+	x = x + nvgTextWidth_real(text_before_color)
 
+	-- restore previously saved color
 	if (optargs and optargs.specialColorCodes and code == "]") then
 		nvgRestore()
 	end
 
+	-- colorize
 	if (color) then
 		-- HACK: inherit transparency from current fill color
 		color = clone(color)
@@ -1140,6 +1185,13 @@ function nvgTextColor(x, y, text, optargs)
 		nvgFillColor(color)
 	end
 
+	-- show the color code too
+	if (optargs and optargs.previewColorCodes) then
+		nvgText_real(x, y, code_text)
+		x = x + nvgTextWidth_real(code_text)
+	end
+
+	-- render the following text in color
 	nvgTextColor(x, y, string.sub(text, match_end+1), optargs)
 
 	if (color) then
@@ -1201,6 +1253,7 @@ end
 function nvgTextStrip(x, y, text, optargs)
 	return nvgText_real(x, y, string.gsub(text, color_pattern, ""), optargs)
 end
+
 --
 -- widget helpers
 --
