@@ -1,4 +1,4 @@
-GoaHud_EmojiSupport = { isMenu = false }
+GoaHud_EmojiSupport = { isMenu = true }
 registerWidget("GoaHud_EmojiSupport");
 
 -- the path could be too long so the error message's filepath might not have .lua in the end
