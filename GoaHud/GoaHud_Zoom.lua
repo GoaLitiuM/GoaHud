@@ -59,17 +59,17 @@ function GoaHud_Zoom:init()
 	end
 
 	GoaHud:createConsoleVariable("zoom", "int", 0, true)
-	
+
 	self.oldFov = consoleGetVariable("r_fov")
 	self.oldSensitivity = consoleGetVariable("m_speed")
 	self.oldWeaponOffsetZ = consoleGetVariable("cl_weapon_offset_z")
 	self.oldCursorHook = consoleGetVariable("showscorescursorhook")
-	
+
 	-- reset zoom fov when the value is out of bounds
 	if (self.options.zoomFov < 10 or self.options.zoomFov > 178) then
 		self.options.zoomFov = self.defaults.zoomFov
 		self:saveOptions()
-		
+
 		if (GoaHud_Chat and GoaHud_Chat.onError) then GoaHud_Chat:onError(self.widgetName, "Invalid zoom FOV value detected, reseting back to default value") end
 	end
 end
@@ -113,7 +113,8 @@ function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
 		optargs.milliseconds = true
 		optargs.min_value = 1
 		optargs.max_value = 300
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs)
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
 	elseif (varname == "smoothZoom") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Enable Animations")
 	elseif (varname == "rescaleSensitivity") then

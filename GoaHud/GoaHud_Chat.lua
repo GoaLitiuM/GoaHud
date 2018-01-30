@@ -178,32 +178,35 @@ function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 		optargs.max_value = 1920
 		optargs.tick = 1
 		optargs.units = "px"
+		optargs.indent = 1
 
 		y = y + GOAHUD_SPACING
 		GoaLabel("Line: ", x, y, optargs)
 		y = y + GOAHUD_SPACING
 
-		return 2*GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Width")
+		return 2*GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Width")
 	elseif (varname == "lineCount") then
 		local optargs = clone(optargs)
 		optargs.min_value = 1
 		optargs.max_value = 100
 		optargs.tick = 1
 		optargs.units = "lines"
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Height")
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Height")
 	elseif (varname == "lineCountActive") then
 		local optargs = clone(optargs)
 		optargs.min_value = 1
 		optargs.max_value = 100
 		optargs.tick = 1
 		optargs.units = "lines"
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Height (Active)")
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Height (Active)")
 	elseif (varname == "backgroundAlpha") then
 		local optargs = clone(optargs)
 		optargs.min_value = 0
 		optargs.max_value = 255
 		optargs.tick = 1
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Transparency")
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Global Background Transparency")
 	elseif (varname == "messageTime") then
 		local optargs = clone(optargs)
 		optargs.min_value = 1

@@ -201,7 +201,8 @@ function GoaHud_Crosshair:drawOptionsVariable(varname, x, y, optargs)
 		local optargs = clone(optargs)
 		optargs.milliseconds = true
 		optargs.enabled = self.options.smoothTransitions
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs)
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
 	elseif (varname == "smoothTransitions") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Enable Animations")
 	end
@@ -211,8 +212,10 @@ end
 local values_changed_last = -1
 function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 	local offset_y = 0
-	local offset_x = GOAHUD_INDENTATION
+	local offset_x = GOAHUD_INDENTATION * 0.5
+	local indent_offset = 0.5
 	local optargs = clone(optargs)
+	optargs.indent = 0
 
 	local values_changed = 0
 	if (weapon.useDefault) then values_changed = values_changed + 1 end
@@ -249,7 +252,7 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 
 		offset_y = offset_y + GOAHUD_SPACING
 		if (shape_enabled) then
-			offset_x = offset_x + GOAHUD_INDENTATION
+			optargs.indent = optargs.indent + indent_offset
 
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "type", x + offset_x, y + offset_y,
 				table.merge(optargs, { enabled = shape_enabled, tick = 1, min_value = 1, max_value = self.crosshairCount, show_editbox = false }))
@@ -276,29 +279,29 @@ function GoaHud_Crosshair:drawOptionsCrosshair(weapon, x, y, optargs)
 			optargs.optionalId = optargs.optionalId + 1
 			offset_y = offset_y + GOAHUD_SPACING
 
-			offset_x = offset_x + GOAHUD_INDENTATION
+			optargs.indent = optargs.indent + indent_offset
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "modeShowTime", x + offset_x, y + offset_y,
 				table.merge(optargs, { enabled = mode_enabled and shape.mode ~= CROSSHAIR_MODE_NORMAL, milliseconds = true, min_value = 0, max_value = 1000 }), "Show Time")
 			optargs.optionalId = optargs.optionalId + 1
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "modeFadeTime", x + offset_x, y + offset_y,
 				table.merge(optargs, { enabled = mode_enabled and shape.mode ~= CROSSHAIR_MODE_NORMAL, milliseconds = true, min_value = 0, max_value = 1000 }), "Fade Time")
 			optargs.optionalId = optargs.optionalId + 1
-			offset_x = offset_x - GOAHUD_INDENTATION
+			optargs.indent = optargs.indent - indent_offset
 
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "useShadow", x + offset_x, y + offset_y,
 				table.merge(optargs, { enabled = shape_enabled }))
 			optargs.optionalId = optargs.optionalId + 1
 
-			offset_x = offset_x + GOAHUD_INDENTATION
+			optargs.indent = optargs.indent + indent_offset
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "shadowColor", x + offset_x, y + offset_y,
 				table.merge(optargs, { enabled = shape_enabled and weapon.useShadow }), "Color")
 			optargs.optionalId = optargs.optionalId + 1
 			offset_y = offset_y + GoaHud_DrawOptionsVariable(shape, "shadowSize", x + offset_x, y + offset_y,
 				table.merge(optargs, { enabled = shape_enabled and weapon.useShadow, tick = 1, min_value = 1, max_value = 50 }), "Size")
 			optargs.optionalId = optargs.optionalId + 1
-			offset_x = offset_x - GOAHUD_INDENTATION
+			optargs.indent = optargs.indent - indent_offset
 
-			offset_x = offset_x - GOAHUD_INDENTATION
+			optargs.indent = optargs.indent - indent_offset
 
 			if (shape_enabled) then
 				offset_y = offset_y + 25

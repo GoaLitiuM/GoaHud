@@ -135,7 +135,8 @@ function GoaHud_Scores:drawOptionsVariable(varname, x, y, optargs)
 		optargs.tick = 100
 		optargs.units = "x"
 		optargs.enabled = self.options.enableAnimations
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Bar Tick Speed")
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Bar Tick Speed")
 	elseif (varname == "font") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, table.merge(optargs, { font = true }), "Font")
 	elseif (varname == "nameFontSize") then

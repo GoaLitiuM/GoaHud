@@ -123,16 +123,16 @@ end
 function GoaHud_Messages:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "messageFadeInTime") then
 		GoaLabel("Game Messages:", x, y, optargs)
-		return GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y + GOAHUD_SPACING, table.merge(optargs, { milliseconds = true, max_value = 1000 }), "Fade In Time")
+		return GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x, y + GOAHUD_SPACING, table.merge(optargs, { milliseconds = true, max_value = 1000, indent = 1 }), "Fade In Time")
 	elseif (varname == "messageShowTime") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, table.merge(optargs, { max_value = 10.0 }), "Show Time")
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, table.merge(optargs, { max_value = 10.0, indent = 1 }), "Show Time")
 	elseif (varname == "messageFadeOutTime") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, table.merge(optargs, { milliseconds = true, max_value = 1000 }), "Fade Out Time")
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, table.merge(optargs, { milliseconds = true, max_value = 1000, indent = 1 }), "Fade Out Time")
 	elseif (varname == "gameModeShowTime") then
 		GoaLabel("Game Mode Title:", x, y, optargs)
-		return GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y + GOAHUD_SPACING, table.merge(optargs, { max_value = 30.0 }), "Show Time")
+		return GOAHUD_SPACING + GoaHud_DrawOptionsVariable(self.options, varname, x, y + GOAHUD_SPACING, table.merge(optargs, { max_value = 30.0, indent = 1 }), "Show Time")
 	elseif (varname == "gameModeFadeTime") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fade Time")
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, table.merge(optargs, { indent = 1 }), "Fade Time")
 	elseif (string.find(varname, "movable") ~= nil) then
 		return 0
 	end

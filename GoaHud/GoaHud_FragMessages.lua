@@ -138,12 +138,14 @@ function GoaHud_FragMessages:drawOptionsVariable(varname, x, y, optargs)
 	elseif (varname == "fragShowTime") then
 		local optargs = clone(optargs)
 		optargs.enabled = self.options.showFraggedMessage
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Show Time")
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Show Time")
 	elseif (varname == "fragFadeTime") then
 		local optargs = clone(optargs)
 		optargs.milliseconds = true
 		optargs.enabled = self.options.showFraggedMessage
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Fade Time")
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Fade Time")
 	elseif (varname == "showCountry") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Show Player Country Flag")
 	end

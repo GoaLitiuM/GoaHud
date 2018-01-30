@@ -73,15 +73,18 @@ function GoaHud_WeaponRack:drawOptionsVariable(varname, x, y, optargs)
 	elseif (varname == "textColor") then
 		local optargs = clone(optargs)
 		optargs.enabled = not self.options.coloredAmmo
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Ammo Text Color")
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Ammo Text Color")
 	elseif (varname == "selectedColor") then
 		local optargs = clone(optargs)
 		optargs.enabled = not self.options.coloredSelection
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs)
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
 	elseif (varname == "backgroundColor") then
 		local optargs = clone(optargs)
 		optargs.enabled = self.options.showBackground
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs)
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
 	end
 
 	local offset = nil
