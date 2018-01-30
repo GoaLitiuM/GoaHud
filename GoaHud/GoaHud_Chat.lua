@@ -573,7 +573,7 @@ end
 
 local readyPlayers = {}
 function GoaHud_Chat:handleEvents()
-	if (self.options.showReadyPlayers) then
+	if (self.options.showReadyPlayers and not (world ~= nil and world.gameState ~= GAME_STATE_WARMUP)) then
 		local ready_players = {}
 
 		-- detect ready players
