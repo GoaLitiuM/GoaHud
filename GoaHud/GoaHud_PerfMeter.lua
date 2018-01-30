@@ -21,6 +21,10 @@ GoaHud_PerfMeter =
 	-- configurable
 	options =
 	{
+		font = { index = 6, face = "" },
+		fontSize = 22,
+		fontColor = Color(255,255,255,255),
+
 		showAlways = false,
 
 		shadow =
@@ -32,11 +36,33 @@ GoaHud_PerfMeter =
 			shadowStrength = 1,
 		},
 	},
+
+	optionsDisplayOrder =
+	{
+		"font", "fontSize", "fontColor",
+		"",
+		"showAlways",
+		"",
+		"shadow",
+	},
 };
 GoaHud:registerWidget("GoaHud_PerfMeter");
 
 function GoaHud_PerfMeter:init()
 	for i=1, self.deltaCount do table.insert(self.deltaTimes, 0.0) end
+end
+
+function GoaHud_PerfMeter:drawOptionsVariable(varname, x, y, optargs)
+	if (varname == "font") then
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, table.merge(optargs, { font = true }), "Font")
+	elseif (varname == "fontSize") then
+		local optargs = clone(optargs)
+		optargs.min_value = 10
+		optargs.max_value = 170
+		optargs.tick = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Font Size")
+	end
+	return nil
 end
 
 function GoaHud_PerfMeter:draw()
@@ -63,15 +89,15 @@ function GoaHud_PerfMeter:draw()
 		self.displayStr = string.format("%.2fms (%dfps)", self.avgFrametime, self.avgFps)
 	end
 
-	nvgTextAlign(NVG_ALIGN_RIGHT, NVG_ALIGN_BOTTOM)
-	nvgFontFace(GOAHUD_FONT3)
-	nvgFontSize(22)
+	GoaHud:alignTextWithWidgetAnchor(self)
+	nvgFontFace(GoaHud:getFont(self.options.font))
+	nvgFontSize(self.options.fontSize)
 
 	-- shadow
 	GoaHud:drawTextShadow(0, 0, self.displayStr, self.options.shadow)
 
 	-- actual text
 	nvgFontBlur(0.0)
-	nvgFillColor(Color(255,255,255,255))
+	nvgFillColor(self.options.fontColor)
 	nvgText(0, 0, self.displayStr)
 end

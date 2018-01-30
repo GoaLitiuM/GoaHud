@@ -1548,7 +1548,7 @@ end
 
 function GoaHud:postInitWidgets()
 	for i, w in pairs(self.registeredWidgets) do
-		widget_table = _G[w.name]
+		local widget_table = _G[w.name]
 
 		-- register callback functions for addon errors
 		if (widget_table.onError ~= nil) then
@@ -1635,6 +1635,28 @@ function GoaHud:isWidgetEnabled(widget)
 			return w.visible
 		end
 	end
+end
+
+function GoaHud:alignTextWithWidgetAnchor(widget)
+	local anchor
+	for i, k in pairs(widgets) do
+		if (k.name == widget.widgetName) then
+			anchor = k.anchor
+			break
+		end
+	end
+
+	local hori, vert
+
+	if (anchor.x == -1) then hori = NVG_ALIGN_LEFT
+	elseif (anchor.x == 0) then hori = NVG_ALIGN_CENTER
+	else hori = NVG_ALIGN_RIGHT end
+
+	if (anchor.y == -1) then vert = NVG_ALIGN_TOP
+	elseif (anchor.y == 0) then vert = NVG_ALIGN_MIDDLE
+	else vert = NVG_ALIGN_BOTTOM end
+
+	nvgTextAlign(hori, vert)
 end
 
 --
