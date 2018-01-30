@@ -487,7 +487,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	local name_readable = name_readable or toReadable(name)
 	local draw_label = vartype ~= "boolean"
 	local is_color = optargs.color or (vartype == "table" and string.find(name_readable, "Color"))
-	local is_font = optargs.font or false
+	local is_font = optargs.font or (name == "font")
 	local indent = optargs.indent or 0
 
 	if (optargs.optionalId < lastWidgetOptionalId) then
@@ -559,6 +559,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 
 		local milliseconds = false
 		local seconds = false
+		local font_size = false
 		local units = optargs.units or nil
 		local fov = optargs.fov or false
 		local tick = optargs.tick
@@ -573,6 +574,8 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 			seconds = true
 		elseif (string.find(name_readable, "Interval")) then
 			milliseconds = true
+		elseif (name == "fontSize") then
+			font_size = true
 		end
 
 		if (optargs.min_value ~= nil or optargs.max_value ~= nil) then
@@ -584,6 +587,10 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		elseif (fov) then
 			min_value = 10
 			max_value = 178
+			tick = 1
+		elseif (font_size) then
+			min_value = 10
+			max_value = 170
 			tick = 1
 		elseif (values ~= nil) then
 			min_value = values[1]
