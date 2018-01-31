@@ -351,7 +351,6 @@ function GoaHud_Scores:drawNamePlates()
 
 	if (show_flag) then
 		nvgFillColor(Color(255,255,255,255))
-		--drawSvgWithShadow(name, x, y, radius, blur, shadow, optargs)
 		GoaHud:drawSvgWithShadow(self.left.flag, -center_offset-flag_size-text_padding, text_offset_y+flag_size, flag_size, 0, self.options.shadow, { emoji_size = emoji_size })
 	end
 
@@ -375,7 +374,7 @@ function GoaHud_Scores:drawNamePlates()
 
 	if (show_flag) then
 		nvgFillColor(Color(255,255,255,255))
-		nvgSvg(self.right.flag, center_offset+flag_size+text_padding, text_offset_y+flag_size, flag_size)
+		GoaHud:drawSvgWithShadow(self.right.flag, center_offset+flag_size+text_padding, text_offset_y+flag_size, flag_size, 0, self.options.shadow, { emoji_size = emoji_size })
 	end
 
 	nvgTranslate(center_offset+text_padding+flag_offset, text_offset_y)
