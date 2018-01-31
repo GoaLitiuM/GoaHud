@@ -11,6 +11,12 @@ GoaHud_Messages =
 
 	options =
 	{
+		font = { index = 5, face = "" },
+		messageFontSize = 40,
+		gameModeFontSize = 40,
+		warmupFontSize = 24,
+		countdownFontSize = 120,
+
 		showSpectatorControls = true,
 		showCountry = false,
 
@@ -70,6 +76,7 @@ GoaHud_Messages =
 	},
 	optionsDisplayOrder =
 	{
+		"font", "messageFontSize", "gameModeFontSize", "warmupFontSize", "countdownFontSize",
 		"showSpectatorControls", "showCountry",
 		"",
 		"messageFadeInTime", "messageShowTime", "messageFadeOutTime",
@@ -209,7 +216,7 @@ local function shouldHide()
 end
 
 function GoaHud_Messages:drawMessages()
-	local message_font_size = 40
+	local message_font_size = self.options.messageFontSize
 	local messages
 
 	if (GoaHud.previewMode) then
@@ -220,7 +227,8 @@ function GoaHud_Messages:drawMessages()
 
 	table.reverse(messages)
 
-	GoaHud:drawTextStyle1(message_font_size)
+	nvgFontFace(GoaHud:getFont(self.options.font))
+	nvgFontSize(message_font_size)
 
 	for i, message in pairs(messages) do
 		local message_start_time = message.time + self.options.messageFadeInTime
@@ -259,7 +267,11 @@ function GoaHud_Messages:drawCountdown()
 
 	if (match_countdown) then
 		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
-		GoaHud:drawText1(0, 0, 120, Color(255,255,255,255), self.options.shadow, tostring(seconds))
+		nvgFontFace(GoaHud:getFont(self.options.font))
+		nvgFontSize(self.options.countdownFontSize)
+		nvgFillColor(Color(255,255,255,255))
+
+		GoaHud:drawTextWithShadow(0, 0,  tostring(seconds), self.options.shadow)
 	end
 end
 
@@ -314,7 +326,11 @@ function GoaHud_Messages:drawGameModeText()
 		end
 
 		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
-		GoaHud:drawText1(0, 0, 40, Color(255,255,255,game_mode_alpha * 255), self.options.shadow, game_mode_text, true)
+		nvgFontFace(GoaHud:getFont(self.options.font))
+		nvgFontSize(self.options.gameModeFontSize)
+		nvgFillColor(Color(255,255,255,game_mode_alpha * 255))
+
+		GoaHud:drawTextWithShadow(0, 0, game_mode_text, self.options.shadow, { alpha = game_mode_alpha * 255 })
 	end
 end
 
@@ -363,7 +379,11 @@ function GoaHud_Messages:drawWarmupText()
 	end
 
 	nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
-	GoaHud:drawTextHA(0, 0, 24, Color(255,255,255,200), self.options.shadow, warmup_text)
+	nvgFontFace(GoaHud:getFont(self.options.font))
+	nvgFontSize(self.options.warmupFontSize)
+	nvgFillColor(Color(255,255,255,200))
+
+	GoaHud:drawTextWithShadow(0, 0, warmup_text, self.options.shadow)
 end
 
 function GoaHud_Messages:drawFollowText()
@@ -385,8 +405,9 @@ function GoaHud_Messages:drawFollowText()
 		local_player.state == PLAYER_STATE_QUEUED or
 		playerIndexCameraAttachedTo ~= playerIndexLocalPlayer) then
 
-		local name_font_size = 40
-		GoaHud:drawTextStyle1(name_font_size)
+		local name_font_size = self.options.messageFontSize
+		nvgFontFace(GoaHud:getFont(self.options.font))
+		nvgFontSize(name_font_size)
 
 		if (not freecam) then
 			local name_width = nvgTextWidthEmoji(player.name, { emojiSize = name_font_size })
@@ -410,7 +431,8 @@ function GoaHud_Messages:drawFollowText()
 				nvgRestore()
 			end
 
-			GoaHud:drawText1(offset_x, 0, name_font_size, Color(255,255,255,255), self.options.shadow, player.name, true)
+			nvgFillColor(Color(255,255,255,255))
+			GoaHud:drawTextWithShadow(offset_x, 0, player.name, self.options.shadow)
 		end
 	end
 end
