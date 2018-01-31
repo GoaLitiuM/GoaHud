@@ -66,6 +66,7 @@ function GoaHud_TimerBig:drawOptionsVariable(varname, x, y, optargs)
 end
 
 function GoaHud_TimerBig:drawPreview(x, y, intensity)
+	self:calculateFontMetrics()
 	local height = 120
 
 	nvgSave()
@@ -102,7 +103,7 @@ function GoaHud_TimerBig:shouldShow()
 	return show
 end
 
-function GoaHud_TimerBig:draw()
+function GoaHud_TimerBig:calculateFontMetrics()
 	-- calculate dimensions of number glyphs
 	local font = GoaHud:getFont(self.options.font)
 	local font_size = self.options.fontSize
@@ -129,6 +130,10 @@ function GoaHud_TimerBig:draw()
 
 		nvgRestore()
 	end
+end
+
+function GoaHud_TimerBig:draw()
+	self:calculateFontMetrics()
 
 	if (not self:shouldShow()) then return end
 
