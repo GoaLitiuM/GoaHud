@@ -12,6 +12,11 @@ GoaHud_WeaponRack =
 
 	options =
 	{
+		font = { index = 5, face = "" },
+		fontSize = 40,
+		iconSize = 15,
+		padding = 2,
+
 		hideMelee = true,
 		hideBurstGun = true,
 
@@ -38,6 +43,8 @@ GoaHud_WeaponRack =
 	},
 	optionsDisplayOrder =
 	{
+		"font", "fontSize", "iconSize", "padding",
+		"",
 		"hideMelee", "hideBurstGun",
 		"",
 		"hideInRace", "hideInWarmup",
@@ -85,6 +92,18 @@ function GoaHud_WeaponRack:drawOptionsVariable(varname, x, y, optargs)
 		optargs.enabled = self.options.showBackground
 		optargs.indent = 1
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+	elseif (varname == "iconSize") then
+		local optargs = clone(optargs)
+		optargs.min_value = 0
+		optargs.max_value = 140
+		optargs.tick = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+	elseif (varname == "padding") then
+		local optargs = clone(optargs)
+		optargs.min_value = 0
+		optargs.max_value = 40
+		optargs.tick = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
 	end
 
 	local offset = nil
@@ -106,6 +125,11 @@ function GoaHud_WeaponRack:draw()
 		if (self.options.hideInWarmup and world ~= nil and world.gameState == GAME_STATE_WARMUP) then return end
 	end
 
+	nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_MIDDLE)
+	nvgFontFace(GoaHud:getFont(self.options.font))
+	nvgFontSize(self.options.fontSize)
+	nvgTextLetterSpacing(0)
+
 	self.showWeapons[1] = not self.options.hideMelee
 	self.showWeapons[2] = not self.options.hideBurstGun
 
@@ -114,10 +138,8 @@ function GoaHud_WeaponRack:draw()
 	local offset_x
 	local weapons_picked = 0
 	local weapon_count = 0
-	local icon_size = 15
-	local font_size = 40
-	local border = 5
-	local offset_width = icon_size*2 + font_size*0.75*3 + border
+	local border = self.options.padding
+	local offset_width = self.options.iconSize*2 + self.options.fontSize*0.75*3 + border
 	local weapon_definitions = weaponDefinitions
 
 	-- show stake in competitive mode if player has it
@@ -132,21 +154,18 @@ function GoaHud_WeaponRack:draw()
 	end
 
 	local background_width = (weapons_picked * (offset_width)) --+ border*2
-	local background_height = math.max(font_size*0.6, icon_size*2) + border*2
+
+	local bounds = nvgTextBounds("1234567890")
+	local background_height = math.max(bounds.maxy-bounds.miny, self.options.iconSize*2) + border*2
 
 	offset_x = -weapons_picked * offset_width / 2
 
 	if (weapons_picked > 0 and self.options.showBackground) then
 		nvgBeginPath()
 		nvgFillColor(self.options.backgroundColor)
-		nvgRect(-icon_size - border + offset_x, -background_height/2, background_width, background_height)
+		nvgRect(-self.options.iconSize - border + offset_x, -background_height/2, background_width, background_height)
 		nvgFill()
 	end
-
-	nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_MIDDLE)
-	nvgFontFace(GOAHUD_FONT1)
-	nvgFontSize(font_size)
-	nvgTextLetterSpacing(0)
 
 	for i=1, weapon_count do
 		local def = weapon_definitions[i]
@@ -162,7 +181,7 @@ function GoaHud_WeaponRack:draw()
 				else
 					nvgFillColor(Color(color.r, color.g, color.b, color.a * 0.6))
 				end
-				nvgRect(offset_x - icon_size - border , -background_height/2, offset_width, background_height)
+				nvgRect(offset_x - self.options.iconSize - border , -background_height/2, offset_width, background_height)
 				nvgFill()
 			end
 
@@ -174,8 +193,10 @@ function GoaHud_WeaponRack:draw()
 				end
 			end
 
-			nvgFillColor(color)
-			GoaHud:drawSvgWithShadow(weapon_icon, offset_x, 0, icon_size, 0, self.options.shadow)
+			if (self.options.iconSize > 0) then
+				nvgFillColor(color)
+				GoaHud:drawSvgWithShadow(weapon_icon, offset_x + border*2, 0, self.options.iconSize, 0, self.options.shadow)
+			end
 
 			if (not self.options.coloredAmmo) then
 				color = clone(self.options.textColor)
@@ -183,7 +204,7 @@ function GoaHud_WeaponRack:draw()
 			end
 
 			if (i ~= 1) then
-				GoaHud:drawTextWithShadow(offset_x + (font_size*3 - border/2)/2, 0, tostring(ammo), self.options.shadow, { alpha = color.a })
+				GoaHud:drawTextWithShadow(offset_x + (offset_width/2) - border, 0, tostring(ammo), self.options.shadow, { alpha = color.a })
 			end
 
 			offset_x = offset_x + offset_width
