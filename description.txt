@@ -10,9 +10,6 @@ Some highlighted features:
 - Customizable Chat, supports color codes and emojis
 - NEW: scoreboard for duel spectators and team modes
 
-Experimental addons not enabled by default:
-- Grenade timer
-
 Animated health and armor numbers:
 [img]http://i.imgur.com/Uy06uxr.gif[/img]
 
