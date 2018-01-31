@@ -79,10 +79,14 @@ function GoaHud_TimerBig:drawPreview(x, y, intensity)
 	nvgFill()
 	nvgRestore()
 
-	local str = "01:38"
 	self:setupText()
+
+	local str = "01:38"
 	local offset_x = round((-self:calculateTextWidth(str) + width) / 2)
 	local offset_y = 0
+
+	nvgFillColor(Color(255,255,255,255))
+
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
 	self:drawText(offset_x + x, y + offset_y, str)
 
