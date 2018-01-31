@@ -13,13 +13,15 @@ GoaHud_Armor =
 	tickTimer = 0.0,
 	playerHealth = -1,
 	playerArmor = -1,
-	fontSize = 120,
 
 	deadTimer = 0.0,
 	deadFadeTime = 1.0,
 
 	options =
 	{
+		font = { index = 5, face = "" },
+		fontSize = 120,
+
 		tickInterval = 0.01,
 		hideInRace = true,
 
@@ -37,7 +39,18 @@ GoaHud_Armor =
 			shadowStrength = 1.5,
 		},
 	},
-	optionsDisplayOrder = { "tickInterval", "hideInRace", "dimNoArmor", "armorColorGreen", "armorColorYellow", "armorColorRed", "shadow", },
+	optionsDisplayOrder = {
+		"font", "fontSize",
+		"",
+		"tickInterval",
+		"hideInRace",
+		"",
+		"dimNoArmor",
+		"armorColorGreen",
+		"armorColorYellow",
+		"armorColorRed",
+		"shadow",
+	},
 };
 GoaHud:registerWidget("GoaHud_Armor");
 
@@ -123,5 +136,9 @@ function GoaHud_Armor:draw()
 	end
 
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_BASELINE)
-	GoaHud:drawTextHA(0, 0, self.fontSize, armor_color, self.options.shadow, armor_str)
+	nvgFontFace(GoaHud:getFont(self.options.font))
+	nvgFontSize(self.options.fontSize)
+	nvgFillColor(armor_color)
+
+	GoaHud:drawTextWithShadow(0, 0, armor_str, self.options.shadow, { alpha = armor_color.a })
 end
