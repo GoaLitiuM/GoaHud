@@ -19,6 +19,9 @@ GoaHud_Ammo =
 
 	options =
 	{
+		font = { index = 5, face = "" },
+		fontSize = 50,
+
 		showTime = 1.5,
 		fadeTime = 0.1,
 		ammoColor = Color(255, 255, 255, 255),
@@ -34,7 +37,15 @@ GoaHud_Ammo =
 		},
 	},
 
-	optionsDisplayOrder = { "showTime", "fadeTime", "ammoColor", "ammoColorWarning", "shadow", },
+	optionsDisplayOrder = {
+		"font", "fontSize",
+		"",
+		"showTime", "fadeTime",
+		"",
+		"ammoColor", "ammoColorWarning",
+		"",
+		"shadow",
+	},
 }
 GoaHud:registerWidget("GoaHud_Ammo");
 
@@ -159,5 +170,10 @@ end
 function GoaHud_Ammo:drawAmmo(x, y, ammo, color, scale)
 	nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
 	nvgScale(scale, scale)
-	GoaHud:drawTextHA(x, y, 50, color, self.options.shadow, tostring(ammo))
+
+	nvgFontFace(GoaHud:getFont(self.options.font))
+	nvgFontSize(self.options.fontSize)
+	nvgFillColor(color)
+
+	GoaHud:drawTextWithShadow(x, y, tostring(ammo), self.options.shadow, { alpha = color.a })
 end
