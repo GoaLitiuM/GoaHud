@@ -573,7 +573,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 			seconds = true
 		elseif (string.find(name_readable, "Interval")) then
 			milliseconds = true
-		elseif (name == "fontSize") then
+		elseif (string.find(string.lower(name), "fontsize")) then
 			font_size = true
 		end
 
