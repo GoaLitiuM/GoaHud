@@ -3,7 +3,7 @@
 -- Tracks changes to GoaHud.
 --
 
-local version = 38
+local version = 39
 
 function GoaHud_GetVersionPretty()
     return "r" .. GoaHud_Version.version
@@ -87,6 +87,23 @@ changelog[37] = "\z
 
 changelog[38] = "\z
 - Fixed error caused by old Chat font not getting applied correctly\n\z
+"
+
+changelog[39] = "\z
+- Added customizable font options to following widgets:\n\z
+- PerfMeter, Timer, TimerBig, RaceTimer, Ammo, Armor, Health, Messages, FragMessages, WeaponRack\n\z
+- Added missing 'Lato Heavy' and 'Open Sans Condensed' fonts to list of available fonts\n\z
+- Removed following features which could give a competitive advantage to players:\n\z
++ Removed GrenadeTimer widget\n\z
++ Removed base-25 timer options from Timer and BigTimer widgets\n\z
+- Chat: Added option to change size of emojis\n\z
+- Chat: Added customizable background color for chat input\n\z
+- Chat: Fixed wrong cursor offset after emojis\n\z
+- Chat: Fixed color codes itself not getting colorized in input line\n\z
+- Chat: Fixed color code leakage from player names\n\z
+- Chat: Fixed player not ready messages showing up at match start\n\z
+- Scores: Fixed missing flag shadow on right side\n\z
+- PerfMeter: Fixed font alignment not following widget anchoring\n\z
 "
 
 
