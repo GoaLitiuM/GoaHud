@@ -3,7 +3,7 @@
 -- Tracks changes to GoaHud.
 --
 
-local version = 39
+local version = 40
 
 function GoaHud_GetVersionPretty()
     return "r" .. GoaHud_Version.version
@@ -104,6 +104,12 @@ changelog[39] = "\z
 - Chat: Fixed player not ready messages showing up at match start\n\z
 - Scores: Fixed missing flag shadow on right side\n\z
 - PerfMeter: Fixed font alignment not following widget anchoring\n\z
+"
+
+changelog[40] = "\z
+- Fixed timer numbers moving around with non-monospaced fonts\n\z
+- Added letter spacing option for timers\n\z
+- Optimized emojis\n\z
 "
 
 
