@@ -10,19 +10,11 @@ GoaHud_Timer =
 	offset = { x = 0, y = 60 },
 	anchor = { x = 0, y = -1 },
 
-	recalculateBounds = true,
-	textOffsetX = 0,
-	textOffsetY = 0,
-	textWidth = 0,
-	textHeight = 0,
-	scoreOffsetX = 0,
-	scoreWidth = 0,
-	lastMins = -1,
-
 	options =
 	{
 		font = { index = 8, face = "" },
 		fontSize = 80,
+		letterSpacing = 0,
 
 		countdown = true,
 		countdownRace = true,
@@ -41,7 +33,8 @@ GoaHud_Timer =
 
 	optionsDisplayOrder =
 	{
-		"font", "fontSize",
+		"preview",
+		"font", "fontSize", "letterSpacing",
 		"",
 		"countdown", "countdownRace",
 		"",
@@ -52,32 +45,98 @@ GoaHud_Timer =
 };
 GoaHud:registerWidget("GoaHud_Timer");
 
+local last_font = nil
+local font_number_width = nil
+local font_separator_width = nil
+local font_y_offset = nil
+
 function GoaHud_Timer:init()
 end
 
 function GoaHud_Timer:drawOptionsVariable(varname, x, y, optargs)
-	if (varname == "showScoreDiff") then
+	if (varname == "preview") then
+		return self:drawPreview(x, y, 1.0)
+	elseif (varname == "letterSpacing") then
+		local optargs = clone(optargs)
+		optargs.min_value = -10
+		optargs.max_value = 20
+		optargs.tick = 1
+		optargs.units = "px"
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+	elseif (varname == "showScoreDiff") then
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Show Score Lead")
 	end
 	return nil
 end
 
-function GoaHud_Timer:setupText()
-	nvgTextLetterSpacing(-1)
+function GoaHud_Timer:drawPreview(x, y, intensity)
+	local height = 120
 
+	nvgSave()
+
+	nvgSave()
+	local width = 550
+	nvgBeginPath()
+	nvgFillLinearGradient(x, y, x + width, y + height, Color(0,0,0,0), Color(255,255,255,255))
+	nvgRect(x, y, width, height)
+	nvgFill()
+	nvgRestore()
+
+	local str = "01:38"
+	self:setupText()
+	local str_width = self:calculateTextWidth(str)
+	local offset_x = round((-str_width + width) / 2)
+	local offset_y = 0
+
+	-- timer
+	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
+	self:drawText(offset_x + x, y + offset_y, str)
+
+	-- score
+	if (self.options.showScoreDiff) then
+		offset_x = offset_x + str_width + font_separator_width
+
+		nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
+		GoaHud:drawTextWithShadow(x + offset_x, y + offset_y, "+12", self.options.shadow)
+	end
+	nvgRestore()
+
+	return height + 10
+end
+
+function GoaHud_Timer:setupText()
 	nvgFontFace(GoaHud:getFont(self.options.font))
 	nvgFontSize(self.options.fontSize)
 end
 
-function GoaHud_Timer:drawText(x, y, color, value)
-	x = round(x)
-	y = round(y)
-	GoaHud:drawTextShadow(x, y, value, self.options.shadow, { alpha = color.a })
-	nvgFillColor(color)
-	nvgText(x, y, value)
-end
-
 function GoaHud_Timer:draw()
+	-- calculate dimensions of number glyphs
+	local font = GoaHud:getFont(self.options.font)
+	local font_size = self.options.fontSize
+	local current_font = tostring(font) .. tostring(font_size)
+	if (last_font ~= current_font) then
+		last_font = current_font
+
+		nvgSave()
+		self:setupText()
+
+		local maxh, maxy
+		for i=0,9,1 do
+			local b = nvgTextBounds(tostring(i))
+			local w = round(b.maxx - b.minx)
+			local h = b.maxy
+
+			if (maxh == nil or w > maxh) then maxh = w end
+			if (maxy == nil or h < maxy) then maxy = h end
+		end
+
+		font_number_width = maxh
+		font_separator_width = nvgTextWidth(":")
+		font_y_offset = maxy
+
+		nvgRestore()
+	end
+
 	if (not shouldShowHUD(optargs_deadspec)) then return end
 
 	local race = isRaceOrTrainingMode()
@@ -110,45 +169,18 @@ function GoaHud_Timer:draw()
 	local t = GoaHud:formatTime(time_raw / 1000, timer_base)
 	local display_str = string.format("%02d:%02d", t.mins_total, t.secs)
 
-	if (t.mins_total ~= self.lastMins) then
-		if (t.mins_total % 100 ~= self.lastMins % 100) then
-			self.recalculateBounds = true
-		end
-	end
-	self.lastMins = t.mins_total
-
-	if (self.recalculateBounds) then
-		nvgSave()
-
-		self:setupText()
-
-		local bounds = nvgTextBounds(display_str)
-
-		self.textOffsetX = -bounds.maxx
-		self.textOffsetY = -bounds.maxy
-		self.textWidth = bounds.maxx - bounds.minx
-		self.textHeight = bounds.maxy - bounds.miny
-
-		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_TOP)
-		bounds = nvgTextBounds("+99")
-
-		self.scoreOffsetX = -bounds.maxx
-		self.scoreWidth = bounds.maxx - bounds.minx
-
-		nvgRestore()
-
-		self.recalculateBounds = false
-	end
-
-	local margin = 12
-	local x = -self.textOffsetX - self.textWidth/2
-	local y = self.textOffsetY + margin - 8
-
 	-- round time
 	self:setupText()
-	nvgTextAlign(NVG_ALIGN_RIGHT, NVG_ALIGN_TOP)
 
-	self:drawText(x, y, Color(255,255,255,255), display_str)
+	nvgFillColor(Color(255,255,255,255))
+
+	local margin = 3
+	local x = round(-self:calculateTextWidth(display_str) / 2)
+	local y = -font_y_offset + margin
+
+	-- draw the characters separately
+	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
+	self:drawText(x, y, display_str)
 
 	-- score difference
 	local player = getPlayer()
@@ -186,17 +218,37 @@ function GoaHud_Timer:draw()
 		if (diff > 0) then sign = "+" end
 		local score_diff_str = string.format("%s%d", sign, diff)
 
-		x = x - self.scoreOffsetX + margin*2 + 1
-
-		-- stretch text to fit inside the rect
-		if (math.abs(diff) >= 100) then
-			nvgScale(0.7, 1.0)
-			x = x / 0.7
-		end
+		x = -x + font_separator_width
 
 		-- score text
-		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_TOP)
+		nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
+		GoaHud:drawTextWithShadow(x, y, score_diff_str, self.options.shadow)
+	end
+end
 
-		self:drawText(x, y, Color(255,255,255,255), score_diff_str)
+function GoaHud_Timer:calculateTextWidth(str)
+	local width = -self.options.letterSpacing
+	for i = 1, #str do
+		local c = string.sub(str, i, i)
+		if (c == ":") then width = width + font_separator_width
+		else width = width + font_number_width end
+		width = width + self.options.letterSpacing
+	end
+	return width
+end
+
+function GoaHud_Timer:drawText(x, y, str)
+	local offset_x = 0
+	for i = 1, #str do
+		local c = string.sub(str, i, i)
+		local separator = c == ":"
+		local number_offset = 0
+
+		if (not separator) then number_offset = number_offset + (font_number_width - nvgTextWidth(c)) / 2 end
+
+		GoaHud:drawTextWithShadow(x + offset_x + number_offset, y, c, self.options.shadow)
+		if (separator) then offset_x = offset_x + font_separator_width
+		else offset_x = offset_x + font_number_width end
+		offset_x = offset_x + self.options.letterSpacing
 	end
 end
