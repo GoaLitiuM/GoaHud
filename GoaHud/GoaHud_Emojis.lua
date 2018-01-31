@@ -7,6 +7,10 @@ GoaHud_EmojisCustom={
 ['Q1thinking']='Q1thinking',
 ['q1thinking']='Q1thinking',
 ['reflexpicardia']='reflexpicardia',
+['hostiledab']='hostiledab',
+['woketarparse']='woketarparse',
+['arenafps']='arenafps',
+['ramagan']='ramagan',
 }
 
 GoaHud_Emojis={
