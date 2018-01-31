@@ -21,6 +21,9 @@ GoaHud_RaceTimer =
 
 	options =
 	{
+		font = { index = 8, face = "" },
+		fontSize = 120,
+
 		shadow =
 		{
 			shadowEnabled = true,
@@ -29,6 +32,13 @@ GoaHud_RaceTimer =
 			shadowColor = Color(0,0,0,255),
 			shadowStrength = 1,
 		},
+	},
+
+	optionsDisplayOrder =
+	{
+		"font", "fontSize",
+		"",
+		"shadow",
 	},
 };
 GoaHud:registerWidget("GoaHud_RaceTimer");
@@ -71,8 +81,8 @@ end
 
 function GoaHud_RaceTimer:setupText()
 	nvgTextLetterSpacing(-2)
-	nvgFontFace(GOAHUD_FONT2)
-	nvgFontSize(120)
+	nvgFontFace(GoaHud:getFont(self.options.font))
+	nvgFontSize(self.options.fontSize)
 end
 
 function GoaHud_RaceTimer:draw()
