@@ -3,7 +3,7 @@
 -- Tracks changes to GoaHud.
 --
 
-local version = 40
+local version = 41
 
 function GoaHud_GetVersionPretty()
     return "r" .. GoaHud_Version.version
@@ -112,6 +112,9 @@ changelog[40] = "\z
 - Optimized emojis\n\z
 "
 
+changelog[41] = "\z
+- Fixed errors when trying to open Timer and TimerBig widget settings\n\z
+"
 
 
 
