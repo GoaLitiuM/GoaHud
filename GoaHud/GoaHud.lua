@@ -109,7 +109,7 @@ local nvgFontSize_real = nvgFontSize
 local nvgFontSizeCurrent = 24
 
 GOAHUD_FONT1 = "vipnagorgialla"
-GOAHUD_FONT2 = "Lato-Heavy-Optimized"
+GOAHUD_FONT2 = "Lato-Heavy"
 GOAHUD_FONT3 = "Volter__28Goldfish_29"
 GOAHUD_FONT4 = "OpenSans-CondBold"
 GOAHUD_FONT5 = "forgotten futurist rg"
@@ -140,9 +140,9 @@ GOAHUD_FONTS_NAMES =
 	"roboto",
 	"titilliumWeb",
 	"vipnagorgialla",
-	"Volter__28Goldfish_29",
+	"Volter (Goldfish)",
 	"Oswald",
-	"Lato Heavy (Optimized)",
+	"Lato Heavy",
 	"Open Sans Condensed",
 }
 
