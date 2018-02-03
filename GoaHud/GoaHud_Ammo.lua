@@ -168,6 +168,8 @@ function GoaHud_Ammo:draw()
 end
 
 function GoaHud_Ammo:drawAmmo(x, y, ammo, color, scale)
+	if (scale <= 0.0) then return end
+
 	nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
 	nvgScale(scale, scale)
 
