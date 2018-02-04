@@ -90,6 +90,8 @@ GoaHud_Crosshair =
 
 	options =
 	{
+		showAlways = true,
+
 		smoothTransitions = true,
 		showTime = 0.0,
 		fadeTime = 0.0425,
@@ -97,7 +99,13 @@ GoaHud_Crosshair =
 		crosshairDefault = initCrosshairs(1),
 		weaponCrosshairs = initCrosshairs(10),
 	},
-	optionsDisplayOrder = { "smoothTransitions", "showTime", "fadeTime", "preview", "crosshairDefault", "weaponCrosshairs", },
+
+	optionsDisplayOrder =
+	{
+		"showAlways",
+		"",
+		"smoothTransitions", "showTime", "fadeTime", "preview", "crosshairDefault", "weaponCrosshairs",
+	},
 };
 GoaHud:registerWidget("GoaHud_Crosshair");
 
@@ -344,7 +352,9 @@ function GoaHud_Crosshair:drawPreview(x, y, intensity)
 end
 
 function GoaHud_Crosshair:draw()
-	if (not shouldShowHUD(optargs_deadspec)) then return end
+	if (self.options.showAlways) then
+		if (replayName == "menu" or isInMenu()) then return end
+	elseif (not shouldShowHUD(optargs_deadspec)) then return end
 
 	local player = getPlayer()
 	local local_player = getLocalPlayer()
