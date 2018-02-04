@@ -34,7 +34,8 @@ CHAT_TYPE_PARTY = 6
 CHAT_TYPE_NOTIFICATION = 7
 CHAT_TYPE_LOOT = 8
 CHAT_TYPE_RACE = 9
-CHAT_TYPE_READY = 10
+CHAT_TYPE_RACE_RECORD = 10
+CHAT_TYPE_READY = 11
 
 GoaHud_Chat =
 {
@@ -82,6 +83,22 @@ GoaHud_Chat =
 		colorTeam = Color(32, 32, 196, 255),
 		colorSpectator = Color(196, 196, 32, 255),
 		colorParty = Color(32, 196, 32, 255),
+		colorNotification = Color(64, 64, 16, 255),
+		colorDrop = Color(16, 64, 16, 255),
+		colorRace = Color(0, 64, 64, 255),
+		colorRaceRecord = Color(0, 64, 64, 255),
+		colorReady = Color(64, 64, 16, 255),
+
+		colorTextRegular = Color(255, 255, 255, 255),
+		colorTextInput = Color(255, 255, 255, 255),
+		colorTextTeam = Color(255, 255, 255, 255),
+		colorTextSpectator = Color(255, 255, 255, 255),
+		colorTextParty = Color(255, 255, 255, 255),
+		colorTextNotification = Color(200, 200, 48, 255),
+		colorTextDrop = Color(128, 255, 128, 255),
+		colorTextRace = Color(255, 255, 96, 255),
+		colorTextRaceRecord = Color(96, 255, 96, 255),
+		colorTextReady = Color(255, 255, 255, 255),
 
 		shadow =
 		{
@@ -112,8 +129,11 @@ GoaHud_Chat =
 		"",
 		"showReadyPlayers",
 		"",
-		"overrideInputColor", "colorRegular", "colorInput",
-		"colorTeam", "colorSpectator", "colorParty",
+		"overrideInputColor",
+		"colorRegular", "colorInput", "colorTeam", "colorSpectator", "colorParty", "colorNotification", "colorDrop", "colorRace", "colorRaceRecord", "colorReady",
+		"",
+		"colorTextRegular", "colorTextInput", "colorTextTeam", "colorTextSpectator", "colorTextParty", "colorTextNotification", "colorTextDrop", "colorTextRace", "colorTextRaceRecord", "colorTextReady",
+		"",
 		"preview",
 		"",
 		"shadow",
@@ -123,8 +143,6 @@ GoaHud_Chat =
 
 	caretTimer = 0.0,
 	caretBlinkTime = 0.25,
-
-	textColor = Color(255, 255, 255, 255),
 
 	messages = {},
 	messagesPreview = {},
@@ -374,7 +392,6 @@ function GoaHud_Chat:onLog(entry)
 		}
 	elseif (entry.type == LOG_TYPE_NOTIFICATION) then
 		msg_type = CHAT_TYPE_NOTIFICATION
-		local color = self.textColor
 
 		-- reformat notification messages to prevent color codes leaking from player names
 		local content = entry.notification
@@ -388,33 +405,24 @@ function GoaHud_Chat:onLog(entry)
 
 		if (joined_player and joined_content) then
 			content = string.format("^[%s^] %s", joined_player, joined_content)
-			color = Color(200, 200, 48, 255)
 		elseif (spectating_player and spectating_content) then
 			content = string.format("^[%s^] %s", spectating_player, spectating_content)
-			color = Color(200, 200, 48, 255)
 		elseif (disconnected_player and disconnected_content) then
 			content = string.format("^[%s^] %s", disconnected_player, disconnected_content)
-			color = Color(200, 200, 48, 255)
 		elseif (editor_player and editor_content) then
 			content = string.format("^[%s^] %s", editor_player, editor_content)
-			color = Color(200, 200, 48, 255)
 		elseif (referee_player and referee_content) then
 			content = string.format("^[%s^] %s", referee_player, referee_content)
-			color = Color(200, 200, 48, 255)
 		elseif (unreferee_player and unreferee_content) then
 			content = string.format("^[%s^] %s", unreferee_player, unreferee_content)
-			color = Color(200, 200, 48, 255)
 		elseif (renamed_player_old and renamed_content and renamed_player_new) then
 			content = string.format("player ^[%s^] %s ^[%s^]", renamed_player_old, renamed_content, renamed_player_new)
-			color = Color(200, 200, 48, 255)
 		end
 
 		msg =
 		{
 			content = content,
 			bold = true,
-
-			color = color,
 		}
 
 		-- hide join messages triggered by menu replay
@@ -427,8 +435,6 @@ function GoaHud_Chat:onLog(entry)
 		if (entry.type == LOG_TYPE_DROP and getLocalPlayer().name == player_name) then
 			playSound("internal/ui/sounds/notifyDrop")
 		end
-
-		local color = Color(128, 255, 128, 255)
 
 		local def_id = entry.dropItemDefId
 		local quantity = 1
@@ -452,23 +458,18 @@ function GoaHud_Chat:onLog(entry)
 		{
 			content = content,
 			bold = true,
-
-			color = color,
 		}
 	elseif (entry.type == LOG_TYPE_RACEEVENT) then
 		msg_type = CHAT_TYPE_RACE
 		if (entry.raceEvent == RACE_EVENT_FINISH or entry.raceEvent == RACE_EVENT_FINISHANDWASRECORD) then
-			local color = Color(255, 255, 96, 255)
 			if (entry.raceEvent == RACE_EVENT_FINISHANDWASRECORD) then
-				color = Color(96, 255, 96, 255)
+				msg_type = CHAT_TYPE_RACE_RECORD
 			end
 
 			msg =
 			{
 				content = string.format("^[%s^] finished race in %s", entry.raceName, FormatTimeToDecimalTime(entry.raceTime)),
 				bold = true,
-
-				color = color,
 			}
 		end
 	end
@@ -490,6 +491,23 @@ function GoaHud_Chat:newMessage(msg)
 	if (self.messagePosition ~= 1) then self.messagePosition = self.messagePosition + 1 end
 end
 
+function GoaHud_Chat:getMessageTextColor(type)
+	local color = clone(self.options.colorTextRegular)
+	if (type == CHAT_TYPE_ERROR) then color = Color(255, 255, 255, 255)
+	elseif (type == CHAT_TYPE_DEBUG) then color = Color(255, 255, 255, 255)
+	elseif (type == CHAT_TYPE_TEAM) then color = clone(self.options.colorTextTeam)
+	elseif (type == CHAT_TYPE_SPECTATOR) then color = clone(self.options.colorTextSpectator)
+	elseif (type == CHAT_TYPE_PARTY) then color = clone(self.options.colorTextParty)
+	elseif (type == CHAT_TYPE_NOTIFICATION) then color = clone(self.options.colorTextNotification)
+	elseif (type == CHAT_TYPE_LOOT) then color = clone(self.options.colorTextDrop)
+	elseif (type == CHAT_TYPE_RACE) then color = clone(self.options.colorTextRace)
+	elseif (type == CHAT_TYPE_RACE_RECORD) then color = clone(self.options.colorTextRaceRecord)
+	elseif (type == CHAT_TYPE_READY) then color = clone(self.options.colorTextReady)
+	end
+
+	return color
+end
+
 function GoaHud_Chat:getMessageBackgroundColor(type)
 	local color = clone(self.options.colorRegular)
 	if (type == CHAT_TYPE_ERROR) then color = Color(255, 0, 0, 255)
@@ -497,10 +515,11 @@ function GoaHud_Chat:getMessageBackgroundColor(type)
 	elseif (type == CHAT_TYPE_TEAM) then color = clone(self.options.colorTeam)
 	elseif (type == CHAT_TYPE_SPECTATOR) then color = clone(self.options.colorSpectator)
 	elseif (type == CHAT_TYPE_PARTY) then color = clone(self.options.colorParty)
-	elseif (type == CHAT_TYPE_NOTIFICATION) then color = Color(64, 64, 16, 255)
-	elseif (type == CHAT_TYPE_LOOT) then color = Color(16, 64, 16, 255)
-	elseif (type == CHAT_TYPE_RACE) then color = Color(0, 64, 64, 255)
-	elseif (type == CHAT_TYPE_READY) then color = Color(64, 64, 16, 255)
+	elseif (type == CHAT_TYPE_NOTIFICATION) then color = clone(self.options.colorNotification)
+	elseif (type == CHAT_TYPE_LOOT) then color = clone(self.options.colorDrop)
+	elseif (type == CHAT_TYPE_RACE) then color = clone(self.options.colorRace)
+	elseif (type == CHAT_TYPE_RACE_RECORD) then color = clone(self.options.colorRaceRecord)
+	elseif (type == CHAT_TYPE_READY) then color = clone(self.options.colorReady)
 	end
 
 	if (color.a == 255) then
@@ -715,7 +734,7 @@ local last_cursor = -1
 function GoaHud_Chat:drawCurrentLine(say)
 	nvgFontFace(GoaHud:getFont(self.options.font))
 	nvgFontSize(self.options.fontSize)
-	nvgFillColor(self.textColor)
+	nvgFillColor(self.options.colorTextInput)
 
 	local padding = round(self.options.fontSize * 0.14)
 	local say_background = Color(0, 0, 0, 255)
@@ -859,7 +878,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 
 	nvgFontFace(GoaHud:getFont(self.options.font))
 	nvgFontSize(self.options.fontSize)
-	nvgFillColor(self.textColor)
+	nvgFillColor(self.options.colorTextRegular)
 
 	local format_str = "%02d:%02d "
 	if (self.options.showSeconds) then format_str = "%02d:%02d:%02d " end
@@ -892,9 +911,10 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 				local bold = m.bold or false
 				local italic = m.italic or false
 				local timestamp
+				local color_text = self:getMessageTextColor(m.messageType)
 
 				nvgFontFace(GoaHud:getFont(self.options.font, bold, italic))
-				nvgFillColor(m.color or self.textColor)
+				nvgFillColor(color_text)
 
 				-- repeated count for debug messages
 				if (m.debugRepeat ~= nil and m.debugRepeat > 1) then
@@ -936,7 +956,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 
 				local content_lines, line_count = SplitTextToMultipleLinesEmojis(content, self.options.width, optargs_emoji)
 
-				local color_background = self:getMessageBackgroundColor(m.messageType)--m.colorBackground or Color(0, 0, 0, self.options.backgroundAlpha)
+				local color_background = self:getMessageBackgroundColor(m.messageType)
 				line_y = line_y - (line_height * line_count)
 
 				for j, line in ipairs(content_lines) do
@@ -960,7 +980,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 							if (timestamp ~= nil) then
 								nvgSave()
 
-								nvgFillColor(self.textColor)
+								nvgFillColor(self.options.colorTextRegular)
 								nvgFontFace(GoaHud:getFont(self.options.font))
 
 								GoaHud:drawTextWithShadow(0, line_y, timestamp, self.options.shadow, optargs_emoji)
@@ -973,7 +993,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 							if (prefix ~= nil) then
 								nvgSave()
 
-								nvgFillColor(self.textColor)
+								nvgFillColor(self.options.colorTextRegular)
 								nvgFontFace(GoaHud:getFont(self.options.font, true))
 
 								GoaHud:drawTextWithShadow(content_offset_x, line_y, prefix, self.options.shadow, optargs_emoji)
