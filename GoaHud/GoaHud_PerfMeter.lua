@@ -21,11 +21,11 @@ GoaHud_PerfMeter =
 	-- configurable
 	options =
 	{
+		showAlways = true,
+
 		font = { index = 6, face = "" },
 		fontSize = 22,
 		fontColor = Color(255,255,255,255),
-
-		showAlways = false,
 
 		shadow =
 		{
@@ -39,9 +39,9 @@ GoaHud_PerfMeter =
 
 	optionsDisplayOrder =
 	{
-		"font", "fontSize", "fontColor",
-		"",
 		"showAlways",
+		"",
+		"font", "fontSize", "fontColor",
 		"",
 		"shadow",
 	},
