@@ -442,6 +442,33 @@ function GoaHud_Scores:draw()
 		end
 		left_score = left_team.score
 		right_score = right_team.score
+	elseif (game_mode ~= "1v1") then
+
+		left_score = -9999
+		if (left_player == nil) then
+			for i=1,32,1 do
+				if (players[i] ~= nil and players[i].connected and players[i].state == PLAYER_STATE_INGAME) then
+					if (players[i].score > left_score) then
+						left_player = players[i]
+						left_score = players[i].score
+						break
+					end
+				end
+			end
+		end
+
+		right_score = -9999
+		for i, p in pairs(players) do
+			if (p.connected and p.state == PLAYER_STATE_INGAME) then
+				if (left_player and p.index ~= left_player.index) then
+					if (p.score > right_score) then
+						right_score = p.score
+						right_player = p
+					end
+				end
+			end
+		end
+		if (not right_player) then right_score = 0 end
 	else
 		if (left_player == nil) then
 			for i=1,32,1 do
