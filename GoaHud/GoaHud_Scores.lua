@@ -346,7 +346,7 @@ function GoaHud_Scores:drawNamePlates()
 
 	-- left side
 	nvgSave()
-	local left_bounds = nvgTextBoundsEmoji(self.left.text)
+	local left_bounds = nvgTextBoundsEmoji(self.left.text, { emoji_size = emoji_size })
 	local left_width = left_bounds.maxx - left_bounds.minx
 
 	if (show_flag) then
@@ -369,7 +369,7 @@ function GoaHud_Scores:drawNamePlates()
 	-- right side
 	nvgSave()
 
-	local right_bounds = nvgTextBoundsEmoji(self.right.text)
+	local right_bounds = nvgTextBoundsEmoji(self.right.text, { emoji_size = emoji_size })
 	local right_width = right_bounds.maxx - right_bounds.minx
 
 	if (show_flag) then
