@@ -531,6 +531,11 @@ end
 
 -- modified version of reflexcore SplitTextToMultipleLines to use nvgTextWidthEmoji
 function SplitTextToMultipleLinesEmojis(text, w, optargs)
+	local lineWidth = nvgTextWidthEmoji(text, optargs)
+	if (lineWidth <= w) then
+		return { text }, 1
+	end
+
 	local lines = {};
 	local lineCount = 0;
 	local newLine = "";
@@ -856,6 +861,12 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 	nvgFontSize(self.options.fontSize)
 	nvgFillColor(self.textColor)
 
+	local format_str = "%02d:%02d "
+	if (self.options.showSeconds) then format_str = "%02d:%02d:%02d " end
+
+	local timestamp_max = string.format(format_str, 88, 88, 88)
+	local timestamp_width
+
 	for i, m in ipairs(messages) do
 		if (line_y <= -height) then break end
 
@@ -880,7 +891,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 				local prefix
 				local bold = m.bold or false
 				local italic = m.italic or false
-				local timestamp, timestamp_max
+				local timestamp
 
 				nvgFontFace(GoaHud:getFont(self.options.font, bold, italic))
 				nvgFillColor(m.color or self.textColor)
@@ -913,15 +924,12 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 				if (self.options.useTimestamps) then
 					local t = GoaHud:formatTime(m.timestamp + (self.options.utcOffset * 60 * 60))
 
-					local format_str
-					if (self.options.showSeconds) then
-						format_str = "%02d:%02d:%02d "
-					else
-						format_str = "%02d:%02d "
+					timestamp = string.format(format_str, t.hours_total % 24, t.mins_total % 60, t.secs_total % 60)
+
+					if (timestamp_width == nil) then
+						timestamp_width = nvgTextWidthEmoji(timestamp_max, optargs_emoji)
 					end
 
-					timestamp = string.format(format_str, t.hours_total % 24, t.mins_total % 60, t.secs_total % 60)
-					timestamp_max = string.format(format_str, 88, 88, 88)
 					content = timestamp_max .. content
 					content_offset = content_offset + string.len(timestamp_max)
 				end
@@ -956,7 +964,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 								nvgFontFace(GoaHud:getFont(self.options.font))
 
 								GoaHud:drawTextWithShadow(0, line_y, timestamp, self.options.shadow, optargs_emoji)
-								content_offset_x = content_offset_x + nvgTextWidthEmoji(timestamp_max, optargs_emoji)
+								content_offset_x = content_offset_x + timestamp_width
 
 								nvgRestore()
 							end
