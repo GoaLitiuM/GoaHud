@@ -78,6 +78,7 @@ GoaHud_Chat =
 
 		overrideInputColor = false,
 		backgroundAlpha = 96,
+		backgroundAlphaInactive = 96,
 		colorRegular = Color(0, 0, 0, 255),
 		colorInput = Color(0, 0, 0, 150),
 		colorTeam = Color(32, 32, 196, 255),
@@ -113,7 +114,7 @@ GoaHud_Chat =
 	optionsDisplayOrder =
 	{
 		"preview",
-		"font", "fontSize", "width", "lineCount", "lineCountActive", "backgroundAlpha",
+		"font", "fontSize", "width", "lineCount", "lineCountActive", "backgroundAlpha", "backgroundAlphaInactive",
 		"",
 		"messageTime", "messageFadeTime",
 		"",
@@ -145,7 +146,6 @@ GoaHud_Chat =
 	caretBlinkTime = 0.25,
 
 	messages = {},
-	messagesPreview = {},
 	messagePosition = 0,
 }
 GoaHud:registerWidget("GoaHud_Chat")
@@ -184,11 +184,6 @@ function GoaHud_Chat:init()
 		if (chat_debug ~= 0) then hookConsolePrint()
 		else unhookConsolePrint() end
 		last_chat_debug = chat_debug
-	end
-
-	for i=1, 25 do
-		table.insert(self.messagesPreview, { timestamp = 0, source = "Player1", content = "gg" })
-		table.insert(self.messagesPreview, { timestamp = 0, source = "Player2", content = "gg" })
 	end
 end
 
@@ -250,6 +245,13 @@ function GoaHud_Chat:drawOptionsVariable(varname, x, y, optargs)
 		optargs.tick = 1
 		optargs.indent = 1
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Transparency")
+	elseif (varname == "backgroundAlphaInactive") then
+		local optargs = clone(optargs)
+		optargs.min_value = 0
+		optargs.max_value = 255
+		optargs.tick = 1
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Transparency (Inactive)")
 	elseif (varname == "messageTime") then
 		local optargs = clone(optargs)
 		optargs.min_value = 1
@@ -508,7 +510,7 @@ function GoaHud_Chat:getMessageTextColor(type)
 	return color
 end
 
-function GoaHud_Chat:getMessageBackgroundColor(type)
+function GoaHud_Chat:getMessageBackgroundColor(type, active)
 	local color = clone(self.options.colorRegular)
 	if (type == CHAT_TYPE_ERROR) then color = Color(255, 0, 0, 255)
 	elseif (type == CHAT_TYPE_DEBUG) then color = Color(255, 255, 0, 255)
@@ -523,7 +525,10 @@ function GoaHud_Chat:getMessageBackgroundColor(type)
 	end
 
 	if (color.a == 255) then
-		color.a = math.min((self.options.backgroundAlpha/255), 1.0)*255
+		local background_alpha = self.options.backgroundAlpha
+		if (not active) then background_alpha = self.options.backgroundAlphaInactive end
+
+		color.a = math.min((background_alpha/255), 1.0)*255
 	end
 	return color
 end
@@ -602,6 +607,8 @@ function SplitTextToMultipleLinesEmojis(text, w, optargs)
 	return lines, lineCount;
 end
 
+local preview_timer = 0
+local preview_hover = true
 function GoaHud_Chat:drawPreview(x, y, intensity)
 	local linecount = 3
 	local lineheight = self.options.fontSize*linecount
@@ -616,15 +623,25 @@ function GoaHud_Chat:drawPreview(x, y, intensity)
 	nvgFill()
 	nvgRestore()
 
+	preview_timer = preview_timer + deltaTimeRaw
+	if (preview_timer >= 2.0) then
+		preview_timer = 0.0
+		preview_hover = not preview_hover
+	end
+
 	local say = {}
 	say.text = "gg"
-	say.hover = true
+	say.hover = preview_hover
 	say.cursor = #say.text
 	say.cursorStart = say.cursor
 
+	local messages = {}
+	table.insert(messages, { timestamp = epochTimeMs-1.0, source = "Player1", content = "gg" })
+	table.insert(messages, { timestamp = epochTimeMs, source = "Player2", content = "gg" })
+
 	nvgTranslate(x + 10, y + lineheight)
 	self:drawCurrentLine(say)
-	self:drawMessages(say, self.messagesPreview, 0, linecount-1)
+	self:drawMessages(say, messages, 0, linecount-1)
 
 	nvgRestore()
 
@@ -693,7 +710,13 @@ function GoaHud_Chat:draw()
 	if (GoaHud.previewMode) then
 		say.text = "> gg"
 		say.hover = true
-		messages = self.messagesPreview
+
+		messages = {}
+		local timestamp_start = epochTimeMs-25
+		for i=1, 25 do
+			table.insert(messages, { timestamp = timestamp_start+i, source = "Player1", content = "gg" })
+			table.insert(messages, { timestamp = timestamp_start+i, source = "Player2", content = "gg" })
+		end
 	end
 
 	-- chat scrolling
@@ -956,7 +979,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 
 				local content_lines, line_count = SplitTextToMultipleLinesEmojis(content, self.options.width, optargs_emoji)
 
-				local color_background = self:getMessageBackgroundColor(m.messageType)
+				local color_background = self:getMessageBackgroundColor(m.messageType, say.hover)
 				line_y = line_y - (line_height * line_count)
 
 				for j, line in ipairs(content_lines) do
