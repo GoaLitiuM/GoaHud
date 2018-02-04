@@ -24,6 +24,8 @@ GoaHud_Ammo =
 
 		showTime = 1.5,
 		fadeTime = 0.1,
+
+		useWeaponColor = false,
 		ammoColor = Color(255, 255, 255, 255),
 		ammoColorWarning = Color(255, 0, 0, 255),
 
@@ -42,7 +44,7 @@ GoaHud_Ammo =
 		"",
 		"showTime", "fadeTime",
 		"",
-		"ammoColor", "ammoColorWarning",
+		"useWeaponColor", "ammoColor", "ammoColorWarning",
 		"",
 		"shadow",
 	},
@@ -57,6 +59,10 @@ function GoaHud_Ammo:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "fadeTime") then
 		local optargs = clone(optargs)
 		optargs.milliseconds = true
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+	elseif (varname == "ammoColor") then
+		local optargs = clone(optargs)
+		optargs.enabled = not self.options.useWeaponColor
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
 	end
 	return nil
@@ -153,6 +159,11 @@ function GoaHud_Ammo:draw()
 	self:tick()
 
 	local color = self.options.ammoColor
+	if (self.options.useWeaponColor) then
+		local def = weaponDefinitions[weapon]
+		if (def ~= nil) then color = def.color end
+	end
+
 	local alpha = self.progress
 	if (ammo <= ammo_warning) then
 		alpha = math.max(0.3, alpha)
