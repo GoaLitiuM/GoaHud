@@ -21,7 +21,7 @@ GoaHud_PerfMeter =
 	-- configurable
 	options =
 	{
-		showAlways = true,
+		showAlways = false,
 
 		font = { index = 6, face = "" },
 		fontSize = 22,
