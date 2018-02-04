@@ -985,7 +985,7 @@ function GoaHud_Chat:drawMessages(say, messages, messagepos, linecount)
 				for j, line in ipairs(content_lines) do
 					if (line_y > -height) then
 						-- line background
-						if (color_background ~= nil) then
+						if (color_background ~= nil or color_background.a > 0) then
 							nvgSave()
 							nvgBeginPath()
 							nvgFillColor(color_background)
