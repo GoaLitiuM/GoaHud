@@ -1379,11 +1379,13 @@ function GoaHud:registerWidget(widget_name, category)
 
 				nvgTranslate(x, y)
 
-				if (scale ~= 1) then
+				if (scale ~= 1 and scale ~= 0) then
 					nvgScale(scale, scale)
 				end
 
-				m.draw(widget_table)
+				if (scale ~= 0) then
+					m.draw(widget_table)
+				end
 
 				nvgRestore()
 			end
