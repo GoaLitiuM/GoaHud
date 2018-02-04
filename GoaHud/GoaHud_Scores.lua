@@ -220,7 +220,7 @@ end
 
 local function shouldShowScores()
 	local local_player = getLocalPlayer()
-	return shouldShowHUD(optargs_deadspec) and not isRaceOrTrainingMode() and (local_player and local_player.state == LOG_CHATTYPE_SPECTATOR)
+	return shouldShowHUD(optargs_deadspec) and not isRaceOrTrainingMode()
 end
 
 function GoaHud_Scores:drawScores()
