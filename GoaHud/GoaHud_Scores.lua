@@ -419,9 +419,10 @@ function GoaHud_Scores:draw()
 	local right_score = 0
 	local left_score_color = Color(255,255,255,255)
 	local right_score_color = Color(255,255,255,255)
+	local local_player_ingame = playerIndexLocalPlayer == playerIndexCameraAttachedTo and local_player and local_player.state == PLAYER_STATE_INGAME
 
 	-- prevent swapping the player sides during the game, force local player on left side
-	if (playerIndexLocalPlayer == playerIndexCameraAttachedTo and local_player and local_player.state == PLAYER_STATE_INGAME) then
+	if (local_player_ingame) then
 		left_team_index = local_player.team
 	elseif (local_player and local_player.state == LOG_CHATTYPE_SPECTATOR) then
 		left_player = nil
@@ -483,6 +484,14 @@ function GoaHud_Scores:draw()
 			right_health_color = GoaHud_Scores:getHealthColor(right_health, right_armor, right_player.armorProtection, right_player.hasMega)
 			right_armor_color = GoaHud_Scores:getArmorColor(right_health, right_armor, right_player.armorProtection)
 		end
+	end
+
+	-- hide health and armor bars when local player is playing
+	if (local_player_ingame) then
+		left_health = 0
+		left_armor = 0
+		right_health = 0
+		right_armor = 0
 	end
 
 	if (left_health <= 0) then left_armor = 0; left_health = 0 end
