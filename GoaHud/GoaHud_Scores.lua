@@ -2,6 +2,7 @@ GoaHud_Scores =
 {
 	canPosition = false,
 
+	hasTeams = false,
 	left =
 	{
 		player = nil,
@@ -283,7 +284,7 @@ function GoaHud_Scores:drawNamePlates()
 	local nameplate_width = self.options.namePlateWidth
 	local text_max_width = nameplate_width - text_padding*2
 
-	local show_flag = self.options.showFlag and not game_mode.hasTeams
+	local show_flag = self.options.showFlag and not self.hasTeams
 
 	if (not show_flag) then
 		flag_offset = 0
@@ -395,7 +396,9 @@ end
 function GoaHud_Scores:draw()
 	if (world == nil) then return end
 	if (replayName == "menu") then return end
+
 	local game_mode = gamemodes[world.gameModeIndex]
+	local game_has_teams = game_mode.hasTeams
 
 	local left_player = getPlayer()
 	local right_player
@@ -421,57 +424,82 @@ function GoaHud_Scores:draw()
 	local right_score_color = Color(255,255,255,255)
 	local local_player_ingame = playerIndexLocalPlayer == playerIndexCameraAttachedTo and local_player and local_player.state == PLAYER_STATE_INGAME
 
-	-- prevent swapping the player sides during the game, force local player on left side
-	if (local_player_ingame) then
-		left_team_index = local_player.team
-	elseif (local_player and local_player.state == LOG_CHATTYPE_SPECTATOR) then
-		left_player = nil
-		left_team_index = 1
-	end
-
-	if (game_mode.hasTeams) then
-		if (not left_player) then left_team_index = 1 end
-		left_team = world.teams[left_team_index]
-
-		left_score_color = teamColors[left_team_index]
-		for i, t in pairs(world.teams) do
-			if (i ~= left_team_index) then
-				right_team = t
-				right_score_color = teamColors[i]
-			end
+	if (GoaHud.previewMode) then
+		-- mock the values for preview
+		local_player_ingame = false
+		left_player =
+		{
+			name = "Left Player",
+			score = 99,
+			health = 100,
+			armor = 150,
+			armorProtection = 2,
+			hasMega = false,
+			country = "GB",
+		}
+		right_player =
+		{
+			name = "Right Player",
+			score = 99,
+			health = 200,
+			armor = 200,
+			armorProtection = 1,
+			hasMega = true,
+			country = "US",
+		}
+	else -- in actual game
+		-- prevent swapping the player sides during the game, force local player on left side
+		if (local_player_ingame) then
+			left_team_index = local_player.team
+		elseif (local_player and local_player.state == LOG_CHATTYPE_SPECTATOR) then
+			left_player = nil
+			left_team_index = 1
 		end
-		left_score = left_team.score
-		right_score = right_team.score
-	else
-		left_score = -9999
-		if (left_player == nil) then
-			for i=1,32,1 do
-				if (players[i] ~= nil and players[i].connected and players[i].state == PLAYER_STATE_INGAME) then
-					if (players[i].score > left_score) then
-						left_player = players[i]
-						left_score = players[i].score
-						break
+
+		if (game_has_teams) then
+			if (not left_player) then left_team_index = 1 end
+			left_team = world.teams[left_team_index]
+
+			left_score_color = teamColors[left_team_index]
+			for i, t in pairs(world.teams) do
+				if (i ~= left_team_index) then
+					right_team = t
+					right_score_color = teamColors[i]
+				end
+			end
+			left_score = left_team.score
+			right_score = right_team.score
+		else
+			left_score = -9999
+			if (left_player == nil) then
+				for i=1,32,1 do
+					if (players[i] ~= nil and players[i].connected and players[i].state == PLAYER_STATE_INGAME) then
+						if (players[i].score > left_score) then
+							left_player = players[i]
+							left_score = players[i].score
+							break
+						end
 					end
 				end
 			end
-		end
 
-		right_score = -9999
-		for i, p in pairs(players) do
-			if (p.connected and p.state == PLAYER_STATE_INGAME) then
-				if (left_player and p.index ~= left_player.index) then
-					if (p.score > right_score) then
-						right_score = p.score
-						right_player = p
+			right_score = -9999
+			for i, p in pairs(players) do
+				if (p.connected and p.state == PLAYER_STATE_INGAME) then
+					if (left_player and p.index ~= left_player.index) then
+						if (p.score > right_score) then
+							right_score = p.score
+							right_player = p
+						end
 					end
 				end
 			end
+			if (not left_player) then left_score = 0 end
+			if (not right_player) then right_score = 0 end
 		end
-		if (not left_player) then left_score = 0 end
-		if (not right_player) then right_score = 0 end
 	end
 
-	if (game_mode.hasTeams) then
+	if (game_has_teams) then
 		left_text = left_team.name
 		right_text = right_team.name
 	else
@@ -505,6 +533,8 @@ function GoaHud_Scores:draw()
 
 	if (left_health <= 0) then left_armor = 0; left_health = 0 end
 	if (right_health <= 0) then right_armor = 0; right_health = 0 end
+
+	self.hasTeams = game_has_teams
 
 	self.left.player = left_player
 	self.left.team = left_team
