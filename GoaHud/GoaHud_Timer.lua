@@ -7,7 +7,7 @@ require "base/internal/ui/reflexcore"
 
 GoaHud_Timer =
 {
-	offset = { x = 0, y = 60 },
+	offset = { x = 0, y = 0 },
 	anchor = { x = 0, y = -1 },
 
 	options =
@@ -19,7 +19,7 @@ GoaHud_Timer =
 		countdown = true,
 		countdownRace = true,
 
-		showScoreDiff = true,
+		showScoreDiff = false,
 
 		shadow =
 		{

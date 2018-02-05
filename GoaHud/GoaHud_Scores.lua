@@ -43,17 +43,17 @@ GoaHud_Scores =
 		tickSpeed = 1.0,
 		font = { index = 5, face = "" },
 		nameFontSize = 32,
-		scoreFontSize = 82,
+		scoreFontSize = 85,
 
-		centerOffset = 170,
+		centerOffset = 230,
 		namePlateWidth = 390,
-		namePlateHeight = 36,
+		namePlateHeight = 40,
 		healthHeightRatio = 1.0,
-		armorHeightRatio = 0.4,
+		armorHeightRatio = 0.35,
 
 		showFlag = true,
 
-		barBackgroundColor = Color(0,0,0,128),
+		barBackgroundColor = Color(0,0,0,100),
 		healthColorNormal = Color(255,255,255,255),
 		healthColorOver = Color(164,164,255,255),
 		healthColorMega = Color(64,64,255,255),
