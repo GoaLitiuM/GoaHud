@@ -239,11 +239,21 @@ function GoaHud_Scores:drawScores()
 
 	nvgFontSize(score_font_size)
 
+	local width_max = nvgTextWidth("99")
+
 	-- left side
 	nvgSave()
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
 
 	nvgTranslate(-center_offset+14, -11)
+
+	-- fit long scores within smaller area
+	if (string.len(self.left.score) > 2) then
+		local score_width = nvgTextWidth(self.left.score)
+		if (score_width > width_max) then
+			nvgScale(width_max/score_width, 1)
+		end
+	end
 
 	nvgFillColor(self.left.score_color)
 	GoaHud:drawTextWithShadow(0, 0, self.left.score, self.options.shadow)
@@ -254,6 +264,14 @@ function GoaHud_Scores:drawScores()
 	nvgTextAlign(NVG_ALIGN_RIGHT, NVG_ALIGN_TOP)
 
 	nvgTranslate(center_offset-14, -11)
+
+	-- fit long scores within smaller area
+	if (string.len(self.right.score) > 2) then
+		local score_width = nvgTextWidth(self.right.score)
+		if (score_width > width_max) then
+			nvgScale(width_max/score_width, 1)
+		end
+	end
 
 	nvgFillColor(self.right.score_color)
 	GoaHud:drawTextWithShadow(0, 0, self.right.score, self.options.shadow)
