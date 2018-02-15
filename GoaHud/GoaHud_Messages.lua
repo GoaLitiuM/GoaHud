@@ -305,8 +305,10 @@ function GoaHud_Messages:drawGameModeText()
 				if (world.ruleset == "experimental_plus") then
 					if (weaponDefinitions[2].reloadTime == 450) then
 						ruleset_text = "RMC competitive"
-					elseif (weaponDefinitions[2].reloadTime < 450) then
+					elseif (weaponDefinitions[1].reloadTime == 1000 and weaponDefinitions[1].damagePerPellet == 100) then
 						ruleset_text = "sushi competitive"
+					elseif (weaponDefinitions[1].reloadTime == 800 and weaponDefinitions[1].damagePerPellet == 800) then
+						ruleset_text = "sushi 2v2 competitive"
 					end
 				end
 			else
