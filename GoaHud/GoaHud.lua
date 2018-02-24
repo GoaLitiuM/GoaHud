@@ -15,13 +15,23 @@ GoaHud_Addon =
 	-- set to true by GoaHud if this widget is new
 	firstTime = true or false,
 }
-GoaHud:registerWidget("GoaHud_Addon", GOAHUD_UI[_EXPERIMENTAL]|GOAHUD_MODULE[_EXPERIMENTAL]|GOAHUD_ADDON)
+-- internal GoaHud widgets should call GoaHud:registerWidget instead of registerWidget function
+GoaHud:registerWidget("GoaHud_Addon", GOAHUD_UI[_EXPERIMENTAL]|GOAHUD_MODULE[_EXPERIMENTAL])
+
+-- external GoaHud addons should register the widgets with normal registerWidget function,
+-- and call GoaHud:registerWidget in initialize function before anything else
+registerWidget("GoaHud_Addon")
+
+function GoaHud_Addon:initialize()
+	GoaHud:registerWidget("GoaHud_Addon", GOAHUD_ADDON)
+	...
+end
 
 --
 -- required functions:
 --
 
--- called during addon initialization, the actual initialize function
+-- internal widgets only: called during addon initialization, the actual initialize function
 -- is handled by GoaHud so do not define it by yourself and use this function instead
 function GoaHud_Addon:init() end
 
@@ -1284,7 +1294,7 @@ end
 --
 
 function GoaHud:registerWidget(widget_name, category)
-	local category = category or GOAHUD_ADDON
+	local category = category or GOAHUD_UI
 
 	local widget_table = _G[widget_name]
 	local widget_info =
@@ -1429,7 +1439,7 @@ function GoaHud:registerWidget(widget_name, category)
 			self:updateEpochTimeMs()
 		end
 
-		if (widget_table.init == nil) then
+		if (widget_table.init == nil and not isAddon) then
 			consolePrint(widget_name .. " does not have init() function")
 			return
 		end
@@ -1571,8 +1581,17 @@ function GoaHud:registerWidget(widget_name, category)
 	widget_table.__goahud_invoke_method = 0
 	widget_table.widgetName = widget_name
 
-	registerWidget(widget_name)
+	-- addons are registered like any other lua addon
+	if (not isAddon) then
+		registerWidget(widget_name)
+	end
+
 	table.insert(self.registeredWidgets, widget_info)
+
+	-- run GoaHud initialize procedure for addons
+	if (isAddon) then
+		widget_table:initialize(widget_table)
+	end
 end
 
 function GoaHud:postInitWidgets()
@@ -2283,18 +2302,18 @@ function clone(t)
     return target
 end
 
-function table.reverse(tbl)
-	for i=1, math.floor(#tbl / 2) do
-		tbl[i], tbl[#tbl - i + 1] = tbl[#tbl - i + 1], tbl[i]
-	end
-end
-
 function table.merge(t, y)
 	local n = clone(t)
 	for i, k in pairs(y) do
 		n[i] = k
 	end
 	return n
+end
+
+function table.reverse(tbl)
+	for i=1, math.floor(#tbl / 2) do
+		tbl[i], tbl[#tbl - i + 1] = tbl[#tbl - i + 1], tbl[i]
+	end
 end
 
 function string.starts(str, start)
