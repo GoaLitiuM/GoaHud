@@ -489,6 +489,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	local is_movable = string.find(name, "movable")
 	local is_color = optargs.color or (vartype == "table" and string.find(name_readable, "Color"))
 	local is_font = optargs.font or (name == "font")
+	local is_text = optargs.text or vartype == "string"
 	local indent = optargs.indent or 0
 	local draw_label = vartype ~= "boolean" and not is_movable
 
@@ -527,6 +528,9 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 			options[name] = color
 		end
 
+		offset_y = offset_y + GOAHUD_SPACING
+	elseif (is_text) then
+		options[name] = GoaEditBox(options[name], x + offset_x + checkbox_width, y + offset_y, 220, optargs)
 		offset_y = offset_y + GOAHUD_SPACING
 	elseif (is_font) then
 		local combobox_id = tostring(options) .. name
