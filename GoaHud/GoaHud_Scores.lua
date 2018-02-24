@@ -52,6 +52,7 @@ GoaHud_Scores =
 		healthHeightRatio = 1.0,
 		armorHeightRatio = 0.35,
 
+		hideScoresInGame = false,
 		showFlag = true,
 
 		barBackgroundColor = Color(0,0,0,100),
@@ -105,6 +106,7 @@ GoaHud_Scores =
 		"healthHeightRatio",
 		"armorHeightRatio",
 		"",
+		"hideScoresInGame",
 		"showFlag",
 		"",
 		"barBackgroundColor",
@@ -512,8 +514,8 @@ function GoaHud_Scores:draw()
 					end
 				end
 			end
-			if (not left_player) then left_score = 0 end
-			if (not right_player) then right_score = 0 end
+			if (not left_player) then left_score = "?" end
+			if (not right_player) then right_score = "?" end
 		end
 	end
 
@@ -547,6 +549,11 @@ function GoaHud_Scores:draw()
 		left_armor = 0
 		right_health = 0
 		right_armor = 0
+
+		if (self.options.hideScoresInGame) then
+			left_score = "?"
+			right_score = "?"
+		end
 	end
 
 	if (left_health <= 0) then left_armor = 0; left_health = 0 end
