@@ -1666,7 +1666,7 @@ function GoaHud:isWidgetEnabled(widget)
 	end
 end
 
-function GoaHud:alignTextWithWidgetAnchor(widget)
+function GoaHud:getWidgetAnchor(widget)
 	local anchor
 	for i, k in pairs(widgets) do
 		if (k.name == widget.widgetName) then
@@ -1675,6 +1675,11 @@ function GoaHud:alignTextWithWidgetAnchor(widget)
 		end
 	end
 
+	return anchor
+end
+
+function GoaHud:alignTextWithWidgetAnchor(widget)
+	local anchor = GoaHud:getWidgetAnchor(widget)
 	local hori, vert
 
 	if (anchor.x == -1) then hori = NVG_ALIGN_LEFT
