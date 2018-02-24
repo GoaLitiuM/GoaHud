@@ -1065,7 +1065,7 @@ function GoaHud:drawSvgShadow(name, x, y, radius, blur, shadow, optargs)
 
 	local shadow_x = shadow.shadowOffset
 	local shadow_y = shadow.shadowOffset
-	local shadow_blur = blur + shadow.shadowBlur
+	local shadow_blur = blur + (shadow.shadowBlur * 1.5)
 	local shadow_color = shadow.shadowColor
 	local shadow_left = shadow.shadowStrength * (alpha / 255)
 
