@@ -15,7 +15,7 @@ GoaHud_Addon =
 	-- set to true by GoaHud if this widget is new
 	firstTime = true or false,
 }
-GoaHud:registerWidget("GoaHud_Addon", GOAHUD_UI or GOAHUD_MODULE)
+GoaHud:registerWidget("GoaHud_Addon", GOAHUD_UI[_EXPERIMENTAL]|GOAHUD_MODULE[_EXPERIMENTAL]|GOAHUD_ADDON)
 
 --
 -- required functions:
@@ -160,6 +160,7 @@ GOAHUD_UI = 1
 GOAHUD_MODULE = 2
 GOAHUD_UI_EXPERIMENTAL = 3
 GOAHUD_MODULE_EXPERIMENTAL = 4
+GOAHUD_ADDON = 5
 
 GOAHUD_SPACING = 40
 GOAHUD_INDENTATION = 26
@@ -276,7 +277,7 @@ function GoaHud:drawOptions(x, y, intensity)
 	if (quick_enable_pressed) then
 		local non_experimental_widgets = {}
 		for i, w in pairs(self.registeredWidgets) do
-			if (not isExperimental(w)) then
+			if (not isExperimental(w) and not isAddon(w)) then
 				table.insert(non_experimental_widgets, w)
 			end
 		end
@@ -1269,7 +1270,7 @@ end
 --
 
 function GoaHud:registerWidget(widget_name, category)
-	local category = category or GOAHUD_UI
+	local category = category or GOAHUD_ADDON
 
 	local widget_table = _G[widget_name]
 	local widget_info =
@@ -1288,10 +1289,12 @@ function GoaHud:registerWidget(widget_name, category)
 
 	local isExperimental = isExperimental(widget_info)
 	local isModule = isModule(widget_info)
+	local isAddon = category == GOAHUD_ADDON
 
 	-- define missing variables
 	widget_table.__goahud_module = isModule
 	widget_table.__goahud_experimental = isExperimental
+	widget_table.__goahud_addon = isAddon
 
 	if (isModule) then
 		widget_table.canHide = false
