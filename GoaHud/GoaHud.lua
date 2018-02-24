@@ -556,7 +556,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 			index = GoaComboBoxIndex(GOAHUD_FONTS_NAMES, index, x + checkbox_width + 220, y, 30, combobox_id, optargs)
 			options[name].index = index
 
-			if (options[name].face == "") then consolePrint(comboBoxIDs[combobox_id].lastCustomValue); options[name].face = comboBoxIDs[combobox_id].lastCustomValue end
+			if (options[name].face == "" and comboBoxIDs[combobox_id].lastCustomValue) then options[name].face = comboBoxIDs[combobox_id].lastCustomValue end
 
 			options[name].face = GoaEditBox(options[name].face, x + offset_x + checkbox_width, y + offset_y, 220, table.merge(optargs, {giveFocus = comboBoxIDs[combobox_id].lastFocus}))
 			comboBoxIDs[combobox_id].lastFocus = false
