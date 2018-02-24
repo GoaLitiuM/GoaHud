@@ -486,10 +486,11 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	local value = options[name]
 	local vartype = type(value)
 	local name_readable = name_readable or toReadable(name)
-	local draw_label = vartype ~= "boolean"
+	local is_movable = string.find(name, "movable")
 	local is_color = optargs.color or (vartype == "table" and string.find(name_readable, "Color"))
 	local is_font = optargs.font or (name == "font")
 	local indent = optargs.indent or 0
+	local draw_label = vartype ~= "boolean" and not is_movable
 
 	if (optargs.optionalId < lastWidgetOptionalId) then
 		optargs.optionalId = lastWidgetOptionalId
@@ -668,6 +669,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		options[name] = new_value
 
 		offset_y = offset_y + GOAHUD_SPACING
+	elseif (is_movable) then
 	else
 		offset_y = offset_y + GOAHUD_SPACING
 	end
