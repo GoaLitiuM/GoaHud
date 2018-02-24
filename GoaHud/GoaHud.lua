@@ -1222,6 +1222,7 @@ end
 -- adapted from EmojiChat drawTextWithEmojis with configurable emoji size and proper icon center offset
 function nvgTextEmoji(x, y, text, optargs)
 	if (text == nil or string.len(text) == 0) then return end
+	if (optargs and optargs.ignoreEmojis) then return nvgTextColor(x, y, text, optargs) end
 
 	local emoji_size = nil
 	if (optargs) then emoji_size = optargs.emojiSize end

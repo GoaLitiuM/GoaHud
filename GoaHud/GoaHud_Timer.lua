@@ -254,7 +254,7 @@ function GoaHud_Timer:drawText(x, y, str)
 
 		if (not separator) then number_offset = number_offset + (font_number_width - nvgTextWidth(c)) / 2 end
 
-		GoaHud:drawTextWithShadow(x + offset_x + number_offset, y, c, self.options.shadow)
+		GoaHud:drawTextWithShadow(x + offset_x + number_offset, y, c, self.options.shadow, { ignoreEmojis = true })
 		if (separator) then offset_x = offset_x + font_separator_width
 		else offset_x = offset_x + font_number_width end
 		offset_x = offset_x + self.options.letterSpacing
