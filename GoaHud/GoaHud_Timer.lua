@@ -124,17 +124,17 @@ function GoaHud_Timer:calculateFontMetrics()
 		nvgSave()
 		self:setupText()
 
-		local maxh, maxy
+		local maxw, maxy
 		for i=0,9,1 do
 			local b = nvgTextBounds(tostring(i))
 			local w = round(b.maxx - b.minx)
 			local h = b.maxy
 
-			if (maxh == nil or w > maxh) then maxh = w end
+			if (maxw == nil or w > maxw) then maxw = w end
 			if (maxy == nil or h < maxy) then maxy = h end
 		end
 
-		font_number_width = maxh
+		font_number_width = maxw
 		font_separator_width = nvgTextWidth(":")
 		font_y_offset = maxy
 
