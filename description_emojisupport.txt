@@ -5,3 +5,5 @@ Enables Emoji support in [url=http://steamcommunity.com/sharedfiles/filedetails/
 [img]https://i.imgur.com/oMrH77t.png[/img]
 
 GitHub: https://github.com/GoaLitiuM/GoaHud
+
+Note: All Reflex Arena addons must be installed via in-game addons menu instead of using the workshop subscription system.
