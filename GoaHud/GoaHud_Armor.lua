@@ -97,11 +97,11 @@ function GoaHud_Armor:draw()
 		self.deadTimer = self.deadFadeTime
 	end
 	if (self.deadTimer > 0.0) then
-		self.deadTimer = self.deadTimer - deltaTimeRaw
+		self.deadTimer = self.deadTimer - deltaTime
 	end
 
 	if (self.options.tickInterval > 0) then
-		self.tickTimer = self.tickTimer + deltaTimeRaw
+		self.tickTimer = self.tickTimer + deltaTime
 		while (self.tickTimer >= self.options.tickInterval) do
 			self.tickTimer = self.tickTimer - self.options.tickInterval
 

@@ -121,7 +121,7 @@ function GoaHud_Ammo:tick()
 	end
 
 	if (self.state == AMMO_STATE_SWITCHING or self.state == AMMO_STATE_HIDING) then
-		self.timer = self.timer + deltaTimeRaw
+		self.timer = self.timer + deltaTime
 		if (self.timer >= self.options.fadeTime) then
 			self.timer = 0.0
 			if (self.state == AMMO_STATE_SWITCHING) then
@@ -132,7 +132,7 @@ function GoaHud_Ammo:tick()
 		end
 	elseif (self.state == AMMO_STATE_SHOWING) then
 		if (self.options.showTime > 0.0) then
-			self.timer = self.timer + deltaTimeRaw
+			self.timer = self.timer + deltaTime
 
 			if (self.timer >= self.options.showTime) then
 				self.timer = 0.0
