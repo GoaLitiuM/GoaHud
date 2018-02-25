@@ -344,8 +344,11 @@ function GoaHud_Chat:onDebug(text)
 end
 
 function GoaHud_Chat:onLog(entry)
+	local current_time = epochTimeMs
+	if (replayActive) then current_time = (24 * 60 * 60) + ((replay.timecodeCurrent - replay.timecodeStart) / 1000) - (self.options.utcOffset * 60 * 60)  end
+
 	local msg = nil
-	local timestamp_real = epochTimeMs - entry.age
+	local timestamp_real = current_time - entry.age
 	local msg_type = CHAT_TYPE_REGULAR
 	if (entry.type == LOG_TYPE_CHATMESSAGE) then
 		local prefix = ""
