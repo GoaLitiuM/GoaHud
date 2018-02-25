@@ -487,8 +487,8 @@ function GoaHud_Scores:draw()
 					right_score_color = teamColors[i]
 				end
 			end
-			left_score = left_team.score
-			right_score = right_team.score
+			if (left_team) then left_score = left_team.score end
+			if (right_team) then right_score = right_team.score end
 		else
 			left_score = -9999
 			if (left_player == nil) then
@@ -520,8 +520,8 @@ function GoaHud_Scores:draw()
 	end
 
 	if (game_has_teams) then
-		left_text = left_team.name
-		right_text = right_team.name
+		if (left_team) then left_text = left_team.name end
+		if (right_team) then right_text = right_team.name end
 	else
 		if (left_player) then
 			left_text = left_player.name
