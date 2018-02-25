@@ -158,6 +158,7 @@ end
 
 function GoaHud_FragMessages:onLog(entry)
 	local player = getPlayer()
+	if (not player) then return end
 
 	-- fragged message
 	if (entry.type == LOG_TYPE_DEATHMESSAGE and entry.deathKiller == player.name and not entry.deathSuicide) then
