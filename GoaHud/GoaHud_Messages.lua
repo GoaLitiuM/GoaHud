@@ -19,6 +19,7 @@ GoaHud_Messages =
 
 		showSpectatorControls = true,
 		showCountry = false,
+		showInReplayEditor = true,
 
 		messageFadeInTime = 0.15,
 		messageShowTime = 5.0,
@@ -77,7 +78,8 @@ GoaHud_Messages =
 	optionsDisplayOrder =
 	{
 		"font", "messageFontSize", "gameModeFontSize", "warmupFontSize", "countdownFontSize",
-		"showSpectatorControls", "showCountry",
+		"",
+		"showSpectatorControls", "showCountry", "showInReplayEditor",
 		"",
 		"messageFadeInTime", "messageShowTime", "messageFadeOutTime",
 		"",
@@ -203,7 +205,7 @@ function GoaHud_Messages:draw()
 	end
 end
 
-local function shouldHide()
+function GoaHud_Messages:shouldHide()
 	local hide = false
 
 	if (GoaHud.previewMode) then hide = false end
@@ -211,6 +213,8 @@ local function shouldHide()
 	if (not shouldShowHUD(optargs_deadspec)) then hide = true end
 	if (not shouldShowStatus()) then hide = true end
 	if (world == nil) then hide = true end
+
+	if (replayActive and not self.options.showInReplayEditor) then hide = true end
 
 	return hide
 end
@@ -256,7 +260,7 @@ function GoaHud_Messages:drawMessages()
 end
 
 function GoaHud_Messages:drawCountdown()
-	if (shouldHide()) then return end
+	if (self:shouldHide()) then return end
 	local match_countdown = (world.gameState == GAME_STATE_WARMUP or world.gameState == GAME_STATE_ROUNDPREPARE) and world.timerActive
 	local seconds = math.max(1, math.ceil((world.gameTimeLimit - world.gameTime) / 1000))
 
@@ -276,7 +280,7 @@ function GoaHud_Messages:drawCountdown()
 end
 
 function GoaHud_Messages:drawGameModeText()
-	if (shouldHide()) then return end
+	if (self:shouldHide()) then return end
 
 	self.gameModeTimer = self.gameModeTimer + deltaTimeRaw
 
@@ -343,7 +347,7 @@ function GoaHud_Messages:drawGameModeText()
 end
 
 function GoaHud_Messages:drawWarmupText()
-	if (shouldHide()) then return end
+	if (self:shouldHide()) then return end
 
 	local world = world
 
@@ -395,11 +399,11 @@ function GoaHud_Messages:drawWarmupText()
 end
 
 function GoaHud_Messages:drawFollowText()
-	if (shouldHide()) then return end
+	if (self:shouldHide()) then return end
 
 	local local_player = getLocalPlayer()
 	local player = getPlayer()
-	local freecam = local_player.index == player.index
+	local freecam = local_player.index == player.index and not replayActive
 	local playerIndexCameraAttachedTo = playerIndexCameraAttachedTo
 
 	if (GoaHud.previewMode) then
@@ -411,7 +415,8 @@ function GoaHud_Messages:drawFollowText()
 
 	if (local_player.state == PLAYER_STATE_SPECTATOR or
 		local_player.state == PLAYER_STATE_QUEUED or
-		playerIndexCameraAttachedTo ~= playerIndexLocalPlayer) then
+		playerIndexCameraAttachedTo ~= playerIndexLocalPlayer or
+		replayActive) then
 
 		local name_font_size = self.options.messageFontSize
 		nvgFontFace(GoaHud:getFont(self.options.font))
@@ -446,11 +451,12 @@ function GoaHud_Messages:drawFollowText()
 end
 
 function GoaHud_Messages:drawControls()
-	if (shouldHide()) then return end
+	if (self:shouldHide()) then return end
+	if (replayActive) then return end
 
 	local local_player = getLocalPlayer()
 	local player = getPlayer()
-	local freecam = local_player.index == player.index
+	local freecam = local_player.index == player.index and not replayActive
 	local playerIndexCameraAttachedTo = playerIndexCameraAttachedTo
 
 	if (GoaHud.previewMode) then
