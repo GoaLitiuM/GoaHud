@@ -247,6 +247,10 @@ local function isExperimental(widget)
 	return widget.category == GOAHUD_UI_EXPERIMENTAL or widget.category == GOAHUD_MODULE_EXPERIMENTAL
 end
 
+local function isAddon(widget)
+	return widget.category == GOAHUD_ADDON
+end
+
 officialWidgets = { "AmmoCount", "ArmorBar", "AwardNotifier", "Buffs", "ChatLog", "Crosshairs", "FragNotifier", "GameMessages", "GoalList", "HealthBar", "KillFeed", "LagNotifier", "LowAmmo", "Matchmaking", "Message", "MovementKeys", "PickupNotifier", "PickupTimers", "PlayerSpeed", "PlayerStatus", "RaceMessages", "RaceRecords", "RaceTimer", "Scoreboard", "ScreenEffects", "TeamHud", "Timer", "TrueHealth", "Vote", "WeaponName", "WeaponRack" }
 replacedOfficialWidgets = { "AmmoCount", "ArmorBar", "Crosshairs", "FragNotifier", "GameMessages", "HealthBar", "LowAmmo", "PlayerStatus", "RaceTimer", "Timer", "WeaponRack", "TrueHealth" }
 
@@ -1313,7 +1317,7 @@ function GoaHud:registerWidget(widget_name, category)
 
 	local isExperimental = isExperimental(widget_info)
 	local isModule = isModule(widget_info)
-	local isAddon = category == GOAHUD_ADDON
+	local isAddon = isAddon(widget_info)
 
 	-- define missing variables
 	widget_table.__goahud_module = isModule
