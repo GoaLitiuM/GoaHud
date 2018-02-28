@@ -361,7 +361,6 @@ function GoaHud_Messages:drawWarmupText()
 	local game_mode = gamemodes[world.gameModeIndex]
 	local players_ready = 0
 	local players_total = 0
-	local players_required = game_mode.playersRequired
 	for i, p in ipairs(players) do
 		if (p.connected and p.state == PLAYER_STATE_INGAME) then
 			if (p.ready) then players_ready = players_ready + 1 end
@@ -373,6 +372,7 @@ function GoaHud_Messages:drawWarmupText()
 			end
 		end
 	end
+	local players_required = math.max(math.ceil(players_total*0.51), game_mode.playersRequired)
 
 	-- warmup info
 	local warmup_text = ""
