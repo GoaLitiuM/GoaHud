@@ -252,7 +252,7 @@ local function isAddon(widget)
 end
 
 officialWidgets = { "AmmoCount", "ArmorBar", "AwardNotifier", "Buffs", "ChatLog", "Crosshairs", "FragNotifier", "GameMessages", "GoalList", "HealthBar", "KillFeed", "LagNotifier", "LowAmmo", "Matchmaking", "Message", "MovementKeys", "PickupNotifier", "PickupTimers", "PlayerSpeed", "PlayerStatus", "RaceMessages", "RaceRecords", "RaceTimer", "Scoreboard", "ScreenEffects", "TeamHud", "Timer", "TrueHealth", "Vote", "WeaponName", "WeaponRack" }
-replacedOfficialWidgets = { "AmmoCount", "ArmorBar", "Crosshairs", "FragNotifier", "GameMessages", "HealthBar", "LowAmmo", "PlayerStatus", "RaceTimer", "Timer", "WeaponRack", "TrueHealth" }
+replacedOfficialWidgets = { "AmmoCount", "ArmorBar", "ChatLog", "Crosshairs", "FragNotifier", "GameMessages", "HealthBar", "LowAmmo", "PlayerStatus", "RaceTimer", "Timer", "WeaponRack", "TrueHealth" }
 
 function GoaHud:initialize()
 	self.widgetName = "GoaHud"
@@ -489,11 +489,11 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 	GoaHud:invokeSaveLoadOptions(self)
 end
 
-local function toReadable(str)
-	return FirstToUpper(str:gsub("%u", function(c) return ' ' .. c end))
-end
-
 function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
+	local function toReadable(str)
+		return FirstToUpper(str:gsub("%u", function(c) return ' ' .. c end))
+	end
+
 	local optargs = optargs or { optionalId = lastWidgetOptionalId }
 	local offset_x = 0
 	local offset_y = 0
@@ -688,6 +688,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 
 		offset_y = offset_y + GOAHUD_SPACING
 	elseif (is_movable) then
+		-- TODO: add manual offset and scaling options for movables
 	else
 		offset_y = offset_y + GOAHUD_SPACING
 	end
@@ -1014,11 +1015,11 @@ function GoaHud:applyScretDscordTch()
 	if (plcb == "1"..".".."2") then cnslPrnt("w".."e".."n")
 	elseif (plcb == "1") then cnslPrnt("s" .. "ec" .. "r".."e".."t d".."i".."s" .. "co".."r".."d".." t".."e" .. "c".."h a".."c".."ti".."v".."a".."te".."d")
 	elseif (plcb == "2") then cnslPrnt("d".."o".."u".."b".."l".."e ".."p".."l" .. "a".."c".."b" .. "o")
-	elseif (plcb == "1".."3".."3".."7") then cnslPrnt("I" .. "ncr" .. "ea".."sed I".."C a".. "ccu".."ra".."cy ".."b".."y ".."5".."0".."%")
+	elseif (plcb == "1".."3".."3".."7") then cnslPrnt("I" .. "ncr" .. "ea".."se".."d I".."C a".. "c".."cu".."ra".."cy ".."b".."y ".."5".."0".."%")
 	elseif (plcb == "c".."rt") then cnslPrnt("C".."R".."T m".."a".."st".."er ".."ra".."ce")
-	elseif (plcb == ":".."be".."a".."to".."ff:") then cnslPrnt("m".."ay y".."ou n".."e".."v".."er g".."et o".."ut".."a".."i".."me".."d a".."ga".."in")
-	elseif (plcb == "d".."ub".."s" or plcb == "d".."ou".."b".."le".."s") then cnslPrnt("p".."la".."y m".."o".."re".." d".."ou".."bl".."es")
-	elseif (plcb == "m".."e".."g".."a") then cnslPrnt("I".." c".."an".."'t h".."elp y".."ou w".."i".."th".." t".."hat")
+	elseif (plcb == ":".."be".."a".."to".."ff"..":") then cnslPrnt("m".."ay y".."ou n".."e".."v".."er g".."et o".."ut".."a".."i".."me".."d a".."ga".."in")
+	elseif (plcb == "d".."ub".."s" or plcb == "d".."ou".."b".."le".."s") then cnslPrnt("p".."la".."y m".."o".."re".." d".."u".."b".."s")
+	elseif (plcb == "m".."e".."g".."a") then cnslPrnt("I".." c".."an".."'t h".."e".."lp ".."y".."ou w".."i".."th".." t".."h".."a".."t")
 	elseif (plcb == "g".."o".."a") then cnslPrnt("h".."i")
 	elseif (plcb == "m".."y".."st".."i".."c".."al") then cnslPrnt("M".."ys".."t".."i".."c".."al")
 	elseif (plcb == "s".."an".."e") then cnslPrnt("s".."a".."n".."e")
@@ -1026,9 +1027,12 @@ function GoaHud:applyScretDscordTch()
 	elseif (plcb == "q".."u".."al".."x") then cnslPrnt("n".."ot q".."u".."al".."x".."'".."d")
 	elseif (plcb == "s".."h".."o".."o".."t".."er") then cnslPrnt(":"..")")
 	elseif (plcb == "+".."ba".."ck") then cnslPrnt("r".."at...")
-	elseif (plcb == "l".."k".."o") then cnslPrnt("a".."no".."th".."er r".."a".."t"..".".."."..".")
+	elseif (plcb == "l".."k".."o" or plcb == "l".."ak".."o") then cnslPrnt("a".."no".."th".."er r".."a".."t"..".".."."..".")
 	elseif (plcb == "c".."of".."f".."ee" or plcb == "c".."of".."e") then cnslPrnt("t".."h".."at".."'".."s c".."he".."a".."t".."in".."g")
 	elseif (plcb == "t".."e".."a") then cnslPrnt("n".."ot".." c".."he".."a".."ti".."ng")
+	elseif (plcb == "s".."us".."h".."i" or plcb == "s".."us".."h".."if".."le".."x") then cnslPrnt("Y".."o".."u ".."r".."ec".."e".."i".."v".."e ".."1".."0 S".."h".."ar".."q".."C".."oi".."n".."s f".."o".."r".." u".."s".."i".."ng".." G".."o".."a".."hu".."d".."!")
+	elseif (plcb == "q".."ua".."d") then cnslPrnt("s".."e".."e y".."ou ".."ag".."a".."i".."n i".."n ".."9".."0".." s".."ec".."o".."n".."ds")
+	elseif (plcb == "g".."en".."t".."l".."y") then cnslPrnt("G".."E".."N".."TL".."Y ".."W".."E".."EK")
 	end
 	last_plcb = plcb_cvar
 end
