@@ -10,12 +10,6 @@ GoaHud_RaceTimer =
 	offset = { x = 0, y = -220 },
 	anchor = { x = 0, y = 1 },
 
-	recalculateBounds = true,
-	textOffsetX = 0,
-	textOffsetY = 0,
-	textWidth = 0,
-	textHeight = 0,
-	lastMins = -1,
 	myBest = 0,
 	lastMap = "",
 
@@ -23,6 +17,12 @@ GoaHud_RaceTimer =
 	{
 		font = { index = 8, face = "" },
 		fontSize = 120,
+		letterSpacing = 0,
+		textColor = Color(255,255,255,255),
+
+		enableTimerColors = true,
+        timerColorDimmed = Color(255,255,255,128),
+        timerColorSlow = Color(255,0,0,255),
 
 		shadow =
 		{
@@ -36,7 +36,9 @@ GoaHud_RaceTimer =
 
 	optionsDisplayOrder =
 	{
-		"font", "fontSize",
+		"font", "fontSize", "letterSpacing", "textColor",
+		"",
+		"enableTimerColors", "timerColorDimmed", "timerColorSlow",
 		"",
 		"shadow",
 	},
@@ -44,6 +46,22 @@ GoaHud_RaceTimer =
 GoaHud:registerWidget("GoaHud_RaceTimer");
 
 function GoaHud_RaceTimer:init()
+end
+
+function GoaHud_RaceTimer:drawOptionsVariable(varname, x, y, optargs)
+	if (varname == "letterSpacing") then
+		local optargs = clone(optargs)
+		optargs.min_value = -10
+		optargs.max_value = 20
+		optargs.tick = 1
+		optargs.units = "px"
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+	elseif (varname == "timerColorDimmed" or varname == "timerColorSlow") then
+		local optargs = clone(optargs)
+		optargs.enabled = self.options.enableTimerColors
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
+	end
+	return nil
 end
 
 function GoaHud_RaceTimer:updateBestScore(map, mode)
@@ -79,13 +97,48 @@ function GoaHud_RaceTimer:formatTime(elapsed)
 	}
 end
 
+local last_font = nil
+local font_number_width = nil
+local font_separator_width = nil
+local font_y_offset = nil
+
+function GoaHud_RaceTimer:calculateFontMetrics()
+	-- calculate dimensions of number glyphs
+	local font = GoaHud:getFont(self.options.font)
+	local font_size = self.options.fontSize
+	local current_font = tostring(font) .. tostring(font_size)
+	if (last_font ~= current_font) then
+		last_font = current_font
+
+		nvgSave()
+		self:setupText()
+
+		local maxw, maxy
+		for i=0,9,1 do
+			local b = nvgTextBounds(tostring(i))
+			local w = round(b.maxx - b.minx)
+			local h = b.maxy
+
+			if (maxw == nil or w > maxw) then maxw = w end
+			if (maxy == nil or h < maxy) then maxy = h end
+		end
+
+		font_number_width = maxw
+		font_separator_width = nvgTextWidth(":")
+		font_y_offset = maxy
+
+		nvgRestore()
+	end
+end
+
 function GoaHud_RaceTimer:setupText()
-	nvgTextLetterSpacing(-2)
 	nvgFontFace(GoaHud:getFont(self.options.font))
 	nvgFontSize(self.options.fontSize)
 end
 
 function GoaHud_RaceTimer:draw()
+	self:calculateFontMetrics()
+
 	if (not shouldShowHUD()) then return end
 	if (not GoaHud.previewMode and not isRaceOrTrainingMode()) then
 		self.lastMap = ""
@@ -102,53 +155,58 @@ function GoaHud_RaceTimer:draw()
 	end
 
 	local player = getPlayer()
-	local best = (self.myBest > player.score) and self.myBest or player.score
+	local best = self.myBest
 	local time_raw = player.raceActive and player.raceTimeCurrent or player.raceTimePrevious
 
 	local t = self:formatTime(time_raw)
-	local display_str = string.format("%02d:%02d.%03d", t.mins, t.secs, t.millis)
+	local display_str = string.format("%02d:%02d:%03d", t.mins, t.secs, t.millis)
 
-	if (t.mins ~= self.lastMins) then
-		if (t.mins % 100 ~= self.lastMins % 100) then
-			self.recalculateBounds = true
-		end
-	end
-
-	if (self.recalculateBounds) then
-		nvgSave()
-
-		self:setupText()
-
-		local bounds = nvgTextBounds(display_str)
-
-		self.textOffsetX = -bounds.maxx
-		self.textOffsetY = -bounds.maxy
-		self.textWidth = bounds.maxx - bounds.minx
-		self.textHeight = bounds.maxy - bounds.miny
-
-		nvgRestore()
-
-		self.recalculateBounds = false
-	end
-
-	local margin = 12
-	local x = -self.textOffsetX - self.textWidth/2
-	local y = self.textOffsetY + margin
+	if (player.score < best) then best = player.score end
 
 	-- race time
-	self:setupText()
-	nvgTextAlign(NVG_ALIGN_RIGHT, NVG_ALIGN_TOP)
-
-	local color = Color(255,255,255,255)
-	if (time_raw == 0) then
-		color = Color(255,255,255,128)
-	elseif (time_raw > best and best > 0) then
-		color = Color(255,0,0,255)
+	local timer_color = self.options.textColor
+	if (self.options.enableTimerColors) then
+        if (time_raw == 0 or time_raw == best) then
+            timer_color = self.options.timerColorDimmed
+        elseif (time_raw > best and best > 0) then
+            timer_color = self.options.timerColorSlow
+        end
 	end
 
-	GoaHud:drawTextShadow(x, y, display_str, self.options.shadow, { alpha = color.a })
-	nvgFillColor(color)
-	nvgText(x, y, display_str)
+	local margin = 3
+	local x = round(-self:calculateTextWidth(display_str) / 2)
+	local y = -font_y_offset + margin
 
-	self.lastMins = t.mins
+	-- draw the characters separately
+	self:setupText()
+	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
+	nvgFillColor(timer_color)
+	self:drawText(x, y, display_str)
+end
+
+function GoaHud_RaceTimer:calculateTextWidth(str)
+	local width = -self.options.letterSpacing
+	for i = 1, #str do
+		local c = string.sub(str, i, i)
+		if (c == ":") then width = width + font_separator_width
+		else width = width + font_number_width end
+		width = width + self.options.letterSpacing
+	end
+	return width
+end
+
+function GoaHud_RaceTimer:drawText(x, y, str)
+	local offset_x = 0
+	for i = 1, #str do
+		local c = string.sub(str, i, i)
+		local separator = c == ":"
+		local number_offset = 0
+
+		if (not separator) then number_offset = number_offset + (font_number_width - nvgTextWidth(c)) / 2 end
+
+		GoaHud:drawTextWithShadow(x + offset_x + number_offset, y, c, self.options.shadow, { ignoreEmojis = true })
+		if (separator) then offset_x = offset_x + font_separator_width
+		else offset_x = offset_x + font_number_width end
+		offset_x = offset_x + self.options.letterSpacing
+	end
 end
