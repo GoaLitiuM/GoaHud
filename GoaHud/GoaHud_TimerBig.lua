@@ -17,6 +17,7 @@ GoaHud_TimerBig =
 		font = { index = 8, face = "" },
 		fontSize = 120,
 		letterSpacing = 0,
+		textColor = Color(255,255,255,255),
 
 		hideWhileSpectating = true,
 
@@ -33,7 +34,7 @@ GoaHud_TimerBig =
 	optionsDisplayOrder =
 	{
 		"preview",
-		"font", "fontSize", "letterSpacing",
+		"font", "fontSize", "letterSpacing", "textColor",
 		"",
 		"hideWhileSpectating",
 		"",
@@ -85,7 +86,7 @@ function GoaHud_TimerBig:drawPreview(x, y, intensity)
 	local offset_x = round((-self:calculateTextWidth(str) + width) / 2)
 	local offset_y = 0
 
-	nvgFillColor(Color(255,255,255,255))
+	nvgFillColor(self.options.textColor)
 
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
 	self:drawText(offset_x + x, y + offset_y, str)
@@ -157,7 +158,7 @@ function GoaHud_TimerBig:draw()
 	-- round time
 	self:setupText()
 
-	nvgFillColor(Color(255,255,255,255))
+	nvgFillColor(self.options.textColor)
 
 	local margin = 3
 	local x = round(-self:calculateTextWidth(display_str) / 2)

@@ -15,6 +15,7 @@ GoaHud_Timer =
 		font = { index = 8, face = "" },
 		fontSize = 80,
 		letterSpacing = 0,
+		textColor = Color(255,255,255,255),
 
 		countdown = true,
 		countdownRace = true,
@@ -34,7 +35,7 @@ GoaHud_Timer =
 	optionsDisplayOrder =
 	{
 		"preview",
-		"font", "fontSize", "letterSpacing",
+		"font", "fontSize", "letterSpacing", "textColor",
 		"",
 		"countdown", "countdownRace",
 		"",
@@ -90,7 +91,7 @@ function GoaHud_Timer:drawPreview(x, y, intensity)
 	local offset_x = round((-str_width + width) / 2)
 	local offset_y = 0
 
-	nvgFillColor(Color(255,255,255,255))
+	nvgFillColor(self.options.textColor)
 
 	-- timer
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
@@ -180,7 +181,7 @@ function GoaHud_Timer:draw()
 	-- round time
 	self:setupText()
 
-	nvgFillColor(Color(255,255,255,255))
+	nvgFillColor(self.options.textColor)
 
 	local margin = 3
 	local x = round(-self:calculateTextWidth(display_str) / 2)
