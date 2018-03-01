@@ -166,7 +166,7 @@ function GoaHud_RaceTimer:draw()
 	-- race time
 	local timer_color = self.options.textColor
 	if (self.options.enableTimerColors) then
-        if (time_raw == 0 or time_raw == best) then
+        if (time_raw == 0) then
             timer_color = self.options.timerColorDimmed
         elseif (time_raw > best and best > 0) then
             timer_color = self.options.timerColorSlow
@@ -181,7 +181,7 @@ function GoaHud_RaceTimer:draw()
 	self:setupText()
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_TOP)
 	nvgFillColor(timer_color)
-	self:drawText(x, y, display_str)
+	self:drawTimerText(x, y, display_str)
 end
 
 function GoaHud_RaceTimer:calculateTextWidth(str)
@@ -195,7 +195,7 @@ function GoaHud_RaceTimer:calculateTextWidth(str)
 	return width
 end
 
-function GoaHud_RaceTimer:drawText(x, y, str)
+function GoaHud_RaceTimer:drawTimerText(x, y, str)
 	local offset_x = 0
 	for i = 1, #str do
 		local c = string.sub(str, i, i)
