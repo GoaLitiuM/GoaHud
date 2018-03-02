@@ -393,6 +393,7 @@ function GoaHud_Crosshair:draw()
 
 	if (player.isDead) then return end
 
+	local progress = 0.0
 	local weapon_show = weapon
 
 	if (self.options.smoothTransitions and self.options.fadeTime > 0.0) then
@@ -428,9 +429,10 @@ function GoaHud_Crosshair:draw()
 				self.state = AMMO_STATE_HIDING
 			end
 		end
+
+		progress = self.timer / self.options.fadeTime
 	end
 
-	local progress = self.timer / self.options.fadeTime
 	if (self.state == AMMO_STATE_SHOWING) then progress = 1.0
 	elseif (self.state == AMMO_STATE_HIDING) then progress = 1.0 - progress end
 
