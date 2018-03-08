@@ -20,6 +20,7 @@ GoaHud_BetterGameplay =
 	options =
 	{
 		hideCasualTimers = false,
+
 		raceFastRespawn = true,
 		globalColors = GLOBAL_COLORS_DISABLED,
 	},
@@ -27,11 +28,14 @@ GoaHud_BetterGameplay =
 	optionsDisplayOrder =
 	{
 		"duel",
-		"hideCasualTimers",
+			"hideCasualTimers",
 
 		"race",
-		"bindRespawn",
+			"bindRespawn",
+
+		"",
 		"raceFastRespawn",
+		"",
 
 --		"ui",
 		"globalColors",
@@ -42,7 +46,14 @@ GoaHud_BetterGameplay =
 }
 GoaHud:registerWidget("GoaHud_BetterGameplay", GOAHUD_MODULE_EXPERIMENTAL)
 
+local nvgText_real = nil
+local nvgTextWidth_real = nil
+local nvgTextBounds_real = nil
 function GoaHud_BetterGameplay:init()
+	nvgText_real = nvgText
+	nvgTextWidth_real = nvgTextWidth
+	nvgTextBounds_real = nvgTextBounds
+
 	if (self.options ~= nil) then
 		-- migrate old checkbox setting
 		if (self.options.enableGlobalColors ~= nil) then
@@ -96,43 +107,21 @@ function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
 end
 
 local PickupTimers_draw = nil
-local nvgText_real = nil
-local nvgTextWidth_real = nil
-local nvgTextBounds_real = nil
 function GoaHud_BetterGameplay:draw()
-	if (self.options.globalColors == GLOBAL_COLORS_ENABLED) then
-		if (nvgText_real == nil) then
-			nvgText_real = nvgText
+	if (self.options.globalColors ~= GLOBAL_COLORS_DISABLED) then
+		if (self.options.globalColors == GLOBAL_COLORS_ENABLED) then
 			nvgText = nvgTextEmoji
-		end
-		if (nvgTextWidth_real == nil) then
-			nvgTextWidth_real = nvgTextWidth
 			nvgTextWidth = nvgTextWidthEmoji
-		end
-		if (nvgTextBounds_real == nil) then
-			nvgTextBounds_real = nvgTextBounds
 			nvgTextBounds = nvgTextBoundsEmoji
-		end
-	elseif (self.options.globalColors == GLOBAL_COLORS_STRIP) then
-		if (nvgText_real == nil) then
-			nvgText_real = nvgText
+		elseif (self.options.globalColors == GLOBAL_COLORS_STRIP) then
 			nvgText = nvgTextStrip
-		end
-		if (nvgTextWidth_real == nil) then
-			nvgTextWidth_real = nvgTextWidth
 			nvgTextWidth = nvgTextWidthStrip
-		end
-		if (nvgTextBounds_real == nil) then
-			nvgTextBounds_real = nvgTextBounds
 			nvgTextBounds = nvgTextBoundsStrip
 		end
 	else
-		if (nvgText_real ~= nil) then nvgText = nvgText_real end
-		if (nvgTextWidth_real ~= nil) then nvgTextWidth = nvgTextWidth_real end
-		if (nvgTextBounds_real ~= nil) then nvgTextBounds = nvgTextBounds_real end
-		nvgText_real = nil
-		nvgTextWidth_real = nil
-		nvgTextBounds_real = nil
+		nvgText = nvgText_real
+		nvgTextWidth = nvgTextWidth_real
+		nvgTextBounds = nvgTextBounds_real
 	end
 
 	local respawn = GoaHud:getConsoleVariable("respawn")
