@@ -298,43 +298,9 @@ function GoaHud_Messages:drawGameModeText()
 	end
 
 	if (game_mode_alpha > 0.0) then
-		local game_mode_text
-		if (world.isMatchmakingLobby) then
-			game_mode_text = "LOBBY"
-		else
-			-- use simple heuristics to detect the ruleset
-			game_mode_text = game_mode.name
-			local ruleset_text = world.ruleset
-			if (world.ruleset ~= "competitive") then
-				if (world.ruleset == "experimental_plus") then
-					if (weaponDefinitions[2].reloadTime == 450) then
-						ruleset_text = "RMC competitive"
-					elseif (weaponDefinitions[1].reloadTime == 1000 and weaponDefinitions[1].damagePerPellet == 100) then
-						ruleset_text = "sushi competitive"
-					elseif (weaponDefinitions[1].reloadTime == 800 and weaponDefinitions[1].damagePerPellet == 80) then
-						ruleset_text = "sushi 2v2 competitive"
-					elseif (weaponDefinitions[2].reloadTime == 500 or (weaponDefinitions[1].reloadTime == 800 and weaponDefinitions[1].damagePerPellet == 90)) then
-						if (weaponDefinitions[6].maxAmmo == 20) then
-							ruleset_text = "CR2 competitive"
-						else
-							ruleset_text = "CR2 team competitive"
-						end
-					end
-				end
-			else
-				-- HACK: detect actual values from RL ammo
-				local rl_ammo = 0
-				local player = getPlayer()
-				if (player) then rl_ammo = player.weapons[6].ammo end
-
-				ruleset_text = nil
-				if (weaponDefinitions[1].reloadTime == 1000 or rl_ammo == 25) then
-					ruleset_text = "Legacy competitive"
-				end
-			end
-			if (ruleset_text ~= nil) then
-				game_mode_text = string.format("%s (%s)", game_mode_text, string.upper(ruleset_text))
-			end
+		local game_mode_text = "LOBBY"
+		if (not world.isMatchmakingLobby) then
+			game_mode_text = string.format("%s (%s)", game_mode_text, string.upper(world.ruleset))
 		end
 
 		nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE)
