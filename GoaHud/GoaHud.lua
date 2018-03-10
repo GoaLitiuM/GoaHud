@@ -51,6 +51,9 @@ function GoaHud_Addon:onLog(entry)
 -- called when addon throws an error
 function GoaHud_Addon:onError(widget_name, err)
 
+-- called when map or any match settings are changed either via callvote or by server
+function GoaHud_Addon:onMatchChange()
+
 -- provides custom rendering for each options variable
 -- by default following function is called for each variable, and is returned:
 --   GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
@@ -82,6 +85,7 @@ GoaHud =
 		-- list of observing widgets
 		onError = {},
 		onLog = {},
+		onMatchChange = {},
 	},
 
 	movables = {},
@@ -962,6 +966,39 @@ function GoaHud:tick()
 			end
 		end
 	end
+
+	if (#self.observers.onMatchChange > 0) then self:detectMatchChange() end
+end
+
+local last_map = nil
+local last_mode = nil
+local last_ruleset = nil
+local last_mutators = nil
+function GoaHud:detectMatchChange(first)
+	local current_map = last_map
+	local current_mode = last_mode
+	local current_ruleset = last_ruleset
+	local current_mutators = last_mutators
+
+	if (world ~= nil) then
+		current_map = world.mapName
+		current_mode = world.gameModeIndex
+		current_ruleset = world.ruleset
+		current_mutators = world.mutators
+	end
+
+	local dirty = current_map ~= last_map or current_mode ~= last_mode or current_ruleset ~= last_ruleset or current_mutators ~= last_mutators
+
+	if (dirty and not first) then
+		for j, o in pairs(self.observers.onMatchChange) do
+			self:invokeCallback(o)
+		end
+	end
+
+	last_map = current_map
+	last_mode = current_mode
+	last_ruleset = current_ruleset
+	last_mutators = current_mutators
 end
 
 function GoaHud:invokeCallback(callback, param1, param2, param3, param4)
@@ -978,6 +1015,7 @@ local first_draw = true
 function GoaHud:drawFirst()
 	self:processConVars()
 	self:registerWidgetCallbacks()
+	self:detectMatchChange(true)
 
 	self.draw = self.drawReal
 	self:drawReal()
@@ -1619,6 +1657,7 @@ function GoaHud:registerWidgetCallbacks()
 
 		self:tryAddObserver(widget_table, "onError")
 		self:tryAddObserver(widget_table, "onLog")
+		self:tryAddObserver(widget_table, "onMatchChange")
 	end
 end
 
