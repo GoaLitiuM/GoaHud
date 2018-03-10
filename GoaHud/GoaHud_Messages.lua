@@ -27,6 +27,7 @@ GoaHud_Messages =
 
 		gameModeShowTime = 10.0,
 		gameModeFadeTime = 1.5,
+		notReadyColor = Color(255, 80, 80, 255),
 
 		shadow =
 		{
@@ -83,7 +84,7 @@ GoaHud_Messages =
 		"",
 		"messageFadeInTime", "messageShowTime", "messageFadeOutTime",
 		"",
-		"gameModeShowTime", "gameModeFadeTime",
+		"gameModeShowTime", "gameModeFadeTime", "notReadyColor",
 		"",
 		"shadow",
 		"movableMessages", "movableCountdown", "movableGameMode", "movableWarmup", "movableFollowText", "movableControlsText",
@@ -368,6 +369,13 @@ function GoaHud_Messages:drawWarmupText()
 	nvgFillColor(Color(255,255,255,200))
 
 	GoaHud:drawTextWithShadow(0, 0, warmup_text, self.options.shadow)
+	if (not getLocalPlayer().ready and self.options.notReadyColor.a > 0) then
+		local ready_key = bindReverseLookup("ready", "game")
+		--local notready_key = bindReverseLookup(camera_next_command, "notready")
+
+		nvgFillColor(self.options.notReadyColor)
+		GoaHud:drawTextWithShadow(0, self.options.warmupFontSize, string.format("Press [%s] to ready", string.upper(ready_key)), self.options.shadow)
+	end
 end
 
 function GoaHud_Messages:drawFollowText()
