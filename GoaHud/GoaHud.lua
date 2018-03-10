@@ -582,7 +582,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 		offset_y = offset_y + GOAHUD_SPACING
 	elseif (vartype == "boolean") then
 		local checked = value
-		checked = GoaRowCheckbox(x + offset_x, y + offset_y, checkbox_width, name_readable .. ":", checked, optargs)
+		checked = GoaRowCheckbox(x + offset_x + indent_offset, y + offset_y, checkbox_width, name_readable .. ":", checked, optargs)
 		options[name] = checked
 
 		offset_y = offset_y + GOAHUD_SPACING
