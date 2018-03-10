@@ -298,8 +298,10 @@ function GoaHud_Messages:drawGameModeText()
 	end
 
 	if (game_mode_alpha > 0.0) then
-		local game_mode_text = "LOBBY"
-		if (not world.isMatchmakingLobby) then
+		local game_mode_text = game_mode.name
+		if (world.isMatchmakingLobby) then
+			game_mode_text = "LOBBY"
+		else
 			game_mode_text = string.format("%s (%s)", game_mode_text, string.upper(world.ruleset))
 		end
 
