@@ -652,8 +652,11 @@ function GoaHud_Chat:drawPreview(x, y, intensity)
 end
 
 local readyPlayers = {}
+local lastGameState = nil
 function GoaHud_Chat:handleEvents()
-	if (self.options.showReadyPlayers and not (world ~= nil and world.gameState ~= GAME_STATE_WARMUP)) then
+	if (world == nil) then return end
+
+	if (self.options.showReadyPlayers and world.gameState == GAME_STATE_WARMUP) then
 		local ready_players = {}
 
 		-- detect ready players
@@ -682,7 +685,9 @@ function GoaHud_Chat:handleEvents()
 						msg.timestamp = epochTimeMs
 						msg.timestampHide = epochTimeMs + self.options.messageTime
 
-						self:newMessage(msg)
+						if (lastGameState ~= GAME_STATE_GAMEOVER or (lastGameState == GAME_STATE_GAMEOVER and p.ready)) then
+							self:newMessage(msg)
+						end
 					end
 				end
 			end
@@ -690,6 +695,8 @@ function GoaHud_Chat:handleEvents()
 
 		readyPlayers = ready_players
 	end
+
+	lastGameState = world.gameState
 end
 
 function GoaHud_Chat:draw()
