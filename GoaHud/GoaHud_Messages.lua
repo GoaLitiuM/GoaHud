@@ -371,7 +371,11 @@ function GoaHud_Messages:drawWarmupText()
 	GoaHud:drawTextWithShadow(0, 0, warmup_text, self.options.shadow)
 	if (not getLocalPlayer().ready and self.options.notReadyColor.a > 0) then
 		local ready_key = bindReverseLookup("ready", "game")
-		--local notready_key = bindReverseLookup(camera_next_command, "notready")
+		local ready_toggle_key = bindReverseLookup("ui_goahud_toggleready 1", "game")
+
+		if (ready_toggle_key ~= "(unbound)") then
+			ready_key = ready_toggle_key
+		end
 
 		nvgFillColor(self.options.notReadyColor)
 		GoaHud:drawTextWithShadow(0, self.options.warmupFontSize, string.format("Press [%s] to ready", string.upper(ready_key)), self.options.shadow)

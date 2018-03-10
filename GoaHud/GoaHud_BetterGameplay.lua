@@ -32,9 +32,10 @@ GoaHud_BetterGameplay =
 
 		"race",
 			"bindRespawn",
+			"raceFastRespawn",
 
 		"",
-		"raceFastRespawn",
+		"bindReadyToggle",
 		"",
 
 --		"ui",
@@ -71,6 +72,9 @@ function GoaHud_BetterGameplay:init()
 
 	GoaHud:createConsoleVariable("respawn", "int", 0)
 	GoaHud:setConsoleVariable("respawn", 0)
+
+	GoaHud:createConsoleVariable("toggleready", "int", 0)
+	GoaHud:setConsoleVariable("toggleready", 0)
 end
 
 local comboBoxData1 = {}
@@ -91,6 +95,12 @@ function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
 		GoaKeyBind("ui_goahud_respawn 1", x + offset_x + 200, y, 150, "game", optargs)
 		optargs.optionalId = optargs.optionalId + 1
 		return GOAHUD_SPACING
+	elseif (varname == "bindReadyToggle") then
+		local offset_x = GOAHUD_INDENTATION
+		GoaLabel("Bind Toggle Ready:", x + offset_x, y, optargs)
+		GoaKeyBind("ui_goahud_toggleready 1", x + offset_x + 200, y, 150, "game", optargs)
+		optargs.optionalId = optargs.optionalId + 1
+		return GOAHUD_SPACING
 	elseif (varname == "raceFastRespawn") then
 		local optargs = clone(optargs)
 		optargs.indent = 1
@@ -107,7 +117,13 @@ function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
 end
 
 local PickupTimers_draw = nil
+local lastGameState = nil
+local readyChanges = 0
+local readySpamEnd = 0
+local readyLastPress = 0
 function GoaHud_BetterGameplay:draw()
+	local local_player = getLocalPlayer()
+
 	if (self.options.globalColors ~= GLOBAL_COLORS_DISABLED) then
 		if (self.options.globalColors == GLOBAL_COLORS_ENABLED) then
 			nvgText = nvgTextEmoji
@@ -133,6 +149,25 @@ function GoaHud_BetterGameplay:draw()
 		end
 	end
 
+	local toggle_ready = GoaHud:getConsoleVariable("toggleready")
+	if (toggle_ready ~= 0) then
+		GoaHud:setConsoleVariable("toggleready", 0)
+		-- prevent user spamming the key too often, also throttles the changes when key is being held
+		if (readyChanges < 4 and epochTimeMs-readyLastPress > 0.2) then
+			if (local_player and local_player.ready) then
+				consolePerformCommand("notready")
+			else
+				consolePerformCommand("ready")
+			end
+		end
+		readyLastPress = epochTimeMs
+		readySpamEnd = epochTimeMs + 1.1
+		readyChanges = readyChanges + 1
+	end
+	if (epochTime >= readySpamEnd) then
+		readyChanges = 0
+	end
+
 	if (self.respawning) then
 		consolePerformCommand("-attack")
 		self.respawning = false
@@ -140,7 +175,6 @@ function GoaHud_BetterGameplay:draw()
 
 	if (world == nil) then return end
 
-	local local_player = getLocalPlayer()
 	if (isRaceOrTrainingMode()) then
 		if (local_player ~= nil) then
 			if (self.options.raceFastRespawn and local_player.isDead) then
