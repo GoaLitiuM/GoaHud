@@ -77,7 +77,12 @@ GoaHud =
 	convarQueue = {},
 
 	errors = {},
-	errorObservers = {},
+	observers =
+	{
+		-- list of observing widgets
+		onError = {},
+		onLog = {},
+	},
 
 	movables = {},
 
@@ -928,10 +933,51 @@ end
 -- draw
 --
 
+local log_last_id = -1
+function GoaHud:tick()
+	-- propagate caught errors for listeners
+	if (#self.errors > 0) then
+		if (#self.observers.onError > 0) then
+			for j, o in pairs(self.observers.onError) do
+				for i, e in pairs(self.errors) do
+					self:invokeCallback(o, e.widget, e.err)
+				end
+			end
+		end
+		self.errors = {}
+	end
+
+	-- log based callbacks
+	if (log[1] ~= nil and log[1].id ~= log_last_id) then
+		for i=#log, 1, -1 do
+			local entry = log[i]
+			if (entry.id > log_last_id) then
+				log_last_id = entry.id
+
+				--GoaHud_Chat:onDebug(string.format("LOG %d: %d", entry.id, entry.type))
+
+				for j, o in pairs(self.observers.onLog) do
+					self:invokeCallback(o, entry)
+				end
+			end
+		end
+	end
+end
+
+function GoaHud:invokeCallback(callback, param1, param2, param3, param4)
+	local len = #callback.widget.__goahud_callbacks
+	local params = {}
+	params[#params+1] = param1
+	params[#params+1] = param2
+	params[#params+1] = param3
+	params[#params+1] = param4
+	callback.widget.__goahud_callbacks[len+1] = { func = callback.func, params = params }
+end
+
 local first_draw = true
 function GoaHud:drawFirst()
 	self:processConVars()
-	self:postInitWidgets()
+	self:registerWidgetCallbacks()
 
 	self.draw = self.drawReal
 	self:drawReal()
@@ -941,17 +987,7 @@ end
 function GoaHud:drawReal()
 	self:updateEpochTimeMs()
 
-	-- propagate caught errors for listeners
-	if (#self.errors > 0) then
-		if (#self.errorObservers > 0) then
-			for i, e in pairs(self.errors) do
-				for j, o in pairs(self.errorObservers) do
-					table.insert(o.t.__goahud_errors, e)
-				end
-			end
-		end
-		self.errors = {}
-	end
+	self:tick()
 
 	if (br_HudEditorPopup ~= nil) then self.previewMode = not br_HudEditorPopup.show_menu end
 
@@ -1327,6 +1363,7 @@ function GoaHud:registerWidget(widget_name, category)
 	widget_table.__goahud_module = isModule
 	widget_table.__goahud_experimental = isExperimental
 	widget_table.__goahud_addon = isAddon
+	widget_table.__goahud_callbacks = {}
 
 	if (isModule) then
 		widget_table.canHide = false
@@ -1349,8 +1386,6 @@ function GoaHud:registerWidget(widget_name, category)
 		widget_table.options = {}
 	end
 
-	widget_table.__goahud_errors = {}
-
 	-- define load and saving function for widget.options
 	function widget_table:loadOptions()
 		GoaHud_LoadOptions(widget_table)
@@ -1370,6 +1405,17 @@ function GoaHud:registerWidget(widget_name, category)
 				widget_table.loadOptions()
 			end
 			widget_table.__goahud_invoke_method = 0
+		end
+
+		if (#widget_table.__goahud_callbacks > 0) then
+			for i in ipairs(widget_table.__goahud_callbacks) do
+				local c = widget_table.__goahud_callbacks[i]
+				local func = c.func
+				local params = c.params
+
+				func(widget_table, params[1], params[2], params[3], params[4])
+			end
+			widget_table.__goahud_callbacks = {}
 		end
 	end
 
@@ -1430,8 +1476,6 @@ function GoaHud:registerWidget(widget_name, category)
 	-- pre and post draw functions
 	function widget_table:__goahud_pre_draw()
 		nvgSave()
-		widget_table:__goahud_update_errors()
-		widget_table:__goahud_update_logs()
 	end
 	function widget_table:__goahud_post_draw()
 		nvgRestore()
@@ -1537,39 +1581,6 @@ function GoaHud:registerWidget(widget_name, category)
 			end
 		end
 
-		-- setup notifications for new log entries
-		if (widget_table.onLog ~= nil) then
-			local log_last_id = -1
-			widget_table.__goahud_update_logs = function()
-
-				if (log[1] ~= nil and log[1].id ~= log_last_id) then
-					for i=#log, 1, -1 do
-						local entry = log[i]
-						if (entry.id > log_last_id) then
-							log_last_id = entry.id
-							widget_table:onLog(entry)
-						end
-					end
-				end
-			end
-		else
-			widget_table.__goahud_update_logs = function() end
-		end
-
-		-- setup error notifications
-		if (widget_table.onError ~= nil) then
-			widget_table.__goahud_update_errors = function()
-				if (#widget_table.__goahud_errors > 0) then
-					for i, e in pairs(widget_table.__goahud_errors) do
-						widget_table:onError(e.widget, e.err)
-					end
-					widget_table.__goahud_errors = {}
-				end
-			end
-		else
-			widget_table.__goahud_update_errors = function() end
-		end
-
 		if (widget_table.init ~= nil) then
 			widget_table:init()
 		end
@@ -1602,15 +1613,19 @@ function GoaHud:registerWidget(widget_name, category)
 	end
 end
 
-function GoaHud:postInitWidgets()
+function GoaHud:registerWidgetCallbacks()
 	for i, w in pairs(self.registeredWidgets) do
 		local widget_table = _G[w.name]
 
-		-- register callback functions for addon errors
-		if (widget_table.onError ~= nil) then
-			table.insert(self.errorObservers, { t = widget_table, name = w.name, func = widget_table.onError })
-		end
+		self:tryAddObserver(widget_table, "onError")
+		self:tryAddObserver(widget_table, "onLog")
 	end
+end
+
+function GoaHud:tryAddObserver(widget, func_name)
+	if (widget[func_name] == nil) then return end
+
+	table.insert(self.observers[func_name], { widget = widget, name = widget.widgetName, func = widget[func_name] })
 end
 
 function setWidgetVisibility(widget, visible)
