@@ -279,6 +279,10 @@ function GoaHud_Messages:drawCountdown()
 	end
 end
 
+function GoaHud_Messages:onMatchChange()
+	self.gameModeTimer = 0
+end
+
 function GoaHud_Messages:drawGameModeText()
 	if (self:shouldHide()) then return end
 
