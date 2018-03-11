@@ -513,6 +513,7 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 	local is_color = optargs.color or (vartype == "table" and string.find(name_readable, "Color"))
 	local is_font = optargs.font or (name == "font")
 	local is_text = optargs.text or vartype == "string"
+	local is_bind = optargs.bind ~= nil and optargs.bind ~= ""
 	local indent = optargs.indent or 0
 	local draw_label = vartype ~= "boolean" and not is_movable
 
@@ -551,6 +552,16 @@ function GoaHud_DrawOptionsVariable(options, name, x, y, optargs, name_readable)
 			options[name] = color
 		end
 
+		offset_y = offset_y + GOAHUD_SPACING
+	elseif (is_bind) then
+		local bind_state = optargs.bindState or ""
+
+		local key = GoaKeyBind(optargs.bind, x + offset_x + checkbox_width, y, 150, bind_state, table.merge(optargs, { bindHack = optargs.unboundText ~= nil and optargs.unboundText ~= "" }))
+		if (key ~= nil) then
+			options[name] = key
+		end
+
+		optargs.optionalId = optargs.optionalId + 1
 		offset_y = offset_y + GOAHUD_SPACING
 	elseif (is_text) then
 		options[name] = GoaEditBox(options[name], x + offset_x + checkbox_width, y + offset_y, 220, optargs)
@@ -870,6 +881,7 @@ function GoaKeyBind(bindCommand, x, y, w, bindState, optargs)
 	local optionalId = optargs.optionalId or 0;
 	local enabled = optargs.enabled == nil and true or optargs.enabled;
 	local intensity = optargs.intensity or 1;
+	local unboundText = "(unbound)"
 	local h = 35;
 
 	local c = 255;
@@ -880,13 +892,19 @@ function GoaKeyBind(bindCommand, x, y, w, bindState, optargs)
 		k = inputGrabRegion(x, y, w, h, optionalId);
 	end
 
+	if (optargs.unboundText and optargs.unboundText ~= "") then unboundText = string.upper(optargs.unboundText) end
+
 	nvgSave();
 
 	local key = bindReverseLookup(bindCommand, bindState);
+	local keyDisp
 	if key == "(unbound)" then
 		c = c / 2;
+		keyDisp = unboundText
+		if (optargs.bindHack and optargs.unboundText and optargs.unboundText ~= "") then keyDisp = keyDisp .. " ?" end
 	else
-		key = string.upper(key);
+		keyDisp = string.upper(key)
+		if (optargs.bindHack) then keyDisp = keyDisp .. " ?" end
 	end
 
 	-- pulse bg when have focus
@@ -909,7 +927,7 @@ function GoaKeyBind(bindCommand, x, y, w, bindState, optargs)
 
 	-- scissor
 	ui2FontNormal();
-	local tw = nvgTextWidth(key);
+	local tw = nvgTextWidth(keyDisp);
 	if tw >= w - 5 then
 		nvgIntersectScissor(x, y, w - 5, 100);
 	end
@@ -917,7 +935,7 @@ function GoaKeyBind(bindCommand, x, y, w, bindState, optargs)
 	-- text
 	nvgFillColor(ui2FormatColor(UI2_COLTYPE_TEXT, intensity, k.hoverAmount, enabled));
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_MIDDLE);
-	nvgText(x+h*0.3, y+h*0.5, key);
+	nvgText(x+h*0.3, y+h*0.5, keyDisp);
 
 	nvgRestore();
 

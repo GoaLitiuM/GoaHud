@@ -32,7 +32,8 @@ GoaHud_Zoom =
 
 	options =
 	{
-		lastBoundKey = "",
+		bindZoom = "",
+
 		zoomFov = 43,
 		smoothZoom = true,
 		zoomTime = 0.075,
@@ -41,7 +42,7 @@ GoaHud_Zoom =
 	},
 	optionsDisplayOrder =
 	{
-		"bindZoom", "lastBoundKey",
+		"bindZoom",
 		"",
 		"zoomFov", "smoothZoom", "zoomTime", "rescaleSensitivity", "adjustViewmodel"
 	},
@@ -56,6 +57,11 @@ function GoaHud_Zoom:init()
 	elseif (tostring(self.options.rescaleSensitivity) == "false") then
 		self.options.rescaleSensitivity = SENSITIVITY_DISABLED
 		self:saveOptions()
+	end
+
+	if (self.options.lastBoundKey ~= nil and self.options.lastBoundKey ~= "") then
+		self.options.bindZoom = self.options.lastBoundKey
+		self.options.lastBoundKey = nil
 	end
 
 	GoaHud:createConsoleVariable("zoom", "int", 0, true)
@@ -92,17 +98,11 @@ function GoaHud_Zoom:drawOptionsVariable(varname, x, y, optargs)
 	if (varname == "lastBoundKey") then return 0
 	elseif (varname == "bindZoom") then
 		self.rebindTimer = 0
-		GoaLabel("Bind Zoom:", x, y, optargs)
-		local key = GoaKeyBind("ui_goahud_zoom 2; +showscores", x + 200, y, 150, "game", optargs)
-		if (key ~= nil) then
-			self.options.lastBoundKey = key
-		end
-		if (self.options.lastBoundKey) then
-			GoaLabel("Last bound key: " .. string.upper(self.options.lastBoundKey), x + 200 + 150 + 20, y, optargs)
-		end
-
-		optargs.optionalId = optargs.optionalId + 1
-		return GOAHUD_SPACING
+		local optargs = clone(optargs)
+		optargs.bind = "ui_goahud_zoom 2; +showscores"
+		optargs.bindState = "game"
+		optargs.unboundText = self.options.bindZoom
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs)
 	elseif (varname == "zoomFov") then
 		local optargs = clone(optargs)
 		optargs.fov = true

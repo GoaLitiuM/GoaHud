@@ -22,6 +22,7 @@ GoaHud_BetterGameplay =
 		hideCasualTimers = false,
 
 		raceFastRespawn = true,
+		bindRespawn = "",
 		globalColors = GLOBAL_COLORS_DISABLED,
 	},
 
@@ -90,23 +91,22 @@ function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
 	--	return GOAHUD_SPACING
 
 	elseif (varname == "bindRespawn") then
-		local offset_x = GOAHUD_INDENTATION
-		GoaLabel("Bind Respawn (Race):", x + offset_x, y, optargs)
-		GoaKeyBind("ui_goahud_respawn 1", x + offset_x + 200, y, 150, "game", optargs)
-		optargs.optionalId = optargs.optionalId + 1
-		return GOAHUD_SPACING
+		local optargs = clone(optargs)
+		optargs.bind = "ui_goahud_respawn 1"
+		optargs.bindState = "game"
+		optargs.indent = 1
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Bind Race Respawn")
 	elseif (varname == "bindReadyToggle") then
-		local offset_x = GOAHUD_INDENTATION
-		GoaLabel("Bind Toggle Ready:", x + offset_x, y, optargs)
-		GoaKeyBind("ui_goahud_toggleready 1", x + offset_x + 200, y, 150, "game", optargs)
-		optargs.optionalId = optargs.optionalId + 1
-		return GOAHUD_SPACING
+		local optargs = clone(optargs)
+		optargs.bind = "ui_goahud_toggleready 1"
+		optargs.bindState = "game"
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Bind Toggle Ready")
 	elseif (varname == "raceFastRespawn") then
 		local optargs = clone(optargs)
 		optargs.indent = 1
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Fast Respawn")
 	elseif (varname == "hideCasualTimers") then
-		return GoaHud_DrawOptionsVariable(self.options, varname, x + GOAHUD_INDENTATION, y, optargs, "Hide Casual Item Timers")
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, table.merge(optargs, {indent = 1}), "Hide Casual Item Timers")
 	elseif (varname == "globalColors") then
 		GoaLabel("Enable Color Codes In All Addons (Experimental): ", x, y, optargs)
 		GoaLabel("Color Codes: ", x + GOAHUD_INDENTATION, y + GOAHUD_SPACING, optargs)
