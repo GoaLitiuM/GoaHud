@@ -168,7 +168,10 @@ function GoaHud_Timer:draw()
 	elseif (not world.timerActive) then
 		time_raw = 0
 	else
-		if (countdown) then
+		local match_countdown = world.gameState == GAME_STATE_WARMUP or world.gameState == GAME_STATE_ROUNDPREPARE
+		if (match_countdown) then
+			time_raw = world.gameTimeLimit - world.gameTime + 1000
+		elseif (countdown) then
 			time_raw = world.gameTimeLimit - world.gameTime
 		else
 			time_raw = math.floor(world.gameTime / 1000) * 1000
