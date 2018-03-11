@@ -23,6 +23,7 @@ GoaHud_BetterGameplay =
 
 		raceFastRespawn = true,
 		bindRespawn = "",
+		bindStakeBolt = "",
 		globalColors = GLOBAL_COLORS_DISABLED,
 	},
 
@@ -37,6 +38,7 @@ GoaHud_BetterGameplay =
 
 		"",
 		"bindReadyToggle",
+		"bindStakeBolt",
 		"",
 
 --		"ui",
@@ -101,6 +103,11 @@ function GoaHud_BetterGameplay:drawOptionsVariable(varname, x, y, optargs)
 		optargs.bind = "ui_goahud_toggleready 1"
 		optargs.bindState = "game"
 		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Bind Toggle Ready")
+	elseif (varname == "bindStakeBolt") then
+		local optargs = clone(optargs)
+		optargs.bind = "weapon 8; weapon 9"
+		optargs.unboundText = self.options.bindStakeBolt
+		return GoaHud_DrawOptionsVariable(self.options, varname, x, y, optargs, "Bind Stake/Bolt")
 	elseif (varname == "raceFastRespawn") then
 		local optargs = clone(optargs)
 		optargs.indent = 1
