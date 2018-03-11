@@ -390,6 +390,11 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 	local offset_y = 0
 	local draw_preview_first = true
 
+	if (self.__goahud_module) then
+		self.enabled = GoaRowCheckbox(x + offset_x, y + offset_y, 250, "Enabled", self.enabled, optargs)
+		offset_y = offset_y + GOAHUD_SPACING*1.5
+	end
+
 	local reset_pressed, hover = GoaButton("Reset Settings", x + offset_x, y + offset_y, 150, 35, optargs)
 	if (reset_pressed) then
 		GoaHud_ResetOptions(self)
@@ -402,7 +407,7 @@ function GoaHud_DrawOptions(self, x, y, intensity)
 	offset_y = offset_y + GOAHUD_SPACING*1.5
 
 	if (self.__goahud_module and not self.enabled) then
-		GoaLabel("Module is not enabled, enable this module from GoaHud widget options.", x + offset_x, y + offset_y, optargs)
+		--GoaLabel("Module is not enabled, enable this module from GoaHud widget options.", x + offset_x, y + offset_y, optargs)
 	else
 		optargs.optionalId = optargs.optionalId + 1
 		firstWidgetOptionalId = optargs.optionalId
