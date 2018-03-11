@@ -287,7 +287,7 @@ function GoaHud_Messages:drawGameModeText()
 	local game_mode = gamemodes[world.gameModeIndex]
 	local game_mode_alpha = 1.0
 
-	if (world.gameState ~= GAME_STATE_WARMUP) then
+	if (world.gameState ~= GAME_STATE_WARMUP or world.mapName == "forge") then
 		if (self.gameModeTimer >= self.options.gameModeShowTime) then
 			game_mode_alpha = math.max(0.0, 1.0 - ((self.gameModeTimer - self.options.gameModeShowTime) / self.options.gameModeFadeTime))
 		end
@@ -301,6 +301,8 @@ function GoaHud_Messages:drawGameModeText()
 		local game_mode_text = game_mode.name
 		if (world.isMatchmakingLobby) then
 			game_mode_text = "LOBBY"
+		elseif (world.mapName == "forge") then
+			game_mode_text = "FORGE"
 		else
 			game_mode_text = string.format("%s (%s)", game_mode_text, string.upper(world.ruleset))
 		end
@@ -325,6 +327,7 @@ function GoaHud_Messages:drawWarmupText()
 	end
 
 	if (world.gameState ~= GAME_STATE_WARMUP) then return end
+	if (world.mapName == "forge") then return end
 
 	local game_mode = gamemodes[world.gameModeIndex]
 	local players_ready = 0
