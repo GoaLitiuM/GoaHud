@@ -193,17 +193,6 @@ function GoaHud_Messages:draw()
 	if (world == nil) then return end
 
 	self.timer = self.timer + deltaTimeRaw
-
-	local match_countdown = (world.gameState == GAME_STATE_WARMUP or world.gameState == GAME_STATE_ROUNDPREPARE) and world.timerActive
-
-	-- countdown ticking sound
-	if (match_countdown) then
-		local seconds = math.max(1, math.ceil((world.gameTimeLimit - world.gameTime) / 1000))
-		if (seconds ~= self.lastSec) then
-			self.lastSec = seconds
-			playSound("internal/ui/match/match_countdown_tick")
-		end
-	end
 end
 
 function GoaHud_Messages:shouldHide()
@@ -277,6 +266,12 @@ function GoaHud_Messages:drawCountdown()
 		nvgFillColor(Color(255,255,255,255))
 
 		GoaHud:drawTextWithShadow(0, 0,  tostring(seconds), self.options.shadow)
+
+		-- countdown ticking sound
+		if (seconds ~= self.lastSec) then
+			self.lastSec = seconds
+			playSound("internal/ui/match/match_countdown_tick")
+		end
 	end
 end
 
