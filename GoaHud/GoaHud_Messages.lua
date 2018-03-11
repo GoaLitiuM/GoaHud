@@ -27,7 +27,7 @@ GoaHud_Messages =
 
 		gameModeShowTime = 10.0,
 		gameModeFadeTime = 1.5,
-		notReadyColor = Color(255, 80, 80, 255),
+		notReadyColor = Color(255, 100, 100, 255),
 
 		shadow =
 		{
