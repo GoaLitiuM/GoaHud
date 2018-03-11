@@ -215,6 +215,12 @@ optargs_deadspec =
 	showWhenDead = true,
 	showWhenSpec = true,
 }
+optargs_deadspecforge =
+{
+	showWhenDead = true,
+	showWhenSpec = true,
+	showWhenForge = true,
+}
 
 local emoji_pattern = ":([-+%w_]+):"
 local color_pattern = "%^[0-9a-zA-Z%[%]]"
@@ -1795,6 +1801,14 @@ function GoaHud:alignTextWithWidgetAnchor(widget)
 	else vert = NVG_ALIGN_BOTTOM end
 
 	nvgTextAlign(hori, vert)
+end
+
+function GoaHud:shouldShowHUD(optargs)
+	local optargs = optargs or {}
+	local show = shouldShowHUD(optargs)
+	local showWhenForge = optargs.showWhenForge
+	show = show and not (world ~= nil and world.mapName == "forge" and not showWhenForge)
+	return show
 end
 
 --

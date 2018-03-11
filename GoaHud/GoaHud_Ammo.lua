@@ -149,7 +149,7 @@ function GoaHud_Ammo:tick()
 end
 
 function GoaHud_Ammo:draw()
-	if (not shouldShowHUD()) then return end
+	if (not GoaHud:shouldShowHUD()) then return end
 
 	local player = getPlayer()
 	local weapon = player.weaponIndexweaponChangingTo

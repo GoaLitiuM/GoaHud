@@ -200,7 +200,7 @@ function GoaHud_Messages:shouldHide()
 
 	if (GoaHud.previewMode) then hide = false end
 
-	if (not shouldShowHUD(optargs_deadspec)) then hide = true end
+	if (not GoaHud:shouldShowHUD(optargs_deadspecforge)) then hide = true end
 	if (not shouldShowStatus()) then hide = true end
 	if (world == nil) then hide = true end
 

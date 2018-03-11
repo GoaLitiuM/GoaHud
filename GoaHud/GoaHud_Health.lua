@@ -90,7 +90,7 @@ end
 
 function GoaHud_Health:draw()
 	if (not GoaHud.previewMode) then
-		if (not shouldShowHUD(optargs_deadspec)) then return end
+		if (not GoaHud:shouldShowHUD(optargs_deadspec)) then return end
 		if (self.options.hideInRace and isRaceMode()) then return end
 	end
 

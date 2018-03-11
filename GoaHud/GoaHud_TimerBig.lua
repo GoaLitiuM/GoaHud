@@ -106,7 +106,7 @@ function GoaHud_TimerBig:setupText()
 end
 
 function GoaHud_TimerBig:shouldShow()
-	local show = shouldShowHUD(optargs_deadspec) and (GoaHud.previewMode or not isRaceOrTrainingMode())
+	local show = GoaHud:shouldShowHUD(optargs_deadspec) and (GoaHud.previewMode or not isRaceOrTrainingMode())
 	local local_player = getLocalPlayer()
 	if (self.options.hideWhileSpectating and local_player ~= nil and local_player.state == PLAYER_STATE_SPECTATOR) then show = false end
 	return show

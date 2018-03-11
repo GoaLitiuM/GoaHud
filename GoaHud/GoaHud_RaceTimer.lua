@@ -139,7 +139,7 @@ end
 function GoaHud_RaceTimer:draw()
 	self:calculateFontMetrics()
 
-	if (not shouldShowHUD()) then return end
+	if (not GoaHud:shouldShowHUD()) then return end
 	if (not GoaHud.previewMode and not isRaceOrTrainingMode()) then
 		self.lastMap = ""
 		return

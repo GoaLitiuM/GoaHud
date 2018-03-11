@@ -146,7 +146,7 @@ end
 function GoaHud_Timer:draw()
 	self:calculateFontMetrics()
 
-	if (not shouldShowHUD(optargs_deadspec)) then return end
+	if (not GoaHud:shouldShowHUD(optargs_deadspec)) then return end
 
 	local race = isRaceOrTrainingMode()
 	local countdown

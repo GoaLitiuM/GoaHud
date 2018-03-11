@@ -119,7 +119,7 @@ function GoaHud_WeaponRack:drawOptionsVariable(varname, x, y, optargs)
 end
 
 function GoaHud_WeaponRack:draw()
-	if (not shouldShowHUD()) then return end;
+	if (not GoaHud:shouldShowHUD()) then return end;
 	if (not GoaHud.previewMode) then
 		if (self.options.hideInRace and isRaceMode()) then return end
 		if (self.options.hideInWarmup and world ~= nil and world.gameState == GAME_STATE_WARMUP) then return end
