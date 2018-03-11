@@ -49,6 +49,10 @@ local font_separator_width = nil
 local font_y_offset = nil
 
 function GoaHud_TimerBig:init()
+	self:onMatchChange()
+end
+
+function GoaHud_TimerBig:onMatchChange()
 	self.connectedTime = epochTime
 end
 
