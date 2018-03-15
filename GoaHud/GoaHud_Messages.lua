@@ -300,7 +300,7 @@ function GoaHud_Messages:drawGameModeText()
 	local game_mode = gamemodes[world.gameModeIndex]
 	local game_mode_alpha = 1.0
 
-	if (world.gameState ~= GAME_STATE_WARMUP or world.mapName == "forge") then
+	if (world.gameState ~= GAME_STATE_WARMUP) then
 		if (self.gameModeTimer >= self.options.gameModeShowTime) then
 			game_mode_alpha = math.max(0.0, 1.0 - ((self.gameModeTimer - self.options.gameModeShowTime) / self.options.gameModeFadeTime))
 		end
@@ -340,7 +340,6 @@ function GoaHud_Messages:drawWarmupText()
 	end
 
 	if (world.gameState ~= GAME_STATE_WARMUP) then return end
-	if (world.mapName == "forge") then return end
 
 	local game_mode = gamemodes[world.gameModeIndex]
 	local players_ready = 0
@@ -360,7 +359,10 @@ function GoaHud_Messages:drawWarmupText()
 
 	-- warmup info
 	local warmup_text = ""
-	if (not world.isMatchmakingLobby) then
+	if (world.mapName == "forge") then
+		local editor_key = bindReverseLookup("toggleeditor", "game")
+		warmup_text = string.format("Press [%s] to edit", string.upper(editor_key))
+	elseif (not world.isMatchmakingLobby and world.mapName ~= "forge") then
 		local warmup_format = "Warmup, %d/%d players ready"
 		local player_target = players_ready
 		if (world.matchmakingPlayerCount > 0) then
@@ -380,7 +382,7 @@ function GoaHud_Messages:drawWarmupText()
 	nvgFillColor(Color(255,255,255,200))
 
 	GoaHud:drawTextWithShadow(0, 0, warmup_text, self.options.shadow)
-	if (not getLocalPlayer().ready and self.options.notReadyColor.a > 0) then
+	if (world.mapName ~= "forge" and not getLocalPlayer().ready and self.options.notReadyColor.a > 0) then
 		local ready_key = bindReverseLookup("ready", "game")
 		local ready_toggle_key = bindReverseLookup("ui_goahud_toggleready 1", "game")
 
