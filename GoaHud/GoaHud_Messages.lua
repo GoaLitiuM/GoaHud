@@ -181,6 +181,19 @@ function GoaHud_Messages:onLog(entry)
 			color = team_color,
 			length = self.options.messageShowTime,
 		})
+	elseif (entry.type == LOG_TYPE_NOTIFICATION and entry.notificationType == LOG_NOTIFICATIONTYPE_GENERIC) then
+		local editor_player, editor_content = string.match(entry.notification, '^(.*) (has become an editor)')
+		local joined_player, joined_content = string.match(entry.notification, '^(.*) (has joined the game)')
+		local spectating_player, spectating_content = string.match(entry.notification, '^(.*) (is now spectating)')
+
+		if ((editor_player and editor_content) or (joined_player and joined_content) or (spectating_player and spectating_content)) then
+			local player_name = editor_player or joined_player or spectating_player
+			local local_player = getLocalPlayer()
+			if (local_player.name == player_name) then
+				-- show gamemode text again when player joins the match
+				self:onMatchChange()
+			end
+		end
 	end
 end
 
