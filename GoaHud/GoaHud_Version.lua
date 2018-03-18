@@ -3,7 +3,7 @@
 -- Tracks changes to GoaHud.
 --
 
-local version = 48
+local version = 49
 
 function GoaHud_GetVersionPretty()
     return "r" .. GoaHud_Version.version
