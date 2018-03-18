@@ -1551,7 +1551,7 @@ function GoaHud:registerWidget(widget_name, category)
 
 	-- hook initialize function
 	local initialize_func = function()
-		GoaHud_HookErrorFunctions() -- in case one of my widgets happens to be called before others
+		GoaHud.GoaHud_HookErrorFunctions() -- in case one of my widgets happens to be called before others
 
 		-- update accurate epoch time now if main module didn't get to it first
 		if (epochTimeMs == 0) then
@@ -2134,32 +2134,6 @@ end
 -- error helpers
 --
 
--- HACK: ScreenEffects:initialize seems to be the one of the first function which is called
--- during addon initialization process, and we can initialize the error hooks there for other
--- widgets before their initialize functions are called.
-
-local first_initialize_table = ScreenEffects
-local first_initialize_func = ScreenEffects.initialize
-
-function hooked_first_initialize(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-	GoaHud_HookErrorFunctions()
-
-	-- call the original initialize function
-	if (first_initialize_func ~= nil) then
-		local status, err = pcall(first_initialize_func, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-		if (status == false) then
-			local widget_name = getWidgetName(first_initialize_table)
-			onError(widget_name, err)
-			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)), true)
-
-			-- disable draw calls in case error occured in the detoured initialize function
-			GoaHud_SetWidgetDraw(first_initialize_table, function() end)
-		end
-	end
-end
-
-first_initialize_table.initialize = hooked_first_initialize
-
 -- Catches most of the error emitted inside initialize and draw functions,
 -- does not catch any errors thrown during initial load >:(.
 
@@ -2199,15 +2173,19 @@ local function GoaHud_DetourDraw(widget_name)
 end
 
 local hooked_widgets = {}
-function GoaHud_HookErrorFunctions()
+function GoaHud:GoaHud_HookErrorFunctions()
 	for i, k in pairs(widgets) do
-		if (k.name ~= nil and string.find(k.name, "GoaHud") ~= 1 and hooked_widgets[k.name] == nil) then
+		if (k.name ~= nil and hooked_widgets[k.name] == nil) then
 			local widget_table = _G[k.name]
 
-			GoaHud_DetourInitialize(k.name)
+			if (widget_table.__goahud_real_initialize == nil) then
+				GoaHud_DetourInitialize(k.name)
+			end
 
 			if (k.name ~= "br_HudEditorPopup") then
-				GoaHud_DetourDraw(k.name)
+				if (widget_table.__goahud_real_draw == nil) then
+					GoaHud_DetourDraw(k.name)
+				end
 			else
 				local draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					local getMovableName = function(m)
