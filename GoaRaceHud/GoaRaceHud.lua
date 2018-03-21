@@ -234,19 +234,19 @@ function GoaRaceHud:drawName()
     local player = getPlayer()
     local player_country = player.country
     if (string.len(self.options.overridePlayerFlag) > 0) then player_country = self.options.overridePlayerFlag end
-    local flag_svg = "internal/ui/icons/flags/" .. player_country
+    local flag_svg = getFlag(player_country)
     local flag_offset = -self.options.fontSize * 0.06
     local flag_size = self.options.fontSize * 0.45
 
     -- player flag
-    if (self.options.showPlayerFlag) then
+    if (self.options.showPlayerFlag and flag_svg) then
         nvgFillColor(Color(255,255,255,255))
         GoaHud:drawSvgWithShadow(flag_svg, flag_size, -flag_size/2 + flag_offset, flag_size, 0, self.options.shadow)
     end
 
     -- player name
     nvgFillColor(self.options.textColor)
-    if (self.options.showPlayerFlag) then
+    if (self.options.showPlayerFlag and flag_svg) then
         GoaHud:drawTextWithShadow(flag_size*2, 0, " " .. player.name, self.options.shadow)
     else
         GoaHud:drawTextWithShadow(0, 0, player.name, self.options.shadow)
