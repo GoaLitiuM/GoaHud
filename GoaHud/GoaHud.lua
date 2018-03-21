@@ -122,6 +122,7 @@ local emojiSizeMultiplier = 0.75
 local nvgText_real = nvgText
 local nvgTextBounds_real = nvgTextBounds
 local nvgTextWidth_real = nvgTextWidth
+local nvgSvg_real = nvgSvg
 local nvgFillColor_real = nvgFillColor
 local nvgFillColorCurrent = Color(255, 255, 255)
 local nvgFontSize_real = nvgFontSize
@@ -1400,6 +1401,14 @@ function nvgTextStrip(x, y, text, optargs)
 	return nvgText_real(x, y, string.gsub(text, color_pattern, ""), optargs)
 end
 
+function nvgSvgEmojiFlags(svg, x, y, radius, blur)
+	local flag_path = "internal/ui/icons/flags/"
+	if (string.sub(svg, 1, string.len(flag_path)) ~= flag_path) then return nvgSvg_real(svg, x, y, radius, blur) end
+
+	local flag = getFlag(string.sub(svg, string.len(flag_path)+1))
+	if (flag) then return nvgSvg_real(flag, x, y, radius, blur) end
+end
+
 --
 -- widget helpers
 --
@@ -2454,15 +2463,36 @@ end
 -- the path could be too long so the error message's filepath might not have .lua in the end
 GoaHud_MainEmojiPath = ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%.lua\"%]:%d+: $")})[1] or ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%...\"%]:%d+: $")})[1]
 
-function getEmoji(text)
+function getFlag(text)
 	local path = "internal/ui/icons/flags/"
+	local svg = GoaHud_Flags[text]
+
+	if (svg == nil) then
+		path = GoaHud_MainEmojiPath .. "/emojis/"
+		svg = GoaHud_FlagsCustom[text]
+		-- try custom emojis as flags
+		if (svg == nil) then
+			svg = GoaHud_EmojisCustom[text]
+		end
+	end
+
+	if (svg == nil) then return nil end
+	return path .. svg
+end
+
+function getEmoji(text)
+	local path-- = "internal/ui/icons/flags/"
 	local svg
 	local flag_prefix = "flag_"
 
-	-- remove flag prefix from flags
 	if (string.sub(text, 1, string.len(flag_prefix)) == flag_prefix) then
-		svg = string.sub(text, string.len(flag_prefix)+1)
-		svg = GoaHud_Flags[svg]
+		local flag_svg = string.sub(text, string.len(flag_prefix)+1)
+		path = GoaHud_MainEmojiPath .. "/emojis/"
+		svg = GoaHud_FlagsCustom[flag_svg]
+		if (svg == nil) then
+			path = "internal/ui/icons/flags/"
+			svg = GoaHud_Flags[flag_svg]
+		end
 	end
 
 	if (svg == nil) then
@@ -2481,7 +2511,6 @@ function getEmoji(text)
 	end
 
 	if (svg == nil) then return nil end
-
 	return path .. svg
 end
 
@@ -2495,7 +2524,7 @@ end
 
 function isFlag(text)
 	if (text == nil) then return false end
-	return GoaHud_Flags[text] ~= nil
+	return GoaHud_Flags[text] ~= nil or GoaHud_FlagsCustom[text]
 end
 
 function nvgTextBoundsEmoji(text, optargs)

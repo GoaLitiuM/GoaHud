@@ -1,3 +1,8 @@
+GoaHud_FlagsCustom={
+['twitch']='flag_twitch',
+['arenafp']='arenafps',
+['afps']='arenafps',
+}
 GoaHud_EmojisCustom={
 ['locktarparse']='locktarparse',
 ['beatoff']='beatoff',

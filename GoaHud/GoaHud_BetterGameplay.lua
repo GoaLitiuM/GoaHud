@@ -53,10 +53,12 @@ GoaHud:registerWidget("GoaHud_BetterGameplay", GOAHUD_MODULE_EXPERIMENTAL)
 local nvgText_real = nil
 local nvgTextWidth_real = nil
 local nvgTextBounds_real = nil
+local nvgSvg_real = nil
 function GoaHud_BetterGameplay:init()
 	nvgText_real = nvgText
 	nvgTextWidth_real = nvgTextWidth
 	nvgTextBounds_real = nvgTextBounds
+	nvgSvg_real = nvgSvg
 
 	if (self.options ~= nil) then
 		-- migrate old checkbox setting
@@ -141,10 +143,12 @@ function GoaHud_BetterGameplay:draw()
 			nvgTextWidth = nvgTextWidthStrip
 			nvgTextBounds = nvgTextBoundsStrip
 		end
+		nvgSvg = nvgSvgEmojiFlags
 	else
 		nvgText = nvgText_real
 		nvgTextWidth = nvgTextWidth_real
 		nvgTextBounds = nvgTextBounds_real
+		nvgSvg = nvgSvg_real
 	end
 
 	local respawn = GoaHud:getConsoleVariable("respawn")
