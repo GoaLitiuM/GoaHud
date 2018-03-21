@@ -245,8 +245,8 @@ function GoaHud_FragMessages:drawFragged(x, y, intensity)
 		local flag_size = title_font_size * 0.5
 		local flag_offset = 8
 
-		local flag1_svg = "internal/ui/icons/flags/" .. self.fragInfo.killer.country
-		local flag2_svg = "internal/ui/icons/flags/" .. self.fragInfo.killed.country
+		local flag_killer_svg = getFlag(self.fragInfo.killer.country)
+		local flag_killed_svg = getFlag(self.fragInfo.killed.country)
 
 		local offset_x = -frag_width/2
 		if (self.options.showCountry) then
@@ -257,7 +257,7 @@ function GoaHud_FragMessages:drawFragged(x, y, intensity)
 			end
 		end
 
-		if (self.options.showCountry and not is_local_killer and isValidCountry(self.fragInfo.killer.country)) then
+		if (self.options.showCountry and not is_local_killer and flag_killer_svg) then
 			offset_x = offset_x + flag_size
 
 			nvgSave()
@@ -265,11 +265,11 @@ function GoaHud_FragMessages:drawFragged(x, y, intensity)
 
 			if (self.options.shadow.shadowEnabled) then
 				nvgFillColor(Color(0,0,0,255))
-				nvgSvg(flag1_svg, offset_x + x + self.options.shadow.shadowOffset, y - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
+				nvgSvg(flag_killer_svg, offset_x + x + self.options.shadow.shadowOffset, y - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
 			end
 
 			nvgFillColor(Color(255,255,255,255))
-			nvgSvg(flag1_svg, offset_x + x, y - flag_size/2, flag_size)
+			nvgSvg(flag_killer_svg, offset_x + x, y - flag_size/2, flag_size)
 
 			nvgRestore()
 
@@ -284,7 +284,7 @@ function GoaHud_FragMessages:drawFragged(x, y, intensity)
 		GoaHud:drawTextWithShadow(offset_x + x, y, message, self.options.shadow, { alpha = alpha * 255 })
 		offset_x = offset_x + message_width
 
-		if (self.options.showCountry and isValidCountry(self.fragInfo.killed.country)) then
+		if (self.options.showCountry and flag_killed_svg) then
 			offset_x = offset_x + flag_size
 
 			nvgSave()
@@ -292,11 +292,11 @@ function GoaHud_FragMessages:drawFragged(x, y, intensity)
 
 			if (self.options.shadow.shadowEnabled) then
 				nvgFillColor(Color(0,0,0,255))
-				nvgSvg(flag2_svg, offset_x + x + self.options.shadow.shadowOffset, y - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
+				nvgSvg(flag_killed_svg, offset_x + x + self.options.shadow.shadowOffset, y - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
 			end
 
 			nvgFillColor(Color(255,255,255,255))
-			nvgSvg(flag2_svg, offset_x + x, y - flag_size/2, flag_size)
+			nvgSvg(flag_killed_svg, offset_x + x, y - flag_size/2, flag_size)
 
 			nvgRestore()
 

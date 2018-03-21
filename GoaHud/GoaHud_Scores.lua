@@ -427,8 +427,8 @@ function GoaHud_Scores:draw()
 	local right_team
 	local left_text = ""
 	local right_text = ""
-	local left_flag_svg = "internal/ui/icons/flags/"
-	local right_flag_svg = "internal/ui/icons/flags/"
+	local left_flag_svg = ""
+	local right_flag_svg = ""
 	local left_health = 0
 	local right_health = 0
 	local left_armor = 0
@@ -526,7 +526,7 @@ function GoaHud_Scores:draw()
 		if (left_player) then
 			left_text = left_player.name
 			left_score = left_player.score
-			left_flag_svg = "internal/ui/icons/flags/" .. left_player.country
+			left_flag_svg = getFlag(left_player.country)
 			left_health = left_player.health
 			left_armor = left_player.armor
 			left_health_color = GoaHud_Scores:getHealthColor(left_health, left_armor, left_player.armorProtection, left_player.hasMega)
@@ -535,7 +535,7 @@ function GoaHud_Scores:draw()
 		if (right_player) then
 			right_text = right_player.name
 			right_score = right_player.score
-			right_flag_svg = "internal/ui/icons/flags/" .. right_player.country
+			right_flag_svg = getFlag(right_player.country)
 			right_health = right_player.health
 			right_armor = right_player.armor
 			right_health_color = GoaHud_Scores:getHealthColor(right_health, right_armor, right_player.armorProtection, right_player.hasMega)

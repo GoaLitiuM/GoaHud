@@ -2419,10 +2419,6 @@ function GoaHud:updateEpochTimeMs()
 	lastEpochTime = epochTime
 end
 
-function isValidCountry(country)
-	return country ~= nil and country ~= "" and country ~= "eu"
-end
-
 function GoaHud:getFont(font, bold, italics)
 	local index
 	local face

@@ -422,23 +422,24 @@ function GoaHud_Messages:drawFollowText()
 		if (not freecam) then
 			local name_width = nvgTextWidthEmoji(player.name, { emojiSize = name_font_size })
 			local offset_x = -name_width / 2
-			if (self.options.showCountry and isValidCountry(player.country)) then
-				nvgSave()
-
-				local flag_svg = "internal/ui/icons/flags/" .. player.country
+			if (self.options.showCountry) then
+				local flag_svg = getFlag(player.country)
 				local flag_size = name_font_size * 0.5
 				local flag_offset = 8
 				offset_x = offset_x + flag_size + flag_offset/2
 
-				if (self.options.shadow.shadowEnabled) then
-					nvgFillColor(Color(0,0,0,255))
-					nvgSvg(flag_svg, -name_width/2 - flag_offset/2 + self.options.shadow.shadowOffset, 0 - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
+				if (flag_svg) then
+					nvgSave()
+					if (self.options.shadow.shadowEnabled) then
+						nvgFillColor(Color(0,0,0,255))
+						nvgSvg(flag_svg, -name_width/2 - flag_offset/2 + self.options.shadow.shadowOffset, 0 - flag_size/2 + self.options.shadow.shadowOffset, flag_size, self.options.shadow.shadowBlur * 1.5)
+					end
+
+					nvgFillColor(Color(255,255,255,255))
+					nvgSvg(flag_svg, -name_width/2 - flag_offset/2, 0 - flag_size/2, flag_size)
+
+					nvgRestore()
 				end
-
-				nvgFillColor(Color(255,255,255,255))
-				nvgSvg(flag_svg, -name_width/2 - flag_offset/2, 0 - flag_size/2, flag_size)
-
-				nvgRestore()
 			end
 
 			nvgFillColor(Color(255,255,255,255))
