@@ -2455,19 +2455,21 @@ end
 GoaHud_MainEmojiPath = ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%.lua\"%]:%d+: $")})[1] or ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%...\"%]:%d+: $")})[1]
 
 function getEmoji(text)
-	local path
+	local path = "internal/ui/icons/flags/"
 	local svg
-	local flag = "flag_"
-	if (string.sub(text, 1, string.len(flag)) == flag) then
-		-- prefer internal flag icons over emoji flags
-		path = "internal/ui/icons/flags/"
-		svg = string.sub(text, string.len(flag)+1)
-		-- TODO: verify flag svg
-	else
+	local flag_prefix = "flag_"
+
+	-- remove flag prefix from flags
+	if (string.sub(text, 1, string.len(flag_prefix)) == flag_prefix) then
+		svg = string.sub(text, string.len(flag_prefix)+1)
+		svg = GoaHud_Flags[svg]
+	end
+
+	if (svg == nil) then
 		path = GoaHud_MainEmojiPath .. "/emojis/"
 		svg = GoaHud_EmojisCustom[text]
 		if (svg == nil) then
-			if (GoaHud_EmojiPath) then
+			if (GoaHud_EmojiPath) then -- requires emoji support widget
 				path = GoaHud_EmojiPath .. "/emojis/"
 				svg = GoaHud_Emojis[text]
 			end
@@ -2489,6 +2491,11 @@ end
 
 function isEmoji(text)
 	return getEmoji(text) ~= nil
+end
+
+function isFlag(text)
+	if (text == nil) then return false end
+	return GoaHud_Flags[text] ~= nil
 end
 
 function nvgTextBoundsEmoji(text, optargs)
