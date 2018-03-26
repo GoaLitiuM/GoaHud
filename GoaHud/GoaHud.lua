@@ -2460,6 +2460,7 @@ end
 GoaHud_MainEmojiPath = ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%.lua\"%]:%d+: $")})[1] or ({string.match(({pcall(function() error("") end)})[2],"^%[string \"base/(.*)/.-%...\"%]:%d+: $")})[1]
 
 function getFlag(text)
+	local text = string.lower(text)
 	local path = "internal/ui/icons/flags/"
 	local svg = GoaHud_Flags[text]
 
@@ -2477,6 +2478,7 @@ function getFlag(text)
 end
 
 function getEmoji(text)
+	local text = string.lower(text)
 	local path-- = "internal/ui/icons/flags/"
 	local svg
 	local flag_prefix = "flag_"
@@ -2520,6 +2522,7 @@ end
 
 function isFlag(text)
 	if (text == nil) then return false end
+	local text = string.lower(text)
 	return GoaHud_Flags[text] ~= nil or GoaHud_FlagsCustom[text]
 end
 
