@@ -2,6 +2,9 @@ GoaHud_FlagsCustom={
 ['twitch']='flag_twitch',
 ['arenafp']='arenafps',
 ['afps']='arenafps',
+['mensa']='mensa',
+['gay']='1F3F3-FE0F-200D-1F308',
+['bolttih']='1F3F3-FE0F-200D-1F308',
 }
 GoaHud_EmojisCustom={
 ['locktarparse']='locktarparse',
