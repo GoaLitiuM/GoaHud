@@ -1,3 +1,8 @@
+-- GoaHud_Updater made by GoaLitiuM
+--
+-- Provides auto updates for GoaHud and GoaHud widgets
+--
+
 GoaHud_Updater =
 {
 	options =

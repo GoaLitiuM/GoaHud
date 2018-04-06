@@ -1,3 +1,8 @@
+-- GoaHud_Scores made by GoaLitiuM
+--
+-- In-match scores widget optimized for spectators and team modes.
+--
+
 GoaHud_Scores =
 {
 	canPosition = false,

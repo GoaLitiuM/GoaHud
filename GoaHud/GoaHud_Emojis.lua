@@ -1,3 +1,8 @@
+-- GoaHud_Emojis made by GoaLitiuM
+--
+-- Provides a database of supported emojis mapped to svg filenames
+--
+
 GoaHud_FlagsCustom={
 ['twitch']='flag_twitch',
 ['arenafp']='arenafps',
