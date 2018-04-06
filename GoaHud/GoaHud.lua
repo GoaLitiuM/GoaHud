@@ -1653,7 +1653,7 @@ function GoaHud:registerWidget(widget_name, category)
 				consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)), true)
 
 				-- disable draw calls
-				GoaHud_SetWidgetDraw(widget_table, function() end)
+				widget.draw = function() end
 			end
 		end
 
@@ -1669,7 +1669,7 @@ function GoaHud:registerWidget(widget_name, category)
 			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)), true)
 
 			-- disable draw calls
-			GoaHud_SetWidgetDraw(widget_table, function() end)
+			widget.draw = function() end
 		end
 	end
 
@@ -2158,7 +2158,7 @@ local function GoaHud_Detour(widget_name, func)
 			consolePrint(string.format("lua (%s): %s", widget_name, tostring(err)), true)
 
 			-- disable draw calls
-			GoaHud_SetWidgetDraw(widget, function() end)
+			widget.draw = function() end
 		end
 	end
 
@@ -2196,6 +2196,7 @@ function GoaHud:GoaHud_HookErrorFunctions()
 					GoaHud_DetourDraw(k.name)
 				end
 			else
+				-- insert additional logic to Brandon's Hud Editor in order to handle GoaHud movables properly
 				local draw_error_wrapper = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 					local getMovableName = function(m)
 						return m.widget.widgetName .. "_" .. m.movable.name
@@ -2290,7 +2291,7 @@ function GoaHud:GoaHud_HookErrorFunctions()
 						consolePrint(string.format("lua (%s): %s", k.name, tostring(err)), true)
 
 						-- disable future draw calls
-						GoaHud_SetWidgetDraw(widget_table, function() end)
+						widget_table.draw = function() end
 					end
 				end
 
