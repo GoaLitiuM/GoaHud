@@ -3,6 +3,8 @@
 -- Main module for GoaHud and GoaHud widgets
 --
 
+local GoaHud_Version = 49
+
 --[[
 GoaHud_Addon =
 {
@@ -2451,6 +2453,10 @@ function GoaHud:getFont(font, bold, italics)
 	end
 
 	return face
+end
+
+function GoaHud_GetVersionPretty()
+    return "r" .. GoaHud_Version
 end
 
 --
