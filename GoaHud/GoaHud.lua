@@ -3,6 +3,8 @@
 -- Main module for GoaHud and GoaHud widgets
 --
 
+require "base/internal/ui/reflexcore"
+
 local GoaHud_Version = 49
 
 --[[
@@ -68,8 +70,6 @@ function GoaHud_Addon:drawOptionsVariable(varname, x, y, optargs)
 function GoaHud_Addon:addMovableElement(movable, movable_draw)
 
 --]]
-
-require "base/internal/ui/reflexcore"
 
 GoaHud =
 {

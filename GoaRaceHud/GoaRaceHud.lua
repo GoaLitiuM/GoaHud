@@ -3,6 +3,8 @@
 -- Race hud inspired by the HUD used in DeFRaG World Cup 2017 movie.
 --
 
+require "base/internal/ui/reflexcore"
+
 function clone(t)
     if type(t) ~= "table" then return t end
     local meta = getmetatable(t)

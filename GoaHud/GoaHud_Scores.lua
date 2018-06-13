@@ -3,6 +3,8 @@
 -- In-match scores widget optimized for spectators and team modes.
 --
 
+require "base/internal/ui/reflexcore"
+
 GoaHud_Scores =
 {
 	canPosition = false,

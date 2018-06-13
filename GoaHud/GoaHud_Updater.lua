@@ -3,6 +3,8 @@
 -- Provides auto updates for GoaHud and GoaHud widgets
 --
 
+require "base/internal/ui/reflexcore"
+
 GoaHud_Updater =
 {
 	options =

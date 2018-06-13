@@ -3,6 +3,8 @@
 -- Brings various improvements and miscellaneous stuff to Reflex.
 --
 
+require "base/internal/ui/reflexcore"
+
 GLOBAL_COLORS_DISABLED = 1
 GLOBAL_COLORS_ENABLED = 2
 GLOBAL_COLORS_STRIP = 3
