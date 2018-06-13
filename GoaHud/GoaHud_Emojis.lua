@@ -25,6 +25,10 @@ GoaHud_EmojisCustom={
 ['arenafps']='arenafps',
 ['ramagan']='ramagan',
 ['twitch']='twitch',
+
+-- emojis supported without FlagSupport addon
+['rainbow_flag']='1F3F3-FE0F-200D-1F308',
+['gay_pride_flag']='1F3F3-FE0F-200D-1F308',
 }
 
 GoaHud_Emojis={
@@ -1278,7 +1282,6 @@ GoaHud_Emojis={
 ['railway_track']='1F6E4',
 ['rain']='1F327',
 ['rainbow']='1F308',
-['rainbow_flag']='1F3F3-FE0F-200D-1F308',
 ['raised_backhand']='1F91A',
 ['raised_hand']='270B',
 ['raised_hands']='1F64C',
