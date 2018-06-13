@@ -28,6 +28,8 @@ GoaHud_Ammo =
 		useWeaponColor = false,
 		ammoColor = Color(255, 255, 255, 255),
 		ammoColorWarning = Color(255, 0, 0, 255),
+		
+		hideInRace = true,
 
 		shadow =
 		{
@@ -45,6 +47,8 @@ GoaHud_Ammo =
 		"showTime", "fadeTime",
 		"",
 		"useWeaponColor", "ammoColor", "ammoColorWarning",
+		"",
+		"hideInRace",
 		"",
 		"shadow",
 	},
@@ -150,6 +154,7 @@ end
 
 function GoaHud_Ammo:draw()
 	if (not GoaHud:shouldShowHUD()) then return end
+	if (not GoaHud.previewMode and self.options.hideInRace and isRaceMode()) then return end
 
 	local player = getPlayer()
 	local weapon = player.weaponIndexweaponChangingTo
