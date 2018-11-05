@@ -227,6 +227,7 @@ optargs_deadspecforge =
 
 local emoji_pattern = ":([-+%w_]+):"
 local color_pattern = "%^[0-9a-zA-Z%[%]]"
+local escape_pattern = "%^[%[%]]"
 
 local Movable_defaults =
 {
@@ -2531,6 +2532,16 @@ function isFlag(text)
 	if (text == nil) then return false end
 	local text = string.lower(text)
 	return GoaHud_Flags[text] ~= nil or GoaHud_FlagsCustom[text]
+end
+
+function GoaHud_Sanitize(text)
+	local sanitized = text
+	local prev
+	while (prev ~= sanitized) do
+		prev = sanitized
+		sanitized = string.gsub(sanitized, escape_pattern, "")
+	end
+	return sanitized
 end
 
 function nvgTextBoundsEmoji(text, optargs)

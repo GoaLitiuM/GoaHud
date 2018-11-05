@@ -352,7 +352,7 @@ function GoaHud_Chat:onLog(entry)
 	local msg_type = CHAT_TYPE_REGULAR
 	if (entry.type == LOG_TYPE_CHATMESSAGE) then
 		local prefix = ""
-		local source = entry.chatPlayer
+		local source = clone(entry.chatPlayer)
 
 		if (entry.chatType == LOG_CHATTYPE_TEAM) then
 			msg_type = CHAT_TYPE_TEAM
@@ -389,12 +389,18 @@ function GoaHud_Chat:onLog(entry)
 			end
 		end
 
+		local content = clone(entry.chatMessage)
+
+		source = GoaHud_Sanitize(source)
+		content = GoaHud_Sanitize(content)
 		msg =
 		{
 			source = prefix .. source,
-			content = clone(entry.chatMessage),
+			content = content,
 			chatType = entry.chatType,
 		}
+
+
 	elseif (entry.type == LOG_TYPE_NOTIFICATION) then
 		msg_type = CHAT_TYPE_NOTIFICATION
 
@@ -409,19 +415,19 @@ function GoaHud_Chat:onLog(entry)
 		local renamed_player_old, renamed_content, renamed_player_new = string.match(entry.notification, '^player (.*) (renamed to) (.*)')
 
 		if (joined_player and joined_content) then
-			content = string.format("^[%s^] %s", joined_player, joined_content)
+			content = string.format("^[%s^] %s", GoaHud_Sanitize(joined_player), joined_content)
 		elseif (spectating_player and spectating_content) then
-			content = string.format("^[%s^] %s", spectating_player, spectating_content)
+			content = string.format("^[%s^] %s", GoaHud_Sanitize(spectating_player), spectating_content)
 		elseif (disconnected_player and disconnected_content) then
-			content = string.format("^[%s^] %s", disconnected_player, disconnected_content)
+			content = string.format("^[%s^] %s", GoaHud_Sanitize(disconnected_player), disconnected_content)
 		elseif (editor_player and editor_content) then
-			content = string.format("^[%s^] %s", editor_player, editor_content)
+			content = string.format("^[%s^] %s", GoaHud_Sanitize(editor_player), editor_content)
 		elseif (referee_player and referee_content) then
-			content = string.format("^[%s^] %s", referee_player, referee_content)
+			content = string.format("^[%s^] %s", GoaHud_Sanitize(referee_player), referee_content)
 		elseif (unreferee_player and unreferee_content) then
-			content = string.format("^[%s^] %s", unreferee_player, unreferee_content)
+			content = string.format("^[%s^] %s", GoaHud_Sanitize(unreferee_player), unreferee_content)
 		elseif (renamed_player_old and renamed_content and renamed_player_new) then
-			content = string.format("player ^[%s^] %s ^[%s^]", renamed_player_old, renamed_content, renamed_player_new)
+			content = string.format("player ^[%s^] %s ^[%s^]", GoaHud_Sanitize(renamed_player_old), renamed_content, GoaHud_Sanitize(renamed_player_new))
 		end
 
 		msg =
@@ -454,9 +460,9 @@ function GoaHud_Chat:onLog(entry)
 
 		local content
 		if (quantity > 1) then
-			content = string.format("^[%s^] received items: %dx %s!", player_name, quantity, item)
+			content = string.format("^[%s^] received items: %dx %s!", GoaHud_Sanitize(player_name), quantity, item)
 		else
-			content = string.format("^[%s^] received item: %s!", player_name, item)
+			content = string.format("^[%s^] received item: %s!", GoaHud_Sanitize(player_name), item)
 		end
 
 		msg =
@@ -473,7 +479,7 @@ function GoaHud_Chat:onLog(entry)
 
 			msg =
 			{
-				content = string.format("^[%s^] finished race in %s", entry.raceName, FormatTimeToDecimalTime(entry.raceTime)),
+				content = string.format("^[%s^] finished race in %s", GoaHud_Sanitize(entry.raceName), FormatTimeToDecimalTime(entry.raceTime)),
 				bold = true,
 			}
 		end
