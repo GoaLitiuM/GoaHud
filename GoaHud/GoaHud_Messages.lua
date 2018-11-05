@@ -380,11 +380,16 @@ function GoaHud_Messages:drawWarmupText()
 	nvgFontFace(GoaHud:getFont(self.options.font))
 	nvgFontSize(self.options.warmupFontSize)
 	nvgFillColor(Color(255,255,255,200))
-	
+
 	local local_player = getLocalPlayer()
 
 	GoaHud:drawTextWithShadow(0, 0, warmup_text, self.options.shadow)
-	if (world.mapName ~= "forge" and not local_player.ready and local_player.state ~= PLAYER_STATE_SPECTATOR and self.options.notReadyColor.a > 0) then
+	if (world.mapName ~= "forge"
+		and not local_player.ready
+		and local_player.state ~= PLAYER_STATE_SPECTATOR
+		and self.options.notReadyColor.a > 0
+		and not world.isMatchmakingLobby) then
+
 		local ready_key = bindReverseLookup("ready", "game")
 		local ready_toggle_key = bindReverseLookup("ui_goahud_toggleready 1", "game")
 
