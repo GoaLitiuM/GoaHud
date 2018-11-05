@@ -5,7 +5,7 @@
 
 require "base/internal/ui/reflexcore"
 
-local GoaHud_Version = 50
+local GoaHud_Version = 51
 
 --[[
 GoaHud_Addon =
