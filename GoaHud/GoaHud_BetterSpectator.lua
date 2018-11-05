@@ -241,7 +241,7 @@ function GoaHud_BetterSpectator:onLog(entry)
 		end
 
 		if (not isRaceOrTrainingMode()) then
-			if (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_KILLER and string.len(entry.deathKiller) > 0) then
+			if (self.options.autoSpectateMode == SPECTATE_MODE_FOLLOW_KILLER and string.len(entry.deathKiller) > 0 and entry.deathKilled ~= entry.deathKiller) then
 				local killer_index = -1
 				for i, p in pairs(players) do
 					if (p.name == entry.deathKiller) then
