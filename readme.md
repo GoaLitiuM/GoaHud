@@ -1,5 +1,5 @@
 ### GoaHud in Steam Workshop:
-* [GoaHud](https://steamcommunity.com/sharedfiles/filedetails/?id=1312095525)
+* [GoaHud](https://steamcommunity.com/sharedfiles/filedetails/?id=884406684)
 * [GoaRaceHud](https://steamcommunity.com/sharedfiles/filedetails/?id=1312095525)
 
 ### Other Recommended Widgets:
