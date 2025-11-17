@@ -26,6 +26,7 @@ GoaHud_EmojisCustom={
 ['ramagan']='ramagan',
 ['twitch']='twitch',
 ['shovel']='shovel',
+['shooter']='shooter',
 
 -- emojis supported without FlagSupport addon
 ['rainbow_flag']='1F3F3-FE0F-200D-1F308',
