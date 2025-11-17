@@ -5,7 +5,7 @@
 
 require "base/internal/ui/reflexcore"
 
-local GoaHud_Version = 51
+local GoaHud_Version = 52
 
 --[[
 GoaHud_Addon =
@@ -1284,6 +1284,7 @@ end
 function nvgTextColor(x, y, text, optargs)
 	if (text == nil or string.len(text) == 0) then return end
 	local optargs = optargs
+	if (type(optargs) ~= "table") then optargs = nil end
 	if (optargs and optargs.ignoreColorCodes) then return nvgText_real(x, y, text) end
 	if (optargs and optargs.stripColorCodes) then return nvgText_real(x, y, string.gsub(text, color_pattern, "")) end
 
@@ -1351,6 +1352,8 @@ end
 -- adapted from EmojiChat drawTextWithEmojis with configurable emoji size and proper icon center offset
 function nvgTextEmoji(x, y, text, optargs)
 	if (text == nil or string.len(text) == 0) then return end
+	local optargs = optargs
+	if (type(optargs) ~= "table") then optargs = nil end
 	if (optargs and optargs.ignoreEmojis) then return nvgTextColor(x, y, text, optargs) end
 
 	local emoji_size = nil
@@ -1401,7 +1404,7 @@ function nvgTextEmoji(x, y, text, optargs)
 end
 
 function nvgTextStrip(x, y, text, optargs)
-	return nvgText_real(x, y, string.gsub(text, color_pattern, ""), optargs)
+	return nvgText_real(x, y, string.gsub(text, color_pattern, ""))
 end
 
 function nvgSvgEmojiFlags(svg, x, y, radius, blur)
@@ -2547,6 +2550,7 @@ end
 function nvgTextBoundsEmoji(text, optargs)
 	local emoji_size = nil
 	local strip_color = nil
+	if (type(optargs) ~= "table") then optargs = nil end
 	if (optargs) then
 		emoji_size = optargs.emojiSize
 		strip_color = optargs.stripColorCodes
@@ -2591,12 +2595,13 @@ function nvgTextBoundsEmoji(text, optargs)
 end
 
 function nvgTextBoundsStrip(text, optargs)
-	return nvgTextBounds_real(string.gsub(text, color_pattern, ""), optargs)
+	return nvgTextBounds_real(string.gsub(text, color_pattern, ""))
 end
 
 function nvgTextWidthEmoji(text, optargs)
 	local emoji_size = nil
 	local strip_color = nil
+	if (type(optargs) ~= "table") then optargs = nil end
 	if (optargs) then
 		emoji_size = optargs.emojiSize
 		strip_color = optargs.stripColorCodes
@@ -2635,7 +2640,7 @@ function nvgTextWidthEmoji(text, optargs)
 end
 
 function nvgTextWidthStrip(text, optargs)
-	return nvgTextWidth_real(string.gsub(text, color_pattern, ""), optargs)
+	return nvgTextWidth_real(string.gsub(text, color_pattern, ""))
 end
 
 function string.lenColor(text)
