@@ -1,5 +1,3 @@
-Thread in Reflex Arena forums: http://forums.reflexarena.com/index.php?/topic/4360-goahud-minimal-animated-hud/
-
 Some highlighted features:
 - Smoothly animated health, armor, ammo numbers and weapon crosshairs
 - Customizable per-weapon crosshairs
